@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Turno extends Model
+{
+    protected $fillable = [
+        'cliente_id',
+        'colaboradora_id',
+        'titulo',
+        'detalle',
+        'inicio',
+        'fin',
+        'estado',
+    ];
+
+    protected $casts = [
+        'inicio' => 'datetime',
+        'fin' => 'datetime',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function colaboradora()
+    {
+        return $this->belongsTo(Colaboradora::class);
+    }
+}
