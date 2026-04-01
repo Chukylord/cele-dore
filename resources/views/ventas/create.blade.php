@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Venta - Peluquería TOP')
+@section('title', 'Nueva Venta - Vir Tisone Studio')
 @section('h1', 'Nueva Venta')
 @section('sub', 'Ingresar venta de servicios y/o productos.')
 
@@ -70,7 +70,7 @@
                 </div>
             </div>
 
-            {{-- CLIENTE + NOTAS (mismo renglón) --}}
+            {{-- CLIENTE + NOTAS --}}
             <div id="box_cliente" class="md:col-span-3">
                 <label class="text-sm font-semibold text-slate-200">Cliente *</label>
 
@@ -132,7 +132,7 @@
         </button>
     </div>
 
-    {{-- PANEL SERVICIOS (pantalla completa) --}}
+    {{-- PANEL SERVICIOS --}}
     <div id="panelServicios" class="mt-4 rounded-2xl border bg-white">
         <div class="p-4 border-b flex items-center justify-between">
             <div>
@@ -165,7 +165,7 @@
         </div>
     </div>
 
-    {{-- PANEL PRODUCTOS (pantalla completa) --}}
+    {{-- PANEL PRODUCTOS --}}
     <div id="panelProductos" class="mt-4 rounded-2xl border bg-white hidden">
         <div class="p-4 border-b flex items-center justify-between">
             <div>
@@ -178,20 +178,43 @@
             </button>
         </div>
 
-        <div class="p-4 overflow-x-auto">
-            <table class="min-w-full bg-white" id="tablaProductos">
-                <thead class="bg-slate-100 text-slate-700">
-                <tr>
-                    <th class="text-left px-3 py-2 text-sm font-semibold">Producto</th>
-                    <th class="text-left px-3 py-2 text-sm font-semibold">Stock</th>
-                    <th class="text-left px-3 py-2 text-sm font-semibold">Cant.</th>
-                    <th class="text-left px-3 py-2 text-sm font-semibold">Unit.</th>
-                    <th class="text-left px-3 py-2 text-sm font-semibold">Subtotal</th>
-                    <th class="text-right px-3 py-2 text-sm font-semibold">Quitar</th>
-                </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <div class="p-4">
+            {{-- ESCANEAR PRODUCTO --}}
+            <div class="mb-4 rounded-2xl border bg-slate-50 p-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label class="text-sm font-semibold text-slate-700">Escanear producto</label>
+                        <input id="scan_producto"
+                               type="text"
+                               autocomplete="off"
+                               placeholder="Hacé click acá y escaneá el código..."
+                               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+                        <div class="text-xs text-slate-500 mt-1">
+                            Si el producto ya está agregado, suma 1 a la cantidad.
+                        </div>
+                    </div>
+
+                    <div class="text-sm text-slate-500">
+                        El lector funciona como teclado y completa este campo automáticamente.
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white" id="tablaProductos">
+                    <thead class="bg-slate-100 text-slate-700">
+                    <tr>
+                        <th class="text-left px-3 py-2 text-sm font-semibold">Producto</th>
+                        <th class="text-left px-3 py-2 text-sm font-semibold">Stock</th>
+                        <th class="text-left px-3 py-2 text-sm font-semibold">Cant.</th>
+                        <th class="text-left px-3 py-2 text-sm font-semibold">Unit.</th>
+                        <th class="text-left px-3 py-2 text-sm font-semibold">Subtotal</th>
+                        <th class="text-right px-3 py-2 text-sm font-semibold">Quitar</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
 
             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div class="rounded-xl border bg-slate-50 p-3 flex items-center justify-between">
@@ -207,7 +230,7 @@
         </div>
     </div>
 
-    {{-- TOTAL + ACCIONES (una sola banda larga) --}}
+    {{-- TOTAL + ACCIONES --}}
     <div class="mt-6 rounded-2xl border bg-slate-900 text-white p-4">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="flex-1">
@@ -248,7 +271,7 @@
         </div>
     </div>
 
-    {{-- MODAL DESCUENTO (igual concepto, lo conectamos con controller después) --}}
+    {{-- MODAL DESCUENTO --}}
     <div id="modalDescuento" class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
         <div class="w-full max-w-3xl bg-white rounded-2xl shadow p-5">
             <div class="flex items-start justify-between gap-4">
@@ -295,18 +318,23 @@
 
 </form>
 
+{{-- TOAST PRODUCTO AGREGADO --}}
+<div id="toastProductoAgregado"
+     class="fixed top-5 right-5 z-[9999] hidden rounded-2xl bg-green-600 text-white px-4 py-3 shadow-xl">
+    Producto agregado
+</div>
+
 @php
-    // Mapas para datalist -> id
     $clientesMap = [];
     foreach ($clientes as $cl) {
         $clientesMap[$cl->apellido.' '.$cl->nombre.' - '.$cl->telefono] = $cl->id;
     }
+
     $colabsMap = [];
     foreach ($colaboradoras as $c) {
         $colabsMap[$c->apellido.' '.$c->nombre] = $c->id;
     }
 
-    // Servicios para datalist (label -> id) + precio
     $serviciosMap = [];
     $serviciosPrecio = [];
     foreach ($servicios as $s) {
@@ -314,18 +342,25 @@
         $serviciosPrecio[$s->id] = (float)$s->precio;
     }
 
-    // Productos para datalist (label -> id) + manual/costo/stock
     $productosMap = [];
     $productosData = [];
+    $productosBarcodeMap = [];
+
     foreach ($productos as $p) {
         $label = trim(($p->marca.' - '.$p->tipo.' '.$p->contenido));
         $productosMap[$label] = $p->id;
+
         $productosData[$p->id] = [
             'label' => $label,
             'precio_manual' => (float)$p->precio_venta,
             'ultimo_costo' => $p->ultimo_costo !== null ? (float)$p->ultimo_costo : null,
             'stock_venta' => (int)$p->stock_venta,
+            'codigo_barra' => $p->codigo_barra,
         ];
+
+        if (!empty($p->codigo_barra)) {
+            $productosBarcodeMap[(string)$p->codigo_barra] = $p->id;
+        }
     }
 @endphp
 
@@ -338,11 +373,25 @@ const SERVICIOS_PRECIO = @json($serviciosPrecio);
 
 const PRODUCTOS_MAP = @json($productosMap);
 const PRODUCTOS_DATA = @json($productosData);
+const PRODUCTOS_BARCODE_MAP = @json($productosBarcodeMap);
 
-function round2(n){ return Math.round((Number(n)+Number.EPSILON)*100)/100; }
+function round2(n){ return Math.round((Number(n) + Number.EPSILON) * 100) / 100; }
 function money(n){
     n = round2(n);
     return '$' + n.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function mostrarToastProductoAgregado(texto = 'Producto agregado'){
+    const toast = document.getElementById('toastProductoAgregado');
+    if(!toast) return;
+
+    toast.textContent = texto;
+    toast.classList.remove('hidden');
+
+    clearTimeout(window._toastProductoTimeout);
+    window._toastProductoTimeout = setTimeout(() => {
+        toast.classList.add('hidden');
+    }, 1600);
 }
 
 function getMetodo(){ return document.getElementById('metodo_pago').value; }
@@ -375,7 +424,6 @@ function precioUnitarioVenta(pid, metodo){
         return round2(metodo === 'tarjeta' ? costo * 1.60 : costo * 1.40);
     }
 
-    // sin compras: efectivo = manual; tarjeta = (manual/1.4)*1.6
     if(metodo === 'tarjeta') return round2((p.precio_manual / 1.40) * 1.60);
     return round2(p.precio_manual);
 }
@@ -385,10 +433,9 @@ function precioUnitarioCosto(pid){
     if(!p) return 0;
     const costo = p.ultimo_costo;
     if(costo !== null) return round2(costo);
-    return round2(p.precio_manual / 1.40); // estimado costo
+    return round2(p.precio_manual / 1.40);
 }
 
-// Descuento (guardamos porcentaje por item en hidden; el controller lo aplicará)
 function getDescPct(tr){
     return Number(tr.querySelector('input.desc-pct')?.value || 0);
 }
@@ -397,78 +444,124 @@ function applyDesc(valor, pct){
 }
 
 function recalcular(){
-    // Servicios
     let subServ = 0;
+
     document.querySelectorAll('#tablaServicios tbody tr').forEach(tr => {
         const precio = Number(tr.querySelector('input.precio-serv')?.value || 0);
         const desc = getDescPct(tr);
         const precioFinal = applyDesc(precio, desc);
-        tr.querySelector('.precio-show').textContent = money(precioFinal);
+
+        const precioShow = tr.querySelector('.precio-show');
+        if(precioShow){
+            precioShow.textContent = money(precioFinal);
+        }
+
         subServ += precioFinal;
     });
-    subServ = round2(subServ);
-    document.getElementById('subtotalServicios').textContent = money(subServ);
 
-    // Productos
+    subServ = round2(subServ);
+    const subtotalServiciosEl = document.getElementById('subtotalServicios');
+    if(subtotalServiciosEl){
+        subtotalServiciosEl.textContent = money(subServ);
+    }
+
     let subProdMetodo = 0;
 
     document.querySelectorAll('#tablaProductos tbody tr').forEach(tr => {
-        const input = tr.querySelector('input.prod-text');
         const hid = tr.querySelector('input.prod-id');
-        const pid = hid.value ? Number(hid.value) : 0;
+        const pid = hid && hid.value ? Number(hid.value) : 0;
         const qty = Number(tr.querySelector('input.cant')?.value || 0);
         const desc = getDescPct(tr);
 
         const stockCell = tr.querySelector('.stock');
-        const unitCell = tr.querySelector('.unit');
+        const unitCell = tr.querySelector('.unit-main');
+        const unitFinalCell = tr.querySelector('.unit-final');
         const subCell = tr.querySelector('.sub');
 
         if(!pid || qty <= 0){
-            stockCell.textContent = '-';
-            unitCell.textContent = '-';
-            subCell.textContent  = '-';
+            if(stockCell) stockCell.textContent = '-';
+            if(unitCell) unitCell.textContent = '-';
+            if(unitFinalCell) unitFinalCell.textContent = '';
+            if(subCell) subCell.textContent = '-';
             return;
         }
 
         const p = PRODUCTOS_DATA[pid];
         const stock = Number(p.stock_venta || 0);
-        stockCell.textContent = stock;
+        if(stockCell) stockCell.textContent = stock;
 
-        // colaboradora compra a costo
-        let unit = 0;
+        let unitOriginal = 0;
         if(esClienteColab()){
-            unit = precioUnitarioCosto(pid);
+            unitOriginal = precioUnitarioCosto(pid);
         } else {
-            unit = precioUnitarioVenta(pid, getMetodo());
+            unitOriginal = precioUnitarioVenta(pid, getMetodo());
         }
 
-        unit = applyDesc(unit, desc);
+        const unitFinal = applyDesc(unitOriginal, desc);
+        const sub = round2(unitFinal * qty);
 
-        const sub = round2(unit * qty);
-        unitCell.textContent = money(unit);
-        subCell.textContent  = money(sub);
+        if(unitCell) unitCell.textContent = money(unitOriginal);
 
-        // aviso stock (solo visual)
-        stockCell.classList.toggle('text-red-700', qty > stock);
-        stockCell.classList.toggle('font-bold', qty > stock);
+        if(unitFinalCell){
+            if(desc > 0){
+                unitFinalCell.textContent = 'Final: ' + money(unitFinal);
+            } else {
+                unitFinalCell.textContent = '';
+            }
+        }
+
+        if(subCell) subCell.textContent = money(sub);
+
+        if(stockCell){
+            stockCell.classList.toggle('text-red-700', qty > stock);
+            stockCell.classList.toggle('font-bold', qty > stock);
+        }
 
         subProdMetodo += sub;
     });
 
     subProdMetodo = round2(subProdMetodo);
-    document.getElementById('subtotalProductos').textContent = money(subProdMetodo);
+    const subtotalProductosEl = document.getElementById('subtotalProductos');
+    if(subtotalProductosEl){
+        subtotalProductosEl.textContent = money(subProdMetodo);
+    }
 
-    // Comisión
     const pct = vendedoraPct();
+    let baseComision = 0;
+
+    if(!esClienteColab() && pct > 0){
+        document.querySelectorAll('#tablaProductos tbody tr').forEach(tr => {
+            const hid = tr.querySelector('input.prod-id');
+            const pid = hid && hid.value ? Number(hid.value) : 0;
+            const qty = Number(tr.querySelector('input.cant')?.value || 0);
+            const desc = getDescPct(tr);
+
+            if(!pid || qty <= 0) return;
+
+            const unitEfectivo = precioUnitarioVenta(pid, 'efectivo');
+            const unitEfectivoFinal = applyDesc(unitEfectivo, desc);
+
+            baseComision += round2(unitEfectivoFinal * qty);
+        });
+    }
+
+    baseComision = round2(baseComision);
+
     let comision = 0;
     if(!esClienteColab() && pct > 0){
-        comision = round2(subProdMetodo * (pct/100));
+        comision = round2(baseComision * (pct/100));
     }
-    document.getElementById('montoComision').textContent = money(comision);
 
-    // Total final (único)
+    const montoComisionEl = document.getElementById('montoComision');
+    if(montoComisionEl){
+        montoComisionEl.textContent = money(comision);
+    }
+
     const total = round2(subServ + subProdMetodo);
-    document.getElementById('totalFinal').textContent = money(total);
+    const totalFinalEl = document.getElementById('totalFinal');
+    if(totalFinalEl){
+        totalFinalEl.textContent = money(total);
+    }
 }
 
 function addServicioRow(){
@@ -480,9 +573,9 @@ function addServicioRow(){
 
     tr.innerHTML = `
         <td class="px-3 py-2">
-            <input list="dl_servicios" class="serv-text w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+            <input list="dl_servicios_${idx}" class="serv-text w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
                    placeholder="Escribí para buscar...">
-            <datalist id="dl_servicios">
+            <datalist id="dl_servicios_${idx}">
                 ${Object.keys(SERVICIOS_MAP).map(n => `<option value="${n}"></option>`).join('')}
             </datalist>
 
@@ -503,21 +596,24 @@ function addServicioRow(){
         </td>
 
         <td class="px-3 py-2 text-right">
-            <button type="button" class="rounded-xl border px-3 py-1 hover:bg-slate-50">🗑️</button>
+            <button type="button" class="btn-remove-servicio rounded-xl border px-3 py-1 hover:bg-slate-50">🗑️</button>
         </td>
     `;
 
-    const inputText = tr.querySelector('input.serv-text');
-    const inputId = tr.querySelector('input.serv-id');
-    const precioInput = tr.querySelector('input.precio-serv');
+    const inputText = tr.querySelector('.serv-text');
+    const inputId = tr.querySelector('.serv-id');
+    const precioInput = tr.querySelector('.precio-serv');
+    const removeBtn = tr.querySelector('.btn-remove-servicio');
 
     const setServicio = () => {
         const v = (inputText.value || '').trim();
         const sid = SERVICIOS_MAP[v] ? Number(SERVICIOS_MAP[v]) : 0;
         inputId.value = sid ? String(sid) : '';
+
         if(sid && SERVICIOS_PRECIO[sid] !== undefined){
             precioInput.value = String(SERVICIOS_PRECIO[sid]);
         }
+
         recalcular();
     };
 
@@ -525,13 +621,16 @@ function addServicioRow(){
     inputText.addEventListener('blur', setServicio);
     precioInput.addEventListener('input', recalcular);
 
-    tr.querySelector('button').addEventListener('click', () => { tr.remove(); recalcular(); });
+    removeBtn.addEventListener('click', () => {
+        tr.remove();
+        recalcular();
+    });
 
     tbody.appendChild(tr);
     recalcular();
 }
 
-function addProductoRow(){
+function addProductoRow(prefillPid = null, prefillQty = 1){
     const tbody = document.querySelector('#tablaProductos tbody');
     const idx = tbody.children.length;
 
@@ -540,9 +639,9 @@ function addProductoRow(){
 
     tr.innerHTML = `
         <td class="px-3 py-2">
-            <input list="dl_productos" class="prod-text w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+            <input list="dl_productos_${idx}" class="prod-text w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
                    placeholder="Escribí para buscar...">
-            <datalist id="dl_productos">
+            <datalist id="dl_productos_${idx}">
                 ${Object.keys(PRODUCTOS_MAP).map(n => `<option value="${n}"></option>`).join('')}
             </datalist>
 
@@ -553,21 +652,26 @@ function addProductoRow(){
         <td class="px-3 py-2 stock">-</td>
 
         <td class="px-3 py-2">
-            <input name="productos[${idx}][cantidad]" type="number" min="1" value="1"
+            <input name="productos[${idx}][cantidad]" type="number" min="1" value="${prefillQty}"
                    class="cant w-24 rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500" />
         </td>
 
-        <td class="px-3 py-2 unit">-</td>
+        <td class="px-3 py-2 unit">
+            <div class="unit-main">-</div>
+            <div class="unit-final text-xs text-slate-500 mt-1"></div>
+        </td>
+
         <td class="px-3 py-2 sub">-</td>
 
         <td class="px-3 py-2 text-right">
-            <button type="button" class="rounded-xl border px-3 py-1 hover:bg-slate-50">🗑️</button>
+            <button type="button" class="btn-remove-producto rounded-xl border px-3 py-1 hover:bg-slate-50">🗑️</button>
         </td>
     `;
 
-    const inputText = tr.querySelector('input.prod-text');
-    const inputId = tr.querySelector('input.prod-id');
-    const qtyInput = tr.querySelector('input.cant');
+    const inputText = tr.querySelector('.prod-text');
+    const inputId = tr.querySelector('.prod-id');
+    const qtyInput = tr.querySelector('.cant');
+    const removeBtn = tr.querySelector('.btn-remove-producto');
 
     const setProducto = () => {
         const v = (inputText.value || '').trim();
@@ -580,20 +684,65 @@ function addProductoRow(){
     inputText.addEventListener('blur', setProducto);
     qtyInput.addEventListener('input', recalcular);
 
-    tr.querySelector('button').addEventListener('click', () => { tr.remove(); recalcular(); });
+    removeBtn.addEventListener('click', () => {
+        tr.remove();
+        recalcular();
+    });
 
     tbody.appendChild(tr);
+
+    if (prefillPid && PRODUCTOS_DATA[prefillPid]) {
+        inputText.value = PRODUCTOS_DATA[prefillPid].label;
+        inputId.value = String(prefillPid);
+    }
+
     recalcular();
+}
+
+function agregarProductoPorCodigo(codigo){
+    const codigoLimpio = String(codigo || '').trim();
+    if (!codigoLimpio) return;
+
+    const pid = PRODUCTOS_BARCODE_MAP[codigoLimpio] ? Number(PRODUCTOS_BARCODE_MAP[codigoLimpio]) : 0;
+
+    if (!pid) {
+        alert('No existe un producto con ese código de barras.');
+        return;
+    }
+
+    const nombreProducto = PRODUCTOS_DATA[pid]?.label || 'Producto';
+
+    const filas = Array.from(document.querySelectorAll('#tablaProductos tbody tr'));
+    const filaExistente = filas.find(tr => {
+        const hid = tr.querySelector('.prod-id');
+        return hid && Number(hid.value || 0) === pid;
+    });
+
+    if (filaExistente) {
+        const qtyInput = filaExistente.querySelector('.cant');
+        const actual = Number(qtyInput.value || 0);
+        qtyInput.value = String(actual + 1);
+        recalcular();
+        mostrarToastProductoAgregado(nombreProducto + ' agregado');
+        return;
+    }
+
+    addProductoRow(pid, 1);
+    mostrarToastProductoAgregado(nombreProducto + ' agregado');
 }
 
 function toggleClienteBoxes(){
     const aColab = esClienteColab();
-    document.getElementById('box_cliente').classList.toggle('hidden', aColab);
-    document.getElementById('box_colab').classList.toggle('hidden', !aColab);
+
+    const boxCliente = document.getElementById('box_cliente');
+    const boxColab = document.getElementById('box_colab');
+
+    if(boxCliente) boxCliente.classList.toggle('hidden', aColab);
+    if(boxColab) boxColab.classList.toggle('hidden', !aColab);
+
     recalcular();
 }
 
-// Tabs
 function activarTab(tab){
     const btnS = document.getElementById('tabServicios');
     const btnP = document.getElementById('tabProductos');
@@ -601,41 +750,27 @@ function activarTab(tab){
     const panP = document.getElementById('panelProductos');
 
     if(tab === 'servicios'){
-        btnS.className = 'px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800';
-        btnP.className = 'px-4 py-2 rounded-xl border bg-white hover:bg-slate-50';
-        panS.classList.remove('hidden');
-        panP.classList.add('hidden');
+        if(btnS) btnS.className = 'px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800';
+        if(btnP) btnP.className = 'px-4 py-2 rounded-xl border bg-white hover:bg-slate-50';
+        if(panS) panS.classList.remove('hidden');
+        if(panP) panP.classList.add('hidden');
     } else {
-        btnP.className = 'px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800';
-        btnS.className = 'px-4 py-2 rounded-xl border bg-white hover:bg-slate-50';
-        panP.classList.remove('hidden');
-        panS.classList.add('hidden');
+        if(btnP) btnP.className = 'px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800';
+        if(btnS) btnS.className = 'px-4 py-2 rounded-xl border bg-white hover:bg-slate-50';
+        if(panP) panP.classList.remove('hidden');
+        if(panS) panS.classList.add('hidden');
     }
 }
 
-document.getElementById('tabServicios').addEventListener('click', () => activarTab('servicios'));
-document.getElementById('tabProductos').addEventListener('click', () => activarTab('productos'));
-
-document.getElementById('addServicio').addEventListener('click', addServicioRow);
-document.getElementById('addProducto').addEventListener('click', addProductoRow);
-
-document.getElementById('metodo_pago').addEventListener('change', recalcular);
-document.getElementById('vendedora_id').addEventListener('change', recalcular);
-document.querySelectorAll('input[name="tipo_cliente"]').forEach(r => r.addEventListener('change', toggleClienteBoxes));
-
-// Cliente datalist -> id
-bindDatalist(document.getElementById('cliente_buscar'), CLIENTES_MAP, document.getElementById('cliente_id'));
-bindDatalist(document.getElementById('colab_buscar'), COLABS_MAP, document.getElementById('cliente_colaboradora_id'));
-
-// Modal descuento (por ahora solo asigna % al hidden; controller lo aplicará)
 function abrirDescuento(){
     const contS = document.getElementById('listaDescServicios');
     const contP = document.getElementById('listaDescProductos');
-    contS.innerHTML = '';
-    contP.innerHTML = '';
+
+    if(contS) contS.innerHTML = '';
+    if(contP) contP.innerHTML = '';
 
     document.querySelectorAll('#tablaServicios tbody tr').forEach((tr, i) => {
-        const txt = tr.querySelector('input.serv-text').value || '(servicio)';
+        const txt = tr.querySelector('.serv-text')?.value || '(servicio)';
         contS.insertAdjacentHTML('beforeend', `
             <label class="flex items-center gap-2">
                 <input type="checkbox" class="chk-desc" data-target="serv" data-idx="${i}">
@@ -645,7 +780,7 @@ function abrirDescuento(){
     });
 
     document.querySelectorAll('#tablaProductos tbody tr').forEach((tr, i) => {
-        const txt = tr.querySelector('input.prod-text').value || '(producto)';
+        const txt = tr.querySelector('.prod-text')?.value || '(producto)';
         contP.insertAdjacentHTML('beforeend', `
             <label class="flex items-center gap-2">
                 <input type="checkbox" class="chk-desc" data-target="prod" data-idx="${i}">
@@ -655,47 +790,124 @@ function abrirDescuento(){
     });
 
     const m = document.getElementById('modalDescuento');
-    m.classList.remove('hidden'); m.classList.add('flex');
+    if(m){
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    }
 }
+
 function cerrarDescuento(){
     const m = document.getElementById('modalDescuento');
-    m.classList.add('hidden'); m.classList.remove('flex');
+    if(m){
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+    }
 }
+
 function aplicarDescuento(){
-    const pct = Number(document.getElementById('descuentoPct').value || 0);
+    const pct = Number(document.getElementById('descuentoPct')?.value || 0);
+
     document.querySelectorAll('.chk-desc:checked').forEach(chk => {
         const t = chk.dataset.target;
         const idx = Number(chk.dataset.idx);
 
         if(t === 'serv'){
             const tr = document.querySelectorAll('#tablaServicios tbody tr')[idx];
-            if(tr) tr.querySelector('input.desc-pct').value = String(pct);
+            if(tr) tr.querySelector('.desc-pct').value = String(pct);
         } else {
             const tr = document.querySelectorAll('#tablaProductos tbody tr')[idx];
-            if(tr) tr.querySelector('input.desc-pct').value = String(pct);
+            if(tr) tr.querySelector('.desc-pct').value = String(pct);
         }
     });
+
     recalcular();
     cerrarDescuento();
 }
 
-document.getElementById('btnDescuento').addEventListener('click', abrirDescuento);
-document.getElementById('closeDescuento').addEventListener('click', cerrarDescuento);
-document.getElementById('aplicarDescuento').addEventListener('click', aplicarDescuento);
-document.getElementById('selTodo').addEventListener('change', function(){
-    const on = this.checked;
-    document.querySelectorAll('.chk-desc').forEach(c => c.checked = on);
-});
-document.getElementById('modalDescuento').addEventListener('click', function(e){
-    if(e.target === this) cerrarDescuento();
-});
+document.addEventListener('DOMContentLoaded', function () {
+    const tabServicios = document.getElementById('tabServicios');
+    const tabProductos = document.getElementById('tabProductos');
+    const addServicio = document.getElementById('addServicio');
+    const addProducto = document.getElementById('addProducto');
+    const metodoPago = document.getElementById('metodo_pago');
+    const vendedoraId = document.getElementById('vendedora_id');
+    const btnDescuento = document.getElementById('btnDescuento');
+    const closeDescuento = document.getElementById('closeDescuento');
+    const aplicarDescuentoBtn = document.getElementById('aplicarDescuento');
+    const selTodo = document.getElementById('selTodo');
+    const modalDescuento = document.getElementById('modalDescuento');
+    const scanProducto = document.getElementById('scan_producto');
 
-// Inicial
-activarTab('servicios');
-toggleClienteBoxes();
-addServicioRow();
-addProductoRow();
-recalcular();
+    if(tabServicios) tabServicios.addEventListener('click', () => activarTab('servicios'));
+    if(tabProductos) tabProductos.addEventListener('click', () => activarTab('productos'));
+    if(addServicio) addServicio.addEventListener('click', addServicioRow);
+    if(addProducto) addProducto.addEventListener('click', () => addProductoRow());
+    if(metodoPago) metodoPago.addEventListener('change', recalcular);
+    if(vendedoraId) vendedoraId.addEventListener('change', recalcular);
+
+    document.querySelectorAll('input[name="tipo_cliente"]').forEach(r => {
+        r.addEventListener('change', toggleClienteBoxes);
+    });
+
+    const clienteBuscar = document.getElementById('cliente_buscar');
+    const clienteId = document.getElementById('cliente_id');
+    const colabBuscar = document.getElementById('colab_buscar');
+    const clienteColabId = document.getElementById('cliente_colaboradora_id');
+
+    if(clienteBuscar && clienteId){
+        bindDatalist(clienteBuscar, CLIENTES_MAP, clienteId);
+    }
+
+    if(colabBuscar && clienteColabId){
+        bindDatalist(colabBuscar, COLABS_MAP, clienteColabId);
+    }
+
+    if(btnDescuento) btnDescuento.addEventListener('click', abrirDescuento);
+    if(closeDescuento) closeDescuento.addEventListener('click', cerrarDescuento);
+    if(aplicarDescuentoBtn) aplicarDescuentoBtn.addEventListener('click', aplicarDescuento);
+
+    if(selTodo){
+        selTodo.addEventListener('change', function(){
+            const on = this.checked;
+            document.querySelectorAll('.chk-desc').forEach(c => c.checked = on);
+        });
+    }
+
+    if(modalDescuento){
+        modalDescuento.addEventListener('click', function(e){
+            if(e.target === this) cerrarDescuento();
+        });
+    }
+
+    if (scanProducto) {
+        scanProducto.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const codigo = this.value;
+                if (codigo.trim() !== '') {
+                    agregarProductoPorCodigo(codigo);
+                    this.value = '';
+                    activarTab('productos');
+                }
+            }
+        });
+
+        scanProducto.addEventListener('change', function() {
+            const codigo = this.value;
+            if (codigo.trim() !== '') {
+                agregarProductoPorCodigo(codigo);
+                this.value = '';
+                activarTab('productos');
+            }
+        });
+    }
+
+    activarTab('servicios');
+    toggleClienteBoxes();
+    addServicioRow();
+    addProductoRow();
+    recalcular();
+});
 </script>
 
 @endsection

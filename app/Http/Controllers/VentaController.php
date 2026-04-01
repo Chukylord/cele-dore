@@ -326,11 +326,43 @@ class VentaController extends Controller
                 $subtotalProductos = $this->round2($subtotalProductos);
 
                 // Comisión: solo si hay vendedora y NO es compra a costo
+                // Se calcula SIEMPRE sobre el precio efectivo de los productos,
+                // aunque la venta se pague con tarjeta.
+                $baseComisionProductos = 0.0;
+
+                if (!$aColaboradora && $venta->vendedora_id) {
+                    foreach ($productosIn as $row) {
+                        $pid = (int)($row['producto_id'] ?? 0);
+                        $cant = (int)($row['cantidad'] ?? 0);
+
+                        if (!$pid || $cant <= 0) continue;
+
+                        $producto = Producto::find($pid);
+                        if (!$producto) continue;
+
+                        $ultimoCosto = $this->getUltimoCosto($pid);
+
+                        // Siempre usamos precio efectivo para la comisión
+                        $precioUnitEfectivo = $this->precioUnitarioVentaNormal(
+                            (float)$producto->precio_venta,
+                            $ultimoCosto,
+                            'efectivo'
+                        );
+
+                        $descPct = isset($row['descuento_pct']) ? (float)$row['descuento_pct'] : 0;
+                        $precioUnitEfectivoFinal = $this->applyDiscount($precioUnitEfectivo, $descPct);
+
+                        $baseComisionProductos += $this->round2($precioUnitEfectivoFinal * $cant);
+                    }
+                }
+
+                $baseComisionProductos = $this->round2($baseComisionProductos);
+
                 $comisionMonto = 0.0;
                 if (!$aColaboradora && $venta->vendedora_id) {
                     $vend = Colaboradora::find($venta->vendedora_id);
                     $pct = $vend ? (float)$vend->comision_pct : 0.0;
-                    $comisionMonto = $this->round2($subtotalProductos * ($pct / 100));
+                    $comisionMonto = $this->round2($baseComisionProductos * ($pct / 100));
                 }
 
                 $total = $this->round2($subtotalServicios + $subtotalProductos);

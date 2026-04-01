@@ -47,35 +47,38 @@ class ProveedorController extends Controller
 
         $data['nombre'] = trim($data['nombre']);
 
-        \App\Models\Proveedor::create($data);
+        Proveedor::create($data);
 
         return redirect()->route('proveedores.index')->with('ok', 'Proveedor creado correctamente.');
     }
 
     public function edit(Proveedor $proveedore)
     {
-        // Si Laravel te lo inyecta como $proveedore por plural raro, lo manejamos así:
         $proveedor = $proveedore;
         return view('proveedores.edit', compact('proveedor'));
     }
 
-    public function update(Request $request, \App\Models\Proveedor $proveedor)
-{
-    $data = $request->validate([
-        'nombre' => [
-            'required', 'string', 'max:255',
-            Rule::unique('proveedores', 'nombre')->ignore($proveedor->id),
-        ],
-    ], [
-        'nombre.unique' => 'Ese proveedor ya existe.',
-    ]);
+    public function update(Request $request, Proveedor $proveedore)
+    {
+        $proveedor = $proveedore;
 
-    $data['nombre'] = trim($data['nombre']);
+        $data = $request->validate([
+            'nombre' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('proveedores', 'nombre')->ignore($proveedor->id),
+            ],
+        ], [
+            'nombre.unique' => 'Ese proveedor ya existe.',
+        ]);
 
-    $proveedor->update($data);
+        $data['nombre'] = trim($data['nombre']);
 
-    return redirect()->route('proveedores.index')->with('ok', 'Proveedor actualizado correctamente.');
-}
+        $proveedor->update($data);
+
+        return redirect()->route('proveedores.index')->with('ok', 'Proveedor actualizado correctamente.');
+    }
 
     public function destroy(Proveedor $proveedore)
     {

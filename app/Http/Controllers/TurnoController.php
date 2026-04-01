@@ -66,7 +66,7 @@ class TurnoController extends Controller
             'colaboradora_id' => ['nullable', 'exists:colaboradoras,id'],
             'titulo' => ['nullable', 'string', 'max:255'],
             'detalle' => ['nullable', 'string'],
-            'inicio' => ['required', 'date'],
+            'inicio' => ['required', 'date', 'after_or_equal:now'],
             'fin' => ['nullable', 'date', 'after_or_equal:inicio'],
             'estado' => ['required', 'in:pendiente,confirmado,cancelado,atendido'],
         ]);

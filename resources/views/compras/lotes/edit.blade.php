@@ -55,17 +55,33 @@
     @method('PUT')
 
     <div class="rounded-2xl border bg-white p-4 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label class="text-sm font-semibold text-slate-700">Fecha *</label>
-                <input type="date" name="fecha" value="{{ old('fecha', \Carbon\Carbon::parse($lote->fecha)->format('Y-m-d')) }}"
-                       class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+                <input type="date" name="fecha"
+                    value="{{ old('fecha', \Carbon\Carbon::parse($lote->fecha)->format('Y-m-d')) }}"
+                    class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+            </div>
+
+            <div>
+                <label class="text-sm font-semibold text-slate-700">Entrega inicial</label>
+                <input type="number"
+                    step="0.01"
+                    min="0"
+                    name="entrega_inicial"
+                    value="{{ old('entrega_inicial', $entregaInicial ?? 0) }}"
+                    class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+                <p class="mt-1 text-sm text-slate-500">
+                    Corresponde al pago inicial del lote.
+                </p>
             </div>
 
             <div class="md:col-span-2">
                 <label class="text-sm font-semibold text-slate-700">Nota</label>
-                <input name="nota" value="{{ old('nota', $lote->nota) }}" placeholder="Ej: compra mayorista"
-                       class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+                <input name="nota"
+                    value="{{ old('nota', $lote->nota) }}"
+                    placeholder="Ej: compra mayorista"
+                    class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
             </div>
         </div>
     </div>

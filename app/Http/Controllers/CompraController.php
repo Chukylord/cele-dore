@@ -186,7 +186,7 @@ class CompraController extends Controller
 
     public function editLote(CompraLote $lote)
     {
-        $lote->load(['compras.proveedor', 'compras.producto']);
+        $lote->load(['compras.proveedor', 'compras.producto', 'pagos']);
 
         $proveedores = Proveedor::orderBy('nombre')->get();
 
@@ -196,7 +196,11 @@ class CompraController extends Controller
             ->orderBy('contenido')
             ->get();
 
-        return view('compras.lotes.edit', compact('lote', 'proveedores', 'productos'));
+        $entregaInicial = (float) $lote->pagos()
+            ->where('observacion', 'Entrega inicial')
+            ->value('monto');
+
+        return view('compras.lotes.edit', compact('lote', 'proveedores', 'productos', 'entregaInicial'));
     }
 
     public function updateLote(Request $request, CompraLote $lote)
@@ -204,6 +208,7 @@ class CompraController extends Controller
         $data = $request->validate([
             'fecha' => ['required', 'date'],
             'nota' => ['nullable', 'string', 'max:255'],
+            'entrega_inicial' => ['nullable', 'numeric', 'min:0'],
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.proveedor_id' => ['required', 'exists:proveedores,id'],
@@ -216,7 +221,6 @@ class CompraController extends Controller
             DB::transaction(function () use ($data, $lote) {
                 $comprasViejas = Compra::where('lote_id', $lote->id)->get();
 
-                // Revertir stock del lote viejo
                 foreach ($comprasViejas as $compraVieja) {
                     $producto = Producto::lockForUpdate()->find($compraVieja->producto_id);
 
@@ -245,21 +249,14 @@ class CompraController extends Controller
 
                 $montoTotal = round($montoTotal, 2);
 
-                $montoPagado = (float)$lote->pagos()->sum('monto');
-                if ($montoPagado > $montoTotal) {
-                    $montoPagado = $montoTotal;
-                }
-
-                $montoPagado = round($montoPagado, 2);
-
+                // actualizar cabecera
                 $lote->update([
                     'fecha' => $data['fecha'],
                     'nota' => $data['nota'] ?? null,
                     'monto_total' => $montoTotal,
-                    'monto_pagado' => $montoPagado,
-                    'estado_pago' => $this->estadoPagoCompra($montoTotal, $montoPagado),
                 ]);
 
+                // recrear líneas
                 foreach ($data['items'] as $it) {
                     Compra::create([
                         'lote_id' => $lote->id,
@@ -277,6 +274,50 @@ class CompraController extends Controller
                         $producto->save();
                     }
                 }
+
+                // manejar entrega inicial
+                $entregaInicialNueva = round((float)($data['entrega_inicial'] ?? 0), 2);
+
+                $pagoInicial = $lote->pagos()
+                    ->where('observacion', 'Entrega inicial')
+                    ->first();
+
+                if ($entregaInicialNueva > $montoTotal) {
+                    throw new \Exception('La entrega inicial no puede ser mayor al total del lote.');
+                }
+
+                if ($pagoInicial) {
+                    if ($entregaInicialNueva > 0) {
+                        $pagoInicial->update([
+                            'fecha' => $data['fecha'],
+                            'monto' => $entregaInicialNueva,
+                            'observacion' => 'Entrega inicial',
+                        ]);
+                    } else {
+                        $pagoInicial->delete();
+                    }
+                } else {
+                    if ($entregaInicialNueva > 0) {
+                        CompraPago::create([
+                            'compra_lote_id' => $lote->id,
+                            'fecha' => $data['fecha'],
+                            'monto' => $entregaInicialNueva,
+                            'observacion' => 'Entrega inicial',
+                        ]);
+                    }
+                }
+
+                // recalcular pagado total y estado
+                $nuevoPagado = round((float)$lote->pagos()->sum('monto'), 2);
+
+                if ($nuevoPagado > $montoTotal) {
+                    throw new \Exception('Los pagos registrados superan el total del lote. Ajustá la entrega inicial o los pagos cargados.');
+                }
+
+                $lote->update([
+                    'monto_pagado' => $nuevoPagado,
+                    'estado_pago' => $this->estadoPagoCompra($montoTotal, $nuevoPagado),
+                ]);
             });
         } catch (\Exception $e) {
             return back()->withInput()->with('ok', $e->getMessage());
@@ -321,33 +362,30 @@ class CompraController extends Controller
 
     public function storePago(Request $request, CompraLote $lote)
     {
+        $saldo = round((float)$lote->monto_total - (float)$lote->monto_pagado, 2);
+
         $data = $request->validate([
             'fecha' => ['required', 'date'],
-            'monto' => ['required', 'numeric', 'min:0.01'],
+            'monto' => ['required', 'numeric', 'min:0.01', 'max:' . $saldo],
             'observacion' => ['nullable', 'string', 'max:255'],
+        ], [
+            'monto.max' => 'El monto ingresado no puede ser mayor al saldo pendiente ($' . number_format($saldo, 2, ',', '.') . ').',
         ]);
 
-        $saldo = (float)$lote->monto_total - (float)$lote->monto_pagado;
-        $monto = min((float)$data['monto'], max($saldo, 0));
-
-        if ($monto <= 0) {
-            return redirect()->route('compras.lotes.show', $lote)->with('ok', 'Ese lote ya está pagado.');
+        if ($saldo <= 0) {
+            return redirect()->route('compras.lotes.show', $lote)
+                ->with('ok', 'Ese lote ya está pagado.');
         }
 
-        DB::transaction(function () use ($data, $lote, $monto) {
+        DB::transaction(function () use ($data, $lote) {
             CompraPago::create([
                 'compra_lote_id' => $lote->id,
                 'fecha' => $data['fecha'],
-                'monto' => round($monto, 2),
+                'monto' => round((float)$data['monto'], 2),
                 'observacion' => $data['observacion'] ?? null,
             ]);
 
-            $nuevoPagado = min(
-                (float)$lote->monto_total,
-                (float)$lote->monto_pagado + $monto
-            );
-
-            $nuevoPagado = round($nuevoPagado, 2);
+            $nuevoPagado = round((float)$lote->pagos()->sum('monto'), 2);
 
             $lote->update([
                 'monto_pagado' => $nuevoPagado,
@@ -355,6 +393,7 @@ class CompraController extends Controller
             ]);
         });
 
-        return redirect()->route('compras.lotes.show', $lote)->with('ok', 'Pago registrado correctamente.');
+        return redirect()->route('compras.lotes.show', $lote)
+            ->with('ok', 'Pago registrado correctamente.');
     }
 }

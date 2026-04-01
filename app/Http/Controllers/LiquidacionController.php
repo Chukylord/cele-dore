@@ -16,13 +16,48 @@ class LiquidacionController extends Controller
         return round((float)$n, 2);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $liquidaciones = Liquidacion::with('colaboradora')
-            ->orderBy('fecha_pago', 'desc')
-            ->paginate(10);
+        $desde = trim((string) $request->get('desde', ''));
+        $hasta = trim((string) $request->get('hasta', ''));
+        $colaboradora_id = trim((string) $request->get('colaboradora_id', ''));
 
-        return view('liquidaciones.index', compact('liquidaciones'));
+        $baseQuery = \App\Models\Liquidacion::query()
+            ->with('colaboradora');
+
+        if ($desde !== '') {
+            $baseQuery->whereDate('fecha_pago', '>=', $desde);
+        }
+
+        if ($hasta !== '') {
+            $baseQuery->whereDate('fecha_pago', '<=', $hasta);
+        }
+
+        if ($colaboradora_id !== '') {
+            $baseQuery->where('colaboradora_id', (int) $colaboradora_id);
+        }
+
+        // Total REAL del filtro (no depende de la paginación)
+        $totalFiltro = (clone $baseQuery)->sum('total_pagado');
+
+        $liquidaciones = (clone $baseQuery)
+            ->orderBy('fecha_pago', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
+        $colaboradoras = \App\Models\Colaboradora::where('activa', true)
+            ->orderBy('apellido')
+            ->orderBy('nombre')
+            ->get();
+
+        return view('liquidaciones.index', compact(
+            'liquidaciones',
+            'colaboradoras',
+            'desde',
+            'hasta',
+            'colaboradora_id',
+            'totalFiltro'
+        ));
     }
 
     public function create(Request $request)

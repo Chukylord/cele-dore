@@ -129,32 +129,37 @@
         <div class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
             <div class="px-6 py-3 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
-                    <span class="font-bold text-slate-900">Accesos rápidos</span>
-                    <span class="text-slate-300">|</span>
                     <span class="text-sm text-slate-600 hidden md:inline">
-                        Compra / Venta / Turnos / Fichada
+                        VIR TISONE STUDIO - Sistema de gestión
                     </span>
+                    <span class="text-slate-300">|</span>
+                    <span class="font-bold text-slate-900">Accesos rápidos</span>
                 </div>
 
                 <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('clientes.index') }}"
+                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                        👤 CLIENTES
+                    </a>
+
                     <a href="{{ route('compras.create') }}"
-                       class="rounded-xl bg-slate-900 text-white px-3 py-2 hover:bg-slate-800 text-sm">
-                        ➕ Compra
+                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                        ➕ COMPRA
                     </a>
 
                     <a href="{{ route('ventas.create') }}"
-                       class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
-                        💵 Venta
+                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                        💵 VENTA
                     </a>
 
                     <a href="{{ route('turnos.index') }}"
-                       class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
-                        📅 Turnos
+                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                        📅 TURNOS
                     </a>
 
                     <a href="{{ route('fichadas.create') }}"
-                       class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
-                        ⏱️ Fichada
+                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                        ⏱️ FICHADA
                     </a>
                 </div>
             </div>

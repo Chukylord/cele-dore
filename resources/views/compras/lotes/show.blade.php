@@ -99,10 +99,13 @@
 
             <div>
                 <label class="text-sm font-semibold text-slate-700">Monto</label>
-                <input type="number" step="0.01" min="0.01" name="monto"
+                <input type="number" step="0.01" min="0.01" max="{{ number_format($saldo, 2, '.', '') }}" name="monto"
                        class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+                
             </div>
-
+            <p class="mt-1 text-sm text-slate-500">
+                   Máximo permitido: ${{ number_format($saldo, 2, ',', '.') }}
+            </p>
             <div>
                 <label class="text-sm font-semibold text-slate-700">Observación</label>
                 <input name="observacion"

@@ -19,16 +19,6 @@
                    class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
         </div>
 
-        <div>
-            <label class="text-sm font-semibold text-slate-700">Categoría ingreso</label>
-            <select name="categoria_ingreso"
-                    class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
-                <option value="" {{ $categoriaIngreso === '' ? 'selected' : '' }}>Todos</option>
-                <option value="productos" {{ $categoriaIngreso === 'productos' ? 'selected' : '' }}>Venta productos</option>
-                <option value="servicios" {{ $categoriaIngreso === 'servicios' ? 'selected' : '' }}>Venta servicios</option>
-            </select>
-        </div>
-
         <div class="flex gap-2">
             <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
                 Filtrar

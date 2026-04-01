@@ -98,8 +98,15 @@
 
                     <div>
                         <label class="text-sm font-semibold text-slate-700">Fecha y Hora *</label>
-                        <input type="datetime-local" name="inicio" id="turno_inicio"
-                               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500" required />
+                        <input type="datetime-local"
+                               name="inicio"
+                               min="{{ now()->format('Y-m-d\TH:i') }}"
+                               id="turno_inicio"
+                               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+                               required />
+                        <div class="text-xs text-slate-500 mt-1">
+                            Para nuevos turnos solo se permiten fechas y horas desde ahora en adelante.
+                        </div>
                     </div>
 
                     <div class="md:col-span-2">
@@ -172,6 +179,18 @@
             const inicio = document.getElementById('turno_inicio');
             const detalle = document.getElementById('turno_detalle');
 
+            function ahoraLocal() {
+                const d = new Date();
+                d.setSeconds(0, 0);
+                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                return d.toISOString().slice(0, 16);
+            }
+
+            function esFechaPasada(dateValue) {
+                if (!dateValue) return false;
+                return new Date(dateValue).getTime() < new Date().getTime();
+            }
+
             function setClienteHidden() {
                 const v = (clienteBuscar.value || '').trim();
                 clienteId.value = CLIENTES_MAP[v] ? String(CLIENTES_MAP[v]) : '';
@@ -191,6 +210,10 @@
                 form.reset();
                 clienteBuscar.value = '';
                 clienteId.value = '';
+
+                // Para creación: no permitir fecha pasada
+                inicio.setAttribute('min', ahoraLocal());
+                inicio.value = ahoraLocal();
             }
 
             function abrirModal() {
@@ -250,8 +273,14 @@
                 events: '{{ route('turnos.eventos') }}',
 
                 select: function(info) {
+                    // No permitir crear turnos en fecha/hora pasada
+                    if (esFechaPasada(info.startStr)) {
+                        alert('No se pueden crear turnos en fechas u horarios anteriores al momento actual.');
+                        return;
+                    }
+
                     limpiarFormulario();
-                    inicio.value = info.startStr.slice(0,16);
+                    inicio.value = info.startStr.slice(0, 16);
                     abrirModal();
                 },
 
@@ -278,6 +307,9 @@
                     titulo.value = e.extendedProps.titulo || '';
                     inicio.value = toDateTimeLocal(e.startStr);
                     detalle.value = e.extendedProps.detalle || '';
+
+                    // En edición sí dejamos tocar un turno pasado
+                    inicio.removeAttribute('min');
 
                     formEliminar.action = '/turnos/' + e.id;
                     btnEliminar.classList.remove('hidden');

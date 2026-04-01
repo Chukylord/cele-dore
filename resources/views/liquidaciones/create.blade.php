@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Liquidación - Peluquería TOP')
+@section('title', 'Nueva Liquidación - Vir Tisone Studio')
 @section('h1', 'Nueva Liquidación')
 @section('sub', 'Calcular y registrar pago de colaboradora.')
 
@@ -119,7 +119,7 @@
                     </div>
                 </div>
 
-                <div class="mt-6 flex gap-2">
+                <div class="mt-6 flex gap-2 flex-wrap">
                     <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
                         Registrar liquidación
                     </button>
@@ -127,6 +127,11 @@
                     <a href="{{ route('liquidaciones.index') }}"
                        class="rounded-xl border px-4 py-2 hover:bg-slate-50">
                         Cancelar
+                    </a>
+
+                    <a href="https://www.arca.gob.ar/" target="_blank"
+                       class="rounded-xl bg-slate-700 text-white px-4 py-2 hover:bg-slate-600">
+                        Facturar
                     </a>
                 </div>
             </div>
