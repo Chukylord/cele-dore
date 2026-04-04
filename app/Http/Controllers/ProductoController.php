@@ -114,15 +114,14 @@ class ProductoController extends Controller
     public function update(Request $request, Producto $producto)
     {
         $data = $request->validate([
-            'proveedor_id'     => ['required', 'exists:proveedores,id'],
-            'marca'            => ['required', 'string', 'max:255'],
-            'tipo'             => ['required', 'string', 'max:255'],
-            'contenido'        => ['required', 'string', 'max:255'],
-            'precio_venta'     => ['required', 'numeric', 'min:0'],
-            'stock_venta'      => ['required', 'integer', 'min:0'],
-            'stock_peluqueria' => ['required', 'integer', 'min:0'],
-            'stock_minimo'     => ['required', 'integer', 'min:0'],
-            'codigo_barra'     => ['nullable', 'string', 'max:100'],
+            'proveedor_id' => ['required', 'exists:proveedores,id'],
+            'marca' => ['required', 'string', 'max:255'],
+            'tipo' => ['required', 'string', 'max:255'],
+            'contenido' => ['required', 'string', 'max:255'],
+            'precio_venta' => ['required', 'numeric', 'min:0'],
+            'stock_venta' => ['required', 'integer', 'min:0'],
+            'stock_minimo' => ['required', 'integer', 'min:0'],
+            'codigo_barra' => ['nullable', 'string', 'max:100'],
         ]);
 
         $data['marca'] = trim($data['marca']);
