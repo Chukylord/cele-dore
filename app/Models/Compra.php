@@ -11,6 +11,7 @@ class Compra extends Model
         'producto_id',
         'cantidad',
         'precio_unitario',
+        'descuento_pct',
         'fecha',
         'lote_id',
     ];

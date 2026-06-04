@@ -23,15 +23,18 @@
 
         $proveedoresMap = $proveedores->pluck('id','nombre');
         $proveedorTexto = '';
+
         if (!empty($proveedor_id)) {
             $prov = $proveedores->firstWhere('id', (int)$proveedor_id);
             $proveedorTexto = $prov ? $prov->nombre : '';
         }
+
+        $stock_estado = $stock_estado ?? request('stock_estado', '');
     @endphp
 
     {{-- filtros --}}
     <div class="flex flex-col gap-3 mb-6">
-        <form class="grid grid-cols-1 md:grid-cols-5 gap-3 w-full" method="GET" action="{{ route('productos.index') }}">
+        <form class="grid grid-cols-1 md:grid-cols-6 gap-3 w-full" method="GET" action="{{ route('productos.index') }}">
 
             <div class="md:col-span-2">
                 <label class="text-sm font-semibold text-slate-700">Proveedor</label>
@@ -72,7 +75,21 @@
                        placeholder="Ej: 1L">
             </div>
 
-            <div class="flex gap-2 md:col-span-5">
+            <div>
+                <label class="text-sm font-semibold text-slate-700">Estado stock</label>
+                <select name="stock_estado"
+                        class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+                    <option value="" {{ $stock_estado === '' ? 'selected' : '' }}>Todos</option>
+                    <option value="stock_minimo" {{ $stock_estado === 'stock_minimo' ? 'selected' : '' }}>
+                        Stock mínimo
+                    </option>
+                    <option value="sin_stock" {{ $stock_estado === 'sin_stock' ? 'selected' : '' }}>
+                        Sin stock
+                    </option>
+                </select>
+            </div>
+
+            <div class="flex gap-2 md:col-span-6">
                 <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 w-full md:w-auto">
                     Filtrar
                 </button>
@@ -131,15 +148,15 @@
 
                     <td class="px-4 py-3 font-semibold">
                         @if($sv <= 0)
-                            <span class="px-2 py-1 rounded-lg bg-red-100 text-red-700 border border-red-200 text-sm">
+                            <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded-lg bg-red-100 text-red-700 border border-red-200 text-sm">
                                 {{ $sv }} (Sin stock)
                             </span>
                         @elseif($sv <= $min)
-                            <span class="px-2 py-1 rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-200 text-sm">
+                            <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-200 text-sm">
                                 {{ $sv }} (Al mínimo)
                             </span>
                         @else
-                            <span class="px-2 py-1 rounded-lg bg-slate-50 text-slate-700 border border-slate-200 text-sm">
+                            <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded-lg bg-slate-50 text-slate-700 border border-slate-200 text-sm">
                                 {{ $sv }}
                             </span>
                         @endif

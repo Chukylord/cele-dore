@@ -16,13 +16,131 @@ class LiquidacionController extends Controller
         return round((float)$n, 2);
     }
 
+    private function mesesDelSemestre(int $semestre): array
+    {
+        if ($semestre === 2) {
+            return [7, 8, 9, 10, 11, 12];
+        }
+
+        return [1, 2, 3, 4, 5, 6];
+    }
+
+    private function nombreMes(int $mes): string
+    {
+        $meses = [
+            1 => 'Enero',
+            2 => 'Febrero',
+            3 => 'Marzo',
+            4 => 'Abril',
+            5 => 'Mayo',
+            6 => 'Junio',
+            7 => 'Julio',
+            8 => 'Agosto',
+            9 => 'Septiembre',
+            10 => 'Octubre',
+            11 => 'Noviembre',
+            12 => 'Diciembre',
+        ];
+
+        return $meses[$mes] ?? '-';
+    }
+
+    private function armarResumenAguinaldo(int $anio, int $semestre, string $colaboradoraId = ''): array
+    {
+        $meses = $this->mesesDelSemestre($semestre);
+        $mesDesde = min($meses);
+        $mesHasta = max($meses);
+
+        $colaboradorasQuery = Colaboradora::query()
+            ->orderBy('apellido')
+            ->orderBy('nombre');
+
+        if ($colaboradoraId !== '') {
+            $colaboradorasQuery->where('id', (int)$colaboradoraId);
+        }
+
+        $colaboradoras = $colaboradorasQuery->get();
+
+        /*
+            Para aguinaldo NO se descuentan productos a costo.
+            Se toma:
+            horas normales + horas extras + comisión
+        */
+        $totalesPorMes = Liquidacion::query()
+            ->selectRaw('
+                colaboradora_id,
+                MONTH(fecha_pago) as mes,
+                COALESCE(SUM(monto_horas_normales + monto_horas_extras + monto_comision), 0) as total
+            ')
+            ->whereYear('fecha_pago', $anio)
+            ->whereMonth('fecha_pago', '>=', $mesDesde)
+            ->whereMonth('fecha_pago', '<=', $mesHasta)
+            ->when($colaboradoraId !== '', function ($q) use ($colaboradoraId) {
+                $q->where('colaboradora_id', (int)$colaboradoraId);
+            })
+            ->groupBy('colaboradora_id', DB::raw('MONTH(fecha_pago)'))
+            ->get()
+            ->groupBy('colaboradora_id');
+
+        $resumen = [];
+
+        foreach ($colaboradoras as $colaboradora) {
+            $filasColab = $totalesPorMes->get($colaboradora->id, collect());
+
+            $mesesDetalle = [];
+            $mejorMesNumero = null;
+            $mejorMesNombre = '-';
+            $mejorMesTotal = 0;
+
+            foreach ($meses as $mes) {
+                $filaMes = $filasColab->firstWhere('mes', $mes);
+                $totalMes = $filaMes ? (float)$filaMes->total : 0;
+
+                $mesesDetalle[] = [
+                    'mes' => $mes,
+                    'nombre' => $this->nombreMes($mes),
+                    'total' => $this->round2($totalMes),
+                ];
+
+                if ($totalMes > $mejorMesTotal) {
+                    $mejorMesTotal = $totalMes;
+                    $mejorMesNumero = $mes;
+                    $mejorMesNombre = $this->nombreMes($mes);
+                }
+            }
+
+            $resumen[] = [
+                'colaboradora' => $colaboradora,
+                'meses' => $mesesDetalle,
+                'mejor_mes_numero' => $mejorMesNumero,
+                'mejor_mes_nombre' => $mejorMesNombre,
+                'mejor_mes_total' => $this->round2($mejorMesTotal),
+                'aguinaldo_sugerido' => $this->round2($mejorMesTotal / 2),
+            ];
+        }
+
+        return $resumen;
+    }
+
     public function index(Request $request)
     {
         $desde = trim((string) $request->get('desde', ''));
         $hasta = trim((string) $request->get('hasta', ''));
         $colaboradora_id = trim((string) $request->get('colaboradora_id', ''));
 
-        $baseQuery = \App\Models\Liquidacion::query()
+        $sacAnio = (int) $request->get('sac_anio', now()->year);
+        $sacSemestre = (int) $request->get('sac_semestre', now()->month <= 6 ? 1 : 2);
+        $sacColaboradoraId = trim((string) $request->get('sac_colaboradora_id', ''));
+
+        if (!in_array($sacSemestre, [1, 2], true)) {
+            $sacSemestre = 1;
+        }
+
+        if ($sacAnio < 2000 || $sacAnio > 2100) {
+            $sacAnio = now()->year;
+        }
+
+        $baseQuery = Liquidacion::query()
             ->with('colaboradora');
 
         if ($desde !== '') {
@@ -37,7 +155,10 @@ class LiquidacionController extends Controller
             $baseQuery->where('colaboradora_id', (int) $colaboradora_id);
         }
 
-        // Total REAL del filtro (no depende de la paginación)
+        /*
+            Total del filtro = total pagado real.
+            En la liquidación real SÍ se restan productos a costo.
+        */
         $totalFiltro = (clone $baseQuery)->sum('total_pagado');
 
         $liquidaciones = (clone $baseQuery)
@@ -45,10 +166,16 @@ class LiquidacionController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $colaboradoras = \App\Models\Colaboradora::where('activa', true)
+        $colaboradoras = Colaboradora::where('activa', true)
             ->orderBy('apellido')
             ->orderBy('nombre')
             ->get();
+
+        $aguinaldoResumen = $this->armarResumenAguinaldo(
+            $sacAnio,
+            $sacSemestre,
+            $sacColaboradoraId
+        );
 
         return view('liquidaciones.index', compact(
             'liquidaciones',
@@ -56,7 +183,11 @@ class LiquidacionController extends Controller
             'desde',
             'hasta',
             'colaboradora_id',
-            'totalFiltro'
+            'totalFiltro',
+            'sacAnio',
+            'sacSemestre',
+            'sacColaboradoraId',
+            'aguinaldoResumen'
         ));
     }
 
@@ -80,7 +211,6 @@ class LiquidacionController extends Controller
 
     private function armarResumen(int $colaboradoraId): array
     {
-        // Fichadas no liquidadas
         $fichadas = Fichada::where('colaboradora_id', $colaboradoraId)
             ->whereNull('liquidacion_id')
             ->get();
@@ -88,8 +218,6 @@ class LiquidacionController extends Controller
         $minNormales = (int) $fichadas->sum('minutos_normales');
         $minExtras   = (int) $fichadas->sum('minutos_extras');
 
-        // Comisión no liquidada:
-        // ventas hechas por esta colaboradora, a clientes normales, aún no liquidadas
         $ventasComision = Venta::where('vendedora_id', $colaboradoraId)
             ->whereNull('cliente_colaboradora_id')
             ->whereNull('liquidacion_id')
@@ -97,7 +225,6 @@ class LiquidacionController extends Controller
 
         $montoComision = (float) $ventasComision->sum('comision_monto');
 
-        // Productos llevados por la colaboradora a costo:
         $ventasCosto = Venta::where('cliente_colaboradora_id', $colaboradoraId)
             ->whereNull('liquidacion_id')
             ->get();
@@ -136,6 +263,10 @@ class LiquidacionController extends Controller
         $montoComision = $this->round2($resumen['monto_comision']);
         $montoProductosCosto = $this->round2($resumen['monto_productos_costo']);
 
+        /*
+            Liquidación real:
+            horas + comisión - productos a costo.
+        */
         $totalPagado = $this->round2(
             $montoHorasNormales + $montoHorasExtras + $montoComision - $montoProductosCosto
         );
@@ -164,18 +295,15 @@ class LiquidacionController extends Controller
                 'observaciones' => $data['observaciones'] ?? null,
             ]);
 
-            // marcar fichadas como liquidadas
             Fichada::where('colaboradora_id', $data['colaboradora_id'])
                 ->whereNull('liquidacion_id')
                 ->update(['liquidacion_id' => $liquidacion->id]);
 
-            // marcar ventas de comisión como liquidadas
             Venta::where('vendedora_id', $data['colaboradora_id'])
                 ->whereNull('cliente_colaboradora_id')
                 ->whereNull('liquidacion_id')
                 ->update(['liquidacion_id' => $liquidacion->id]);
 
-            // marcar productos comprados a costo por la colaboradora
             Venta::where('cliente_colaboradora_id', $data['colaboradora_id'])
                 ->whereNull('liquidacion_id')
                 ->update(['liquidacion_id' => $liquidacion->id]);
@@ -187,6 +315,7 @@ class LiquidacionController extends Controller
     public function show(Liquidacion $liquidacion)
     {
         $liquidacion->load('colaboradora');
+
         return view('liquidaciones.show', compact('liquidacion'));
     }
 }

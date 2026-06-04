@@ -2,7 +2,7 @@
 
 @section('title', 'Compras - Peluquería TOP')
 @section('h1', 'Compras')
-@section('sub', 'Compras agrupadas por lote (carga múltiple).')
+@section('sub', 'Compras agrupadas por lote.')
 
 @section('content')
 
@@ -13,7 +13,6 @@
     @endif
 
     @php
-        // maps para datalist -> id
         $provMap = $proveedores->pluck('id','nombre');
 
         $prodMap = [];
@@ -40,7 +39,6 @@
     <div class="flex flex-col gap-3 mb-6">
         <form class="grid grid-cols-1 md:grid-cols-6 gap-3 w-full" method="GET" action="{{ route('compras.index') }}">
 
-            {{-- Proveedor datalist --}}
             <div class="md:col-span-2">
                 <label class="text-sm font-semibold text-slate-700">Proveedor</label>
 
@@ -59,7 +57,6 @@
                 <input type="hidden" name="proveedor_id" id="proveedor_id" value="{{ $proveedor_id }}">
             </div>
 
-            {{-- Producto datalist --}}
             <div class="md:col-span-2">
                 <label class="text-sm font-semibold text-slate-700">Producto</label>
 
@@ -118,10 +115,7 @@
                 <th class="text-left px-4 py-3 text-sm font-semibold">Fecha</th>
                 <th class="text-left px-4 py-3 text-sm font-semibold">Items</th>
                 <th class="text-left px-4 py-3 text-sm font-semibold">Proveedores</th>
-                <th class="text-left px-4 py-3 text-sm font-semibold">Total</th>
-                <th class="text-left px-4 py-3 text-sm font-semibold">Entregado</th>
-                <th class="text-left px-4 py-3 text-sm font-semibold">Saldo</th>
-                <th class="text-left px-4 py-3 text-sm font-semibold">Estado</th>
+                <th class="text-left px-4 py-3 text-sm font-semibold">Total compra</th>
                 <th class="text-right px-4 py-3 text-sm font-semibold">Acciones</th>
             </tr>
             </thead>
@@ -132,10 +126,7 @@
                     $compras = $lote->compras ?? collect();
                     $proveedoresUnicos = $compras->map(fn($c) => $c->proveedor?->nombre)->filter()->unique()->values();
                     $proveedoresTxt = $proveedoresUnicos->count() ? $proveedoresUnicos->implode(', ') : '-';
-
                     $totalLote = (float)$lote->monto_total;
-                    $entregado = (float)$lote->monto_pagado;
-                    $saldo = max($totalLote - $entregado, 0);
                 @endphp
 
                 <tr class="border-t hover:bg-slate-50">
@@ -144,39 +135,21 @@
                     <td class="px-4 py-3">{{ $lote->compras_count }}</td>
                     <td class="px-4 py-3">{{ $proveedoresTxt }}</td>
                     <td class="px-4 py-3 font-bold">${{ number_format($totalLote, 2, ',', '.') }}</td>
-                    <td class="px-4 py-3">${{ number_format($entregado, 2, ',', '.') }}</td>
-                    <td class="px-4 py-3">${{ number_format($saldo, 2, ',', '.') }}</td>
-
-                    <td class="px-4 py-3">
-                        @if($lote->estado_pago === 'pagado')
-                            <span class="px-2 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 text-sm">
-                                Pagado
-                            </span>
-                        @elseif($lote->estado_pago === 'parcial')
-                            <span class="px-2 py-1 rounded-lg bg-yellow-50 text-yellow-800 border border-yellow-200 text-sm">
-                                Parcial
-                            </span>
-                        @else
-                            <span class="px-2 py-1 rounded-lg bg-red-50 text-red-700 border border-red-200 text-sm">
-                                Pendiente
-                            </span>
-                        @endif
-                    </td>
 
                     <td class="px-4 py-3">
                         <div class="flex items-center justify-end gap-2">
                             <a href="{{ route('compras.lotes.show', $lote) }}"
-                            class="rounded-lg border px-3 py-1 hover:bg-white" title="Ver detalle">
+                               class="rounded-lg border px-3 py-1 hover:bg-white" title="Ver detalle">
                                 🔎
                             </a>
 
                             <a href="{{ route('compras.lotes.edit', $lote) }}"
-                            class="rounded-lg border px-3 py-1 hover:bg-white" title="Editar lote">
+                               class="rounded-lg border px-3 py-1 hover:bg-white" title="Editar lote">
                                 ✏️
                             </a>
 
                             <form method="POST" action="{{ route('compras.lotes.destroy', $lote) }}"
-                                onsubmit="return confirm('¿Eliminar este lote? Se revertirá el stock.');">
+                                  onsubmit="return confirm('¿Eliminar este lote? Se revertirá el stock.');">
                                 @csrf
                                 @method('DELETE')
                                 <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar lote">
@@ -188,7 +161,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" class="px-4 py-8 text-center text-slate-500">
+                    <td colspan="6" class="px-4 py-8 text-center text-slate-500">
                         No hay compras registradas.
                     </td>
                 </tr>
@@ -228,8 +201,8 @@
             prodBuscar.addEventListener('change', setProd);
             prodBuscar.addEventListener('blur', setProd);
 
-            // Por las dudas, setear al cargar
-            setProv(); setProd();
+            setProv();
+            setProd();
         });
     </script>
 

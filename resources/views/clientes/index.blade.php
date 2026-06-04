@@ -66,19 +66,17 @@
                 <th class="text-left px-4 py-3 text-sm font-semibold">
                     {!! sort_link('Nombre', 'nombre', $sort ?? 'ultima_compra', $dir ?? 'desc') !!}
                 </th>
+
                 <th class="text-left px-4 py-3 text-sm font-semibold">
                     {!! sort_link('Apellido', 'apellido', $sort ?? 'ultima_compra', $dir ?? 'desc') !!}
                 </th>
+
                 <th class="text-left px-4 py-3 text-sm font-semibold">Teléfono</th>
+
                 <th class="text-left px-4 py-3 text-sm font-semibold">
                     {!! sort_link('Última compra', 'ultima_compra', $sort ?? 'ultima_compra', $dir ?? 'desc') !!}
                 </th>
-                <th class="text-left px-4 py-3 text-sm font-semibold">
-                    {!! sort_link('Productos vendidos', 'prod_total', $sort ?? 'ultima_compra', $dir ?? 'desc') !!}
-                </th>
-                <th class="text-left px-4 py-3 text-sm font-semibold">
-                    {!! sort_link('Servicios vendidos', 'serv_total', $sort ?? 'ultima_compra', $dir ?? 'desc') !!}
-                </th>
+
                 <th class="text-right px-4 py-3 text-sm font-semibold">Acciones</th>
             </tr>
             </thead>
@@ -86,12 +84,15 @@
             <tbody>
             @forelse($clientes as $c)
                 @php
-                    $tieneObs = trim((string) $c->observacion) !== '';
+                    $observacionLimpia = trim((string) $c->observacion);
+                    $tieneObs = $observacionLimpia !== '';
                 @endphp
 
                 <tr class="border-t hover:bg-slate-50">
                     <td class="px-4 py-3">{{ $c->nombre }}</td>
+
                     <td class="px-4 py-3">{{ $c->apellido }}</td>
+
                     <td class="px-4 py-3">{{ $c->telefono }}</td>
 
                     <td class="px-4 py-3">
@@ -100,14 +101,6 @@
                         @else
                             -
                         @endif
-                    </td>
-
-                    {{-- Conectamos a ventas. --}}
-                    <td class="px-4 py-3 font-semibold">
-                        ${{ number_format((float)$c->prod_total, 2, ',', '.') }}
-                    </td>
-                    <td class="px-4 py-3 font-semibold">
-                        ${{ number_format((float)$c->serv_total, 2, ',', '.') }}
                     </td>
 
                     <td class="px-4 py-3">
@@ -148,7 +141,7 @@
                             </form>
                         </div>
 
-                        {{-- Modal observación (solo si existe) --}}
+                        {{-- Modal observación --}}
                         @if($tieneObs)
                             <div id="obs-{{ $c->id }}" class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
                                 <div class="w-full max-w-xl bg-white rounded-2xl shadow p-5">
@@ -157,12 +150,15 @@
                                             <div class="text-lg font-bold">Observación</div>
                                             <div class="text-sm text-slate-600">{{ $c->nombre }} {{ $c->apellido }}</div>
                                         </div>
-                                        <button type="button" class="text-slate-500 hover:text-slate-900" data-close-obs="{{ $c->id }}">✖</button>
+
+                                        <button type="button"
+                                                class="text-slate-500 hover:text-slate-900"
+                                                data-close-obs="{{ $c->id }}">
+                                            ✖
+                                        </button>
                                     </div>
 
-                                    <div class="mt-4 rounded-xl border bg-slate-50 p-4 text-slate-800 whitespace-pre-wrap">
-                                        {{ $c->observacion }}
-                                    </div>
+                                    <div class="mt-4 rounded-xl border bg-slate-50 p-4 text-slate-800 whitespace-pre-line break-words leading-relaxed text-left">{{ $observacionLimpia }}</div>
 
                                     <div class="mt-4 flex justify-end">
                                         <button type="button"
@@ -179,7 +175,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-4 py-8 text-center text-slate-500">
+                    <td colspan="5" class="px-4 py-8 text-center text-slate-500">
                         No hay clientes cargados.
                     </td>
                 </tr>
@@ -193,7 +189,6 @@
     </div>
 
     <script>
-        // Modal observación (simple)
         document.addEventListener('click', function(e) {
             const openBtn = e.target.closest('[data-open-obs]');
             const closeBtn = e.target.closest('[data-close-obs]');
@@ -201,6 +196,7 @@
             if (openBtn) {
                 const id = openBtn.getAttribute('data-open-obs');
                 const modal = document.getElementById('obs-' + id);
+
                 if (modal) {
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
@@ -210,6 +206,7 @@
             if (closeBtn) {
                 const id = closeBtn.getAttribute('data-close-obs');
                 const modal = document.getElementById('obs-' + id);
+
                 if (modal) {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');

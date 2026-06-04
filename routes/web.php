@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ListaPrecioController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -22,6 +23,15 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('clientes', \App\Http\Controllers\ClienteController::class);
     Route::resource('colaboradoras', \App\Http\Controllers\ColaboradoraController::class);
     Route::resource('servicios', \App\Http\Controllers\ServicioController::class);
+
+    Route::get('/proveedores/{proveedor}/cuenta', [\App\Http\Controllers\ProveedorController::class, 'cuenta'])
+        ->name('proveedores.cuenta');
+    Route::post('/proveedores/{proveedor}/pagos', [\App\Http\Controllers\ProveedorController::class, 'storePago'])
+        ->name('proveedores.pagos.store');
+    Route::put('/proveedores/{proveedor}/pagos/{pago}', [\App\Http\Controllers\ProveedorController::class, 'updatePago'])
+        ->name('proveedores.pagos.update');
+    Route::delete('/proveedores/{proveedor}/pagos/{pago}', [\App\Http\Controllers\ProveedorController::class, 'destroyPago'])
+        ->name('proveedores.pagos.destroy');
     Route::resource('proveedores', \App\Http\Controllers\ProveedorController::class);
 
     Route::resource('productos', \App\Http\Controllers\ProductoController::class);
@@ -59,6 +69,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('fichadas', \App\Http\Controllers\FichadaController::class);
 
     Route::resource('gastos', \App\Http\Controllers\GastoController::class);
+
+    Route::get('/lista-precios', [ListaPrecioController::class, 'index'])->name('lista-precios.index');
+    Route::post('/lista-precios/actualizar', [ListaPrecioController::class, 'actualizar'])->name('lista-precios.actualizar');
 
 });
 

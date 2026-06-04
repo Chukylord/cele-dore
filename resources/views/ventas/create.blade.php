@@ -20,7 +20,6 @@
 <form method="POST" action="{{ route('ventas.store') }}" id="formVenta">
     @csrf
 
-    {{-- CABECERA --}}
     <div class="rounded-2xl border bg-slate-900 text-white p-4">
         <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
 
@@ -35,8 +34,17 @@
                 <label class="text-sm font-semibold text-slate-200">Método de pago *</label>
                 <select id="metodo_pago" name="metodo_pago"
                         class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white focus:border-white focus:ring-white">
-                    <option value="efectivo" {{ old('metodo_pago','efectivo')==='efectivo'?'selected':'' }}>Efectivo / Transferencia</option>
-                    <option value="tarjeta" {{ old('metodo_pago')==='tarjeta'?'selected':'' }}>Tarjeta</option>
+                    <option value="efectivo" {{ old('metodo_pago','efectivo')==='efectivo'?'selected':'' }}>
+                        Efectivo
+                    </option>
+
+                    <option value="transferencia" {{ old('metodo_pago')==='transferencia'?'selected':'' }}>
+                        Transferencia
+                    </option>
+
+                    <option value="tarjeta" {{ old('metodo_pago')==='tarjeta'?'selected':'' }}>
+                        Tarjeta
+                    </option>
                 </select>
             </div>
 
@@ -70,7 +78,6 @@
                 </div>
             </div>
 
-            {{-- CLIENTE + NOTAS --}}
             <div id="box_cliente" class="md:col-span-3">
                 <label class="text-sm font-semibold text-slate-200">Cliente *</label>
 
@@ -119,7 +126,6 @@
         </div>
     </div>
 
-    {{-- SOLAPAS --}}
     <div class="mt-6 flex gap-2">
         <button type="button" id="tabServicios"
                 class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
@@ -132,7 +138,6 @@
         </button>
     </div>
 
-    {{-- PANEL SERVICIOS --}}
     <div id="panelServicios" class="mt-4 rounded-2xl border bg-white">
         <div class="p-4 border-b flex items-center justify-between">
             <div>
@@ -165,12 +170,11 @@
         </div>
     </div>
 
-    {{-- PANEL PRODUCTOS --}}
     <div id="panelProductos" class="mt-4 rounded-2xl border bg-white hidden">
         <div class="p-4 border-b flex items-center justify-between">
             <div>
                 <div class="text-lg font-bold text-slate-900">Productos</div>
-                <div class="text-sm text-slate-600">Muestra stock y calcula precios por costo y método.</div>
+                <div class="text-sm text-slate-600">Muestra stock y calcula precios por lista, costo y método.</div>
             </div>
             <button type="button" id="addProducto"
                     class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
@@ -179,7 +183,6 @@
         </div>
 
         <div class="p-4">
-            {{-- ESCANEAR PRODUCTO --}}
             <div class="mb-4 rounded-2xl border bg-slate-50 p-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                     <div class="md:col-span-2">
@@ -230,7 +233,6 @@
         </div>
     </div>
 
-    {{-- TOTAL + ACCIONES --}}
     <div class="mt-6 rounded-2xl border bg-slate-900 text-white p-4">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="flex-1">
@@ -271,7 +273,6 @@
         </div>
     </div>
 
-    {{-- MODAL DESCUENTO --}}
     <div id="modalDescuento" class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
         <div class="w-full max-w-3xl bg-white rounded-2xl shadow p-5">
             <div class="flex items-start justify-between gap-4">
@@ -318,7 +319,6 @@
 
 </form>
 
-{{-- TOAST PRODUCTO AGREGADO --}}
 <div id="toastProductoAgregado"
      class="fixed top-5 right-5 z-[9999] hidden rounded-2xl bg-green-600 text-white px-4 py-3 shadow-xl">
     Producto agregado
@@ -353,6 +353,8 @@
         $productosData[$p->id] = [
             'label' => $label,
             'precio_manual' => (float)$p->precio_venta,
+            'precio_efectivo_manual' => $p->precio_efectivo_manual !== null ? (float)$p->precio_efectivo_manual : null,
+            'precio_tarjeta_manual' => $p->precio_tarjeta_manual !== null ? (float)$p->precio_tarjeta_manual : null,
             'ultimo_costo' => $p->ultimo_costo !== null ? (float)$p->ultimo_costo : null,
             'stock_venta' => (int)$p->stock_venta,
             'codigo_barra' => $p->codigo_barra,
@@ -376,6 +378,7 @@ const PRODUCTOS_DATA = @json($productosData);
 const PRODUCTOS_BARCODE_MAP = @json($productosBarcodeMap);
 
 function round2(n){ return Math.round((Number(n) + Number.EPSILON) * 100) / 100; }
+
 function money(n){
     n = round2(n);
     return '$' + n.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -394,11 +397,15 @@ function mostrarToastProductoAgregado(texto = 'Producto agregado'){
     }, 1600);
 }
 
-function getMetodo(){ return document.getElementById('metodo_pago').value; }
+function getMetodo(){
+    return document.getElementById('metodo_pago').value;
+}
+
 function esClienteColab(){
     const v = document.querySelector('input[name="tipo_cliente"]:checked')?.value;
     return v === 'colaboradora';
 }
+
 function vendedoraPct(){
     const sel = document.getElementById('vendedora_id');
     const opt = sel.options[sel.selectedIndex];
@@ -410,13 +417,23 @@ function bindDatalist(inputEl, mapObj, hiddenEl){
         const v = (inputEl.value || '').trim();
         hiddenEl.value = mapObj[v] ? String(mapObj[v]) : '';
     };
+
     inputEl.addEventListener('change', setId);
     inputEl.addEventListener('blur', setId);
 }
 
 function precioUnitarioVenta(pid, metodo){
     const p = PRODUCTOS_DATA[pid];
+
     if(!p) return 0;
+
+    if(metodo === 'tarjeta' && p.precio_tarjeta_manual !== null){
+        return round2(p.precio_tarjeta_manual);
+    }
+
+    if(metodo !== 'tarjeta' && p.precio_efectivo_manual !== null){
+        return round2(p.precio_efectivo_manual);
+    }
 
     const costo = p.ultimo_costo;
 
@@ -424,21 +441,31 @@ function precioUnitarioVenta(pid, metodo){
         return round2(metodo === 'tarjeta' ? costo * 1.60 : costo * 1.40);
     }
 
-    if(metodo === 'tarjeta') return round2((p.precio_manual / 1.40) * 1.60);
+    if(metodo === 'tarjeta'){
+        return round2((p.precio_manual / 1.40) * 1.60);
+    }
+
     return round2(p.precio_manual);
 }
 
 function precioUnitarioCosto(pid){
     const p = PRODUCTOS_DATA[pid];
+
     if(!p) return 0;
+
     const costo = p.ultimo_costo;
-    if(costo !== null) return round2(costo);
+
+    if(costo !== null){
+        return round2(costo);
+    }
+
     return round2(p.precio_manual / 1.40);
 }
 
 function getDescPct(tr){
     return Number(tr.querySelector('input.desc-pct')?.value || 0);
 }
+
 function applyDesc(valor, pct){
     return round2(valor * (1 - (pct/100)));
 }
@@ -452,6 +479,7 @@ function recalcular(){
         const precioFinal = applyDesc(precio, desc);
 
         const precioShow = tr.querySelector('.precio-show');
+
         if(precioShow){
             precioShow.textContent = money(precioFinal);
         }
@@ -460,7 +488,9 @@ function recalcular(){
     });
 
     subServ = round2(subServ);
+
     const subtotalServiciosEl = document.getElementById('subtotalServicios');
+
     if(subtotalServiciosEl){
         subtotalServiciosEl.textContent = money(subServ);
     }
@@ -488,9 +518,13 @@ function recalcular(){
 
         const p = PRODUCTOS_DATA[pid];
         const stock = Number(p.stock_venta || 0);
-        if(stockCell) stockCell.textContent = stock;
+
+        if(stockCell){
+            stockCell.textContent = stock;
+        }
 
         let unitOriginal = 0;
+
         if(esClienteColab()){
             unitOriginal = precioUnitarioCosto(pid);
         } else {
@@ -500,7 +534,9 @@ function recalcular(){
         const unitFinal = applyDesc(unitOriginal, desc);
         const sub = round2(unitFinal * qty);
 
-        if(unitCell) unitCell.textContent = money(unitOriginal);
+        if(unitCell){
+            unitCell.textContent = money(unitOriginal);
+        }
 
         if(unitFinalCell){
             if(desc > 0){
@@ -510,7 +546,9 @@ function recalcular(){
             }
         }
 
-        if(subCell) subCell.textContent = money(sub);
+        if(subCell){
+            subCell.textContent = money(sub);
+        }
 
         if(stockCell){
             stockCell.classList.toggle('text-red-700', qty > stock);
@@ -521,7 +559,9 @@ function recalcular(){
     });
 
     subProdMetodo = round2(subProdMetodo);
+
     const subtotalProductosEl = document.getElementById('subtotalProductos');
+
     if(subtotalProductosEl){
         subtotalProductosEl.textContent = money(subProdMetodo);
     }
@@ -548,17 +588,21 @@ function recalcular(){
     baseComision = round2(baseComision);
 
     let comision = 0;
+
     if(!esClienteColab() && pct > 0){
         comision = round2(baseComision * (pct/100));
     }
 
     const montoComisionEl = document.getElementById('montoComision');
+
     if(montoComisionEl){
         montoComisionEl.textContent = money(comision);
     }
 
     const total = round2(subServ + subProdMetodo);
+
     const totalFinalEl = document.getElementById('totalFinal');
+
     if(totalFinalEl){
         totalFinalEl.textContent = money(total);
     }
@@ -701,6 +745,7 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
 
 function agregarProductoPorCodigo(codigo){
     const codigoLimpio = String(codigo || '').trim();
+
     if (!codigoLimpio) return;
 
     const pid = PRODUCTOS_BARCODE_MAP[codigoLimpio] ? Number(PRODUCTOS_BARCODE_MAP[codigoLimpio]) : 0;
@@ -713,6 +758,7 @@ function agregarProductoPorCodigo(codigo){
     const nombreProducto = PRODUCTOS_DATA[pid]?.label || 'Producto';
 
     const filas = Array.from(document.querySelectorAll('#tablaProductos tbody tr'));
+
     const filaExistente = filas.find(tr => {
         const hid = tr.querySelector('.prod-id');
         return hid && Number(hid.value || 0) === pid;
@@ -722,6 +768,7 @@ function agregarProductoPorCodigo(codigo){
         const qtyInput = filaExistente.querySelector('.cant');
         const actual = Number(qtyInput.value || 0);
         qtyInput.value = String(actual + 1);
+
         recalcular();
         mostrarToastProductoAgregado(nombreProducto + ' agregado');
         return;
@@ -771,6 +818,7 @@ function abrirDescuento(){
 
     document.querySelectorAll('#tablaServicios tbody tr').forEach((tr, i) => {
         const txt = tr.querySelector('.serv-text')?.value || '(servicio)';
+
         contS.insertAdjacentHTML('beforeend', `
             <label class="flex items-center gap-2">
                 <input type="checkbox" class="chk-desc" data-target="serv" data-idx="${i}">
@@ -781,6 +829,7 @@ function abrirDescuento(){
 
     document.querySelectorAll('#tablaProductos tbody tr').forEach((tr, i) => {
         const txt = tr.querySelector('.prod-text')?.value || '(producto)';
+
         contP.insertAdjacentHTML('beforeend', `
             <label class="flex items-center gap-2">
                 <input type="checkbox" class="chk-desc" data-target="prod" data-idx="${i}">
@@ -790,6 +839,7 @@ function abrirDescuento(){
     });
 
     const m = document.getElementById('modalDescuento');
+
     if(m){
         m.classList.remove('hidden');
         m.classList.add('flex');
@@ -798,6 +848,7 @@ function abrirDescuento(){
 
 function cerrarDescuento(){
     const m = document.getElementById('modalDescuento');
+
     if(m){
         m.classList.add('hidden');
         m.classList.remove('flex');
@@ -813,10 +864,16 @@ function aplicarDescuento(){
 
         if(t === 'serv'){
             const tr = document.querySelectorAll('#tablaServicios tbody tr')[idx];
-            if(tr) tr.querySelector('.desc-pct').value = String(pct);
+
+            if(tr){
+                tr.querySelector('.desc-pct').value = String(pct);
+            }
         } else {
             const tr = document.querySelectorAll('#tablaProductos tbody tr')[idx];
-            if(tr) tr.querySelector('.desc-pct').value = String(pct);
+
+            if(tr){
+                tr.querySelector('.desc-pct').value = String(pct);
+            }
         }
     });
 
@@ -869,7 +926,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if(selTodo){
         selTodo.addEventListener('change', function(){
             const on = this.checked;
-            document.querySelectorAll('.chk-desc').forEach(c => c.checked = on);
+
+            document.querySelectorAll('.chk-desc').forEach(c => {
+                c.checked = on;
+            });
         });
     }
 
@@ -883,7 +943,9 @@ document.addEventListener('DOMContentLoaded', function () {
         scanProducto.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
+
                 const codigo = this.value;
+
                 if (codigo.trim() !== '') {
                     agregarProductoPorCodigo(codigo);
                     this.value = '';
@@ -894,6 +956,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         scanProducto.addEventListener('change', function() {
             const codigo = this.value;
+
             if (codigo.trim() !== '') {
                 agregarProductoPorCodigo(codigo);
                 this.value = '';

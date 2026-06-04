@@ -19,92 +19,91 @@
 
         <nav class="space-y-2 flex-1">
             @auth
-                
 
                 <a href="{{ route('dashboard') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('dashboard') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('dashboard') ? 'bg-slate-800' : '' }}">
                     Dashboard
                 </a>
 
-                {{-- Operación diaria --}}
                 <div class="mt-4 text-xs uppercase tracking-wider text-slate-400 px-3">
                     Operación diaria
                 </div>
 
                 <a href="{{ route('turnos.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('turnos.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('turnos.*') ? 'bg-slate-800' : '' }}">
                     TURNOS
                 </a>
 
                 <a href="{{ route('ventas.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('ventas.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('ventas.*') ? 'bg-slate-800' : '' }}">
                     VENTAS
                 </a>
 
                 <a href="{{ route('compras.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('compras.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('compras.*') ? 'bg-slate-800' : '' }}">
                     COMPRAS
                 </a>
 
                 <a href="{{ route('fichadas.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('fichadas.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('fichadas.*') ? 'bg-slate-800' : '' }}">
                     FICHADAS
                 </a>
 
-                {{-- Gestión --}}
                 <div class="mt-4 text-xs uppercase tracking-wider text-slate-400 px-3">
                     GESTIÓN
                 </div>
 
                 <a href="{{ route('clientes.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('clientes.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('clientes.*') ? 'bg-slate-800' : '' }}">
                     CLIENTES
                 </a>
 
                 <a href="{{ route('colaboradoras.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('colaboradoras.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('colaboradoras.*') ? 'bg-slate-800' : '' }}">
                     COLABORADORAS
                 </a>
 
                 <a href="{{ route('productos.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('productos.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('productos.*') ? 'bg-slate-800' : '' }}">
                     PRODUCTOS
                 </a>
 
                 <a href="{{ route('servicios.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('servicios.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('servicios.*') ? 'bg-slate-800' : '' }}">
                     SERVICIOS
                 </a>
 
+                <a href="{{ route('lista-precios.index') }}"
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('lista-precios.*') ? 'bg-slate-800' : '' }}">
+                    LISTA DE PRECIOS
+                </a>
+
                 <a href="{{ route('proveedores.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('proveedores.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('proveedores.*') ? 'bg-slate-800' : '' }}">
                     PROVEEDORES
                 </a>
 
-                {{-- Finanzas --}}
                 <div class="mt-4 text-xs uppercase tracking-wider text-slate-400 px-3">
                     FINANZAS
                 </div>
-                    
+
                 <a href="{{ route('gastos.index') }}"
-                class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('gastos.*') ? 'bg-slate-800' : '' }}">
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('gastos.*') ? 'bg-slate-800' : '' }}">
                     GASTOS
                 </a>
 
                 @if(auth()->user()->esAdmin())
-
                     <a href="{{ route('liquidaciones.index') }}"
-                    class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('liquidaciones.*') ? 'bg-slate-800' : '' }}">
+                       class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('liquidaciones.*') ? 'bg-slate-800' : '' }}">
                         LIQUIDACIONES
                     </a>
 
                     <a href="{{ route('informes.index') }}"
-                    class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('informes.*') ? 'bg-slate-800' : '' }}">
+                       class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('informes.*') ? 'bg-slate-800' : '' }}">
                         INFORMES
                     </a>
                 @endif
             @endauth
-
         </nav>
 
         <!-- Usuario + logout -->
@@ -138,47 +137,53 @@
 
                 <div class="flex flex-wrap gap-2">
                     <a href="{{ route('clientes.index') }}"
-                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                       class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
                         👤 CLIENTES
                     </a>
 
                     <a href="{{ route('compras.create') }}"
-                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                       class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
                         ➕ COMPRA
                     </a>
 
                     <a href="{{ route('ventas.create') }}"
-                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                       class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
                         💵 VENTA
                     </a>
 
                     <a href="{{ route('turnos.index') }}"
-                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                       class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
                         📅 TURNOS
                     </a>
 
                     <a href="{{ route('fichadas.create') }}"
-                    class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
+                       class="rounded-xl border px-3 py-2 hover:bg-slate-50 text-sm">
                         ⏱️ FICHADA
                     </a>
                 </div>
             </div>
         </div>
 
-        <main class="flex-1 p-6">
-            <div class="max-w-6xl mx-auto">
-                <div class="mb-6">
-                    <h1 class="text-3xl font-bold">@yield('h1', 'Dashboard')</h1>
-                    @hasSection('sub')
-                        <p class="text-slate-600 mt-1">@yield('sub')</p>
-                    @endif
-                </div>
+        @if(request()->routeIs('dashboard'))
+            <main class="flex-1 p-0">
+                @yield('content')
+            </main>
+        @else
+            <main class="flex-1 p-6">
+                <div class="max-w-6xl mx-auto">
+                    <div class="mb-6">
+                        <h1 class="text-3xl font-bold">@yield('h1', 'Dashboard')</h1>
+                        @hasSection('sub')
+                            <p class="text-slate-600 mt-1">@yield('sub')</p>
+                        @endif
+                    </div>
 
-                <div class="bg-white rounded-2xl shadow p-6">
-                    @yield('content')
+                    <div class="bg-white rounded-2xl shadow p-6">
+                        @yield('content')
+                    </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        @endif
     </div>
 
 </div>

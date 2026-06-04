@@ -15,6 +15,8 @@ class Producto extends Model
         'stock_venta',
         'stock_peluqueria',
         'stock_minimo',
+        'precio_efectivo_manual',
+        'precio_tarjeta_manual',
         'codigo_barra',
     ];
 

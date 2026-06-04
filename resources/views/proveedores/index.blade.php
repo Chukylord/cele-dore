@@ -2,7 +2,7 @@
 
 @section('title', 'Proveedores - Peluquería TOP')
 @section('h1', 'Proveedores')
-@section('sub', 'Listado de proveedores.')
+@section('sub', 'Listado de proveedores y cuenta corriente.')
 
 @section('content')
 
@@ -52,6 +52,9 @@
             <thead class="bg-slate-50 text-slate-700">
             <tr>
                 <th class="text-left px-4 py-3 text-sm font-semibold">{!! sort_link('Nombre', 'nombre', $sort ?? 'created_at', $dir ?? 'desc') !!}</th>
+                <th class="text-left px-4 py-3 text-sm font-semibold">Total compras</th>
+                <th class="text-left px-4 py-3 text-sm font-semibold">Entregado</th>
+                <th class="text-left px-4 py-3 text-sm font-semibold">Debe</th>
                 <th class="text-left px-4 py-3 text-sm font-semibold">{!! sort_link('Fecha', 'created_at', $sort ?? 'created_at', $dir ?? 'desc') !!}</th>
                 <th class="text-right px-4 py-3 text-sm font-semibold">Acciones</th>
             </tr>
@@ -60,11 +63,30 @@
             <tbody>
             @forelse($proveedores as $p)
                 <tr class="border-t hover:bg-slate-50">
-                    <td class="px-4 py-3">{{ $p->nombre }}</td>
+                    <td class="px-4 py-3 font-semibold">{{ $p->nombre }}</td>
+
+                    <td class="px-4 py-3">
+                        ${{ number_format((float)($p->total_compras_cc ?? 0), 2, ',', '.') }}
+                    </td>
+
+                    <td class="px-4 py-3">
+                        ${{ number_format((float)($p->total_pagos_cc ?? 0), 2, ',', '.') }}
+                    </td>
+
+                    <td class="px-4 py-3 font-bold {{ (float)($p->saldo_cc ?? 0) > 0 ? 'text-red-700' : 'text-green-700' }}">
+                        ${{ number_format((float)($p->saldo_cc ?? 0), 2, ',', '.') }}
+                    </td>
+
                     <td class="px-4 py-3">{{ optional($p->created_at)->format('d/m/Y') }}</td>
 
                     <td class="px-4 py-3">
                         <div class="flex items-center justify-end gap-2">
+                            <a href="{{ route('proveedores.cuenta', $p) }}"
+                               class="rounded-lg border px-3 py-1 hover:bg-white"
+                               title="Cuenta corriente">
+                                🔎
+                            </a>
+
                             <a href="{{ route('proveedores.edit', $p) }}"
                                class="rounded-lg border px-3 py-1 hover:bg-white"
                                title="Editar">
@@ -84,7 +106,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3" class="px-4 py-8 text-center text-slate-500">
+                    <td colspan="6" class="px-4 py-8 text-center text-slate-500">
                         No hay proveedores cargados.
                     </td>
                 </tr>

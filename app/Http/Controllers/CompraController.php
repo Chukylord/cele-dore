@@ -25,6 +25,25 @@ class CompraController extends Controller
         return 'pagado';
     }
 
+    private function subtotalConDescuento(array $item): float
+    {
+        $cantidad = (int) $item['cantidad'];
+        $precioUnitario = (float) $item['precio_unitario']; // precio sin descuento
+        $descuentoPct = isset($item['descuento_pct']) ? (float) $item['descuento_pct'] : 0;
+
+        if ($descuentoPct < 0) {
+            $descuentoPct = 0;
+        }
+
+        if ($descuentoPct > 100) {
+            $descuentoPct = 100;
+        }
+
+        $precioConDescuento = $precioUnitario * (1 - ($descuentoPct / 100));
+
+        return $cantidad * $precioConDescuento;
+    }
+
     public function index(Request $request)
     {
         $proveedor_id = trim((string)$request->get('proveedor_id', ''));
@@ -105,13 +124,14 @@ class CompraController extends Controller
             'items.*.producto_id' => ['required', 'exists:productos,id'],
             'items.*.cantidad' => ['required', 'integer', 'min:1'],
             'items.*.precio_unitario' => ['required', 'numeric', 'min:0'],
+            'items.*.descuento_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
         DB::transaction(function () use ($data) {
             $montoTotal = 0;
 
             foreach ($data['items'] as $it) {
-                $montoTotal += ((int)$it['cantidad'] * (float)$it['precio_unitario']);
+                $montoTotal += $this->subtotalConDescuento($it);
             }
 
             $montoTotal = round($montoTotal, 2);
@@ -133,7 +153,8 @@ class CompraController extends Controller
                     'proveedor_id' => (int)$it['proveedor_id'],
                     'producto_id' => (int)$it['producto_id'],
                     'cantidad' => (int)$it['cantidad'],
-                    'precio_unitario' => (float)$it['precio_unitario'],
+                    'precio_unitario' => (float)$it['precio_unitario'], // queda SIN descuento para ventas
+                    'descuento_pct' => isset($it['descuento_pct']) ? (float)$it['descuento_pct'] : 0,
                 ]);
 
                 $producto = Producto::lockForUpdate()->find((int)$it['producto_id']);
@@ -215,6 +236,7 @@ class CompraController extends Controller
             'items.*.producto_id' => ['required', 'exists:productos,id'],
             'items.*.cantidad' => ['required', 'integer', 'min:1'],
             'items.*.precio_unitario' => ['required', 'numeric', 'min:0'],
+            'items.*.descuento_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
         try {
@@ -244,19 +266,17 @@ class CompraController extends Controller
                 $montoTotal = 0;
 
                 foreach ($data['items'] as $it) {
-                    $montoTotal += ((int)$it['cantidad'] * (float)$it['precio_unitario']);
+                    $montoTotal += $this->subtotalConDescuento($it);
                 }
 
                 $montoTotal = round($montoTotal, 2);
 
-                // actualizar cabecera
                 $lote->update([
                     'fecha' => $data['fecha'],
                     'nota' => $data['nota'] ?? null,
                     'monto_total' => $montoTotal,
                 ]);
 
-                // recrear líneas
                 foreach ($data['items'] as $it) {
                     Compra::create([
                         'lote_id' => $lote->id,
@@ -264,7 +284,8 @@ class CompraController extends Controller
                         'proveedor_id' => (int)$it['proveedor_id'],
                         'producto_id' => (int)$it['producto_id'],
                         'cantidad' => (int)$it['cantidad'],
-                        'precio_unitario' => (float)$it['precio_unitario'],
+                        'precio_unitario' => (float)$it['precio_unitario'], // queda SIN descuento para ventas
+                        'descuento_pct' => isset($it['descuento_pct']) ? (float)$it['descuento_pct'] : 0,
                     ]);
 
                     $producto = Producto::lockForUpdate()->find((int)$it['producto_id']);
@@ -275,7 +296,6 @@ class CompraController extends Controller
                     }
                 }
 
-                // manejar entrega inicial
                 $entregaInicialNueva = round((float)($data['entrega_inicial'] ?? 0), 2);
 
                 $pagoInicial = $lote->pagos()
@@ -307,7 +327,6 @@ class CompraController extends Controller
                     }
                 }
 
-                // recalcular pagado total y estado
                 $nuevoPagado = round((float)$lote->pagos()->sum('monto'), 2);
 
                 if ($nuevoPagado > $montoTotal) {

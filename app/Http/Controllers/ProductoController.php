@@ -18,10 +18,26 @@ class ProductoController extends Controller
         $marca        = trim((string) $request->get('marca', ''));
         $tipo         = trim((string) $request->get('tipo', ''));
         $contenido    = trim((string) $request->get('contenido', ''));
+        $stock_estado = trim((string) $request->get('stock_estado', ''));
 
         $sort = $request->get('sort', 'created_at');
         $dir  = $request->get('dir', 'desc');
         $dir  = $dir === 'asc' ? 'asc' : 'desc';
+
+        $sortPermitidos = [
+            'created_at',
+            'proveedor_id',
+            'marca',
+            'tipo',
+            'contenido',
+            'stock_venta',
+            'stock_minimo',
+            'stock_peluqueria',
+        ];
+
+        if (!in_array($sort, $sortPermitidos, true)) {
+            $sort = 'created_at';
+        }
 
         $query = Producto::query()->with('proveedor');
 
@@ -41,6 +57,15 @@ class ProductoController extends Controller
             $query->where('contenido', 'like', "%{$contenido}%");
         }
 
+        if ($stock_estado === 'sin_stock') {
+            $query->where('stock_venta', '<=', 0);
+        }
+
+        if ($stock_estado === 'stock_minimo') {
+            $query->where('stock_venta', '>', 0)
+                  ->whereColumn('stock_venta', '<=', 'stock_minimo');
+        }
+
         $productos = $query
             ->orderBy($sort, $dir)
             ->paginate(10)
@@ -55,6 +80,7 @@ class ProductoController extends Controller
             'marca',
             'tipo',
             'contenido',
+            'stock_estado',
             'sort',
             'dir'
         ));

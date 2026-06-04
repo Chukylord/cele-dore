@@ -31,6 +31,7 @@
                 <select name="metodo_pago" class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
                     <option value="" {{ ($metodo ?? '') === '' ? 'selected' : '' }}>Todos</option>
                     <option value="efectivo" {{ ($metodo ?? '') === 'efectivo' ? 'selected' : '' }}>Efectivo</option>
+                    <option value="transferencia" {{ ($metodo ?? '') === 'transferencia' ? 'selected' : '' }}>Transferencia</option>
                     <option value="tarjeta" {{ ($metodo ?? '') === 'tarjeta' ? 'selected' : '' }}>Tarjeta</option>
                 </select>
             </div>
@@ -76,6 +77,36 @@
         </div>
     </div>
 
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+        <div class="rounded-2xl border bg-white p-4">
+            <div class="text-sm text-slate-500">Efectivo</div>
+            <div class="text-2xl font-bold text-green-700">
+                ${{ number_format((float)($totalEfectivo ?? 0), 2, ',', '.') }}
+            </div>
+        </div>
+
+        <div class="rounded-2xl border bg-white p-4">
+            <div class="text-sm text-slate-500">Transferencia</div>
+            <div class="text-2xl font-bold text-blue-700">
+                ${{ number_format((float)($totalTransferencia ?? 0), 2, ',', '.') }}
+            </div>
+        </div>
+
+        <div class="rounded-2xl border bg-white p-4">
+            <div class="text-sm text-slate-500">Tarjeta</div>
+            <div class="text-2xl font-bold text-purple-700">
+                ${{ number_format((float)($totalTarjeta ?? 0), 2, ',', '.') }}
+            </div>
+        </div>
+
+        <div class="rounded-2xl border bg-slate-900 p-4 text-white">
+            <div class="text-sm text-slate-300">Total general</div>
+            <div class="text-2xl font-bold">
+                ${{ number_format((float)($totalGeneral ?? 0), 2, ',', '.') }}
+            </div>
+        </div>
+    </div>
+
     <div class="overflow-x-auto rounded-2xl border">
         <table class="min-w-full bg-white">
             <thead class="bg-slate-50 text-slate-700">
@@ -90,6 +121,7 @@
                 <th class="text-right px-4 py-3 text-sm font-semibold">Acciones</th>
             </tr>
             </thead>
+
             <tbody>
             @forelse($ventas as $v)
                 <tr class="border-t hover:bg-slate-50">
@@ -109,7 +141,25 @@
                         {{ $v->vendedora ? ($v->vendedora->nombre.' '.$v->vendedora->apellido) : '-' }}
                     </td>
 
-                    <td class="px-4 py-3">{{ ucfirst($v->metodo_pago) }}</td>
+                    <td class="px-4 py-3">
+                        @if($v->metodo_pago === 'efectivo')
+                            <span class="rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">
+                                Efectivo
+                            </span>
+                        @elseif($v->metodo_pago === 'transferencia')
+                            <span class="rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-xs font-semibold">
+                                Transferencia
+                            </span>
+                        @elseif($v->metodo_pago === 'tarjeta')
+                            <span class="rounded-full bg-purple-100 text-purple-700 px-3 py-1 text-xs font-semibold">
+                                Tarjeta
+                            </span>
+                        @else
+                            <span class="rounded-full bg-slate-100 text-slate-700 px-3 py-1 text-xs font-semibold">
+                                {{ ucfirst($v->metodo_pago) }}
+                            </span>
+                        @endif
+                    </td>
 
                     <td class="px-4 py-3">
                         @if($v->pendiente_pago)
