@@ -6,145 +6,166 @@
     <title>Iniciar sesión - VIR TISONE STUDIO</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-gradient-to-r from-slate-50 via-slate-200 to-slate-800 text-slate-900">
 
-    <div class="min-h-screen flex items-center justify-center px-4 py-8">
-        <div class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-2xl">
+<body class="min-h-screen bg-[#0f0f10] text-slate-900">
 
-            {{-- Panel izquierdo --}}
-            <div class="hidden lg:flex relative min-h-[760px] overflow-hidden bg-slate-950 text-white">
-                <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-700"></div>
-                <div class="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl"></div>
-                <div class="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl"></div>
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.10),transparent_30%),linear-gradient(135deg,#101010_0%,#1c1c1f_45%,#080808_100%)] px-4 py-6 sm:px-6 lg:px-10 flex items-center justify-center">
 
-                <div class="relative z-10 flex h-full w-full flex-col justify-between p-14">
-                    <div>
-                        <div class="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs uppercase tracking-[0.35em] text-slate-300 backdrop-blur">
+        <div class="w-full max-w-7xl overflow-hidden rounded-[36px] border border-white/10 bg-white shadow-[0_40px_120px_rgba(0,0,0,0.50)]">
+
+            <div class="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
+
+                {{-- PANEL IZQUIERDO --}}
+                <section class="relative hidden lg:flex min-h-[760px] bg-[#202020] overflow-hidden">
+
+                    <div class="absolute inset-0 bg-gradient-to-br from-[#161616] via-[#232323] to-[#101010]"></div>
+
+                    <div class="absolute left-10 top-10 z-20">
+                        <div class="inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/30 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.35em] text-white/80 backdrop-blur">
+                            <span class="h-2 w-2 rounded-full bg-white"></span>
                             VIR TISONE STUDIO
                         </div>
+                    </div>
 
-                        <div class="mt-20 max-w-xl">
-                            <h1 class="text-6xl font-extrabold leading-[1.02] tracking-tight">
-                                Gestión simple,
-                                <span class="block text-slate-300">ordenada y profesional.</span>
+                    <div class="relative z-10 flex h-full w-full items-center justify-center p-12 xl:p-16">
+                        <img src="{{ asset('images/vir-tisone-logo-blanco1.png') }}"
+                             alt="Vir Tisone Studio"
+                             class="w-full max-w-[680px] object-contain drop-shadow-[0_20px_60px_rgba(255,255,255,0.08)]">
+                    </div>
+
+                    <div class="absolute bottom-8 left-10 right-10 z-20">
+                        <div class="h-px bg-white/10"></div>
+                        <div class="mt-5 flex items-center justify-between text-xs uppercase tracking-[0.30em] text-white/45">
+                            <span>Beauty Management</span>
+                            <span>Studio System</span>
+                        </div>
+                    </div>
+                </section>
+
+                {{-- PANEL DERECHO --}}
+                <section class="relative flex min-h-[760px] items-center justify-center bg-[#f8fafc] px-6 py-10 sm:px-10 lg:px-16">
+
+                    <div class="w-full max-w-md">
+
+                        {{-- Logo mobile/tablet --}}
+                        <div class="lg:hidden mb-8 rounded-[30px] bg-[#202020] px-6 py-8 shadow-2xl">
+                            <img src="{{ asset('images/vir-tisone-logo-blanco1.png') }}"
+                                 alt="Vir Tisone Studio"
+                                 class="mx-auto w-full max-w-[320px] object-contain">
+                        </div>
+
+                        <div class="mb-9">
+                            <div class="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[0.35em] text-slate-500 shadow-sm">
+                                Acceso privado
+                            </div>
+
+                            <h1 class="mt-6 text-5xl font-black tracking-tight text-slate-950">
+                                Bienvenida
                             </h1>
 
-                            <p class="mt-8 max-w-lg text-xl leading-9 text-slate-300">
-                                Centralizá turnos, ventas, compras, stock y fichadas
-                                en una sola plataforma pensada para el día a día del salón.
+                            <p class="mt-4 text-lg leading-8 text-slate-500">
+                                Ingresá al panel de gestión de
+                                <span class="font-bold text-slate-900">Vir Tisone Studio</span>.
                             </p>
                         </div>
-                    </div>
 
-                    <div class="grid grid-cols-2 gap-5 max-w-2xl">
-                        <div class="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur">
-                            <div class="text-sm text-slate-300">Operación diaria</div>
-                            <div class="mt-3 text-2xl font-bold">Turnos & Ventas</div>
-                            <div class="mt-2 text-sm text-slate-300">
-                                Organización rápida del trabajo diario.
+                        @if (session('status'))
+                            <div class="mb-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                                {{ session('status') }}
                             </div>
-                        </div>
+                        @endif
 
-                        <div class="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur">
-                            <div class="text-sm text-slate-300">Control interno</div>
-                            <div class="mt-3 text-2xl font-bold">Stock & Compras</div>
-                            <div class="mt-2 text-sm text-slate-300">
-                                Seguimiento claro de productos y movimientos.
+                        @if ($errors->any())
+                            <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {{ $errors->first() }}
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        @endif
 
-            {{-- Panel derecho --}}
-            <div class="flex items-center justify-center p-6 sm:p-10 lg:p-16">
-                <div class="w-full max-w-xl">
+                        <form method="POST" action="{{ route('login') }}" class="space-y-5">
+                            @csrf
 
-                    {{-- Branding mobile --}}
-                    <div class="lg:hidden mb-8 text-center">
-                        <div class="inline-flex items-center rounded-full border border-slate-200 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 shadow-sm">
-                            VIR TISONE STUDIO
-                        </div>
-                    </div>
+                            <div>
+                                <label for="email" class="mb-2.5 block text-sm font-bold text-slate-700">
+                                    Correo electrónico
+                                </label>
 
-                    <div class="mb-10">
-                        <div class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                            Acceso al sistema
-                        </div>
+                                <div class="relative">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5 text-slate-400">
+                                        <span class="text-lg">✉</span>
+                                    </div>
 
-                        <h2 class="mt-5 text-5xl font-extrabold tracking-tight text-slate-900">
-                            Iniciar sesión
-                        </h2>
+                                    <input id="email"
+                                           name="email"
+                                           type="email"
+                                           value="{{ old('email') }}"
+                                           required
+                                           autofocus
+                                           autocomplete="username"
+                                           placeholder="ejemplo@correo.com"
+                                           class="w-full rounded-[22px] border border-slate-200 bg-white py-4 pl-14 pr-5 text-base text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-4 focus:ring-slate-200">
+                                </div>
+                            </div>
 
-                        <p class="mt-4 max-w-lg text-xl leading-8 text-slate-500">
-                            Ingresá con tu correo y contraseña para continuar.
-                        </p>
-                    </div>
-
-                    @if (session('status'))
-                        <div class="mb-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-
-                    @if ($errors->any())
-                        <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            {{ $errors->first() }}
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('login') }}" class="space-y-6">
-                        @csrf
-
-                        <div>
-                            <label for="email" class="mb-3 block text-base font-semibold text-slate-700">
-                                Correo electrónico
-                            </label>
-                            <input id="email"
-                                   name="email"
-                                   type="email"
-                                   value="{{ old('email') }}"
-                                   required
-                                   autofocus
-                                   autocomplete="username"
-                                   placeholder="ejemplo@correo.com"
-                                   class="w-full rounded-3xl border border-slate-300 bg-white px-5 py-4 text-lg shadow-sm outline-none transition focus:border-slate-500 focus:ring-4 focus:ring-slate-200">
-                        </div>
-
-                        <div>
-                            <div class="mb-3 flex items-center justify-between gap-3">
-                                <label for="password" class="block text-base font-semibold text-slate-700">
+                            <div>
+                                <label for="password" class="mb-2.5 block text-sm font-bold text-slate-700">
                                     Contraseña
+                                </label>
+
+                                <div class="relative">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5 text-slate-400">
+                                        <span class="text-lg">●</span>
+                                    </div>
+
+                                    <input id="password"
+                                           name="password"
+                                           type="password"
+                                           required
+                                           autocomplete="current-password"
+                                           placeholder="********"
+                                           class="w-full rounded-[22px] border border-slate-200 bg-white py-4 pl-14 pr-5 text-base text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-4 focus:ring-slate-200">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1">
+                                <label for="remember_me" class="flex items-center gap-3">
+                                    <input id="remember_me"
+                                           type="checkbox"
+                                           name="remember"
+                                           class="rounded border-slate-300 text-slate-950 focus:ring-slate-500">
+
+                                    <span class="text-sm font-medium text-slate-600">
+                                        Recordarme
+                                    </span>
                                 </label>
                             </div>
 
-                            <input id="password"
-                                   name="password"
-                                   type="password"
-                                   required
-                                   autocomplete="current-password"
-                                   placeholder="********"
-                                   class="w-full rounded-3xl border border-slate-300 bg-white px-5 py-4 text-lg shadow-sm outline-none transition focus:border-slate-500 focus:ring-4 focus:ring-slate-200">
+                            <button type="submit"
+                                    class="group relative w-full overflow-hidden rounded-[22px] bg-[#050816] px-5 py-4 text-lg font-bold text-white shadow-[0_18px_45px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:bg-black">
+                                <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition duration-700 group-hover:translate-x-full"></span>
+                                <span class="relative">Ingresar al sistema</span>
+                            </button>
+                        </form>
+
+                        <div class="mt-9 rounded-[26px] border border-slate-200 bg-white p-4 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#050816] text-white">
+                                    ✦
+                                </div>
+
+                                <div>
+                                    <div class="text-sm font-bold text-slate-900">
+                                        Gestión profesional
+                                    </div>
+                                    <div class="text-xs leading-5 text-slate-500">
+                                        Ventas, turnos, compras, stock y administración del salón.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <label for="remember_me" class="flex items-center gap-3 pt-1">
-                            <input id="remember_me"
-                                   type="checkbox"
-                                   name="remember"
-                                   class="rounded border-slate-300 text-slate-900 focus:ring-slate-500">
-                            <span class="text-base text-slate-600">Recordarme</span>
-                        </label>
-
-                        <button type="submit"
-                                class="w-full rounded-3xl bg-slate-950 px-5 py-4 text-xl font-semibold text-white shadow-xl shadow-slate-900/10 transition hover:bg-slate-800">
-                            Ingresar
-                        </button>
-                    </form>
-
-                    <div class="mt-10 text-center text-base text-slate-400">
-                        Acceso privado para administración y colaboradoras
                     </div>
-                </div>
+                </section>
+
             </div>
         </div>
     </div>

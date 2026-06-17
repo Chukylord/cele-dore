@@ -197,34 +197,36 @@
         {{ $ventas->links() }}
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <div class="rounded-2xl border bg-white p-4">
-            <div class="text-sm text-slate-500">Efectivo</div>
-            <div class="text-2xl font-bold text-green-700">
-                ${{ number_format((float)($totalEfectivo ?? 0), 2, ',', '.') }}
+    @if(auth()->user()->esAdmin())
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            <div class="rounded-2xl border bg-white p-4">
+                <div class="text-sm text-slate-500">Efectivo</div>
+                <div class="text-2xl font-bold text-green-700">
+                    ${{ number_format((float)($totalEfectivo ?? 0), 2, ',', '.') }}
+                </div>
             </div>
-        </div>
 
-        <div class="rounded-2xl border bg-white p-4">
-            <div class="text-sm text-slate-500">Transferencia</div>
-            <div class="text-2xl font-bold text-blue-700">
-                ${{ number_format((float)($totalTransferencia ?? 0), 2, ',', '.') }}
+            <div class="rounded-2xl border bg-white p-4">
+                <div class="text-sm text-slate-500">Transferencia</div>
+                <div class="text-2xl font-bold text-blue-700">
+                    ${{ number_format((float)($totalTransferencia ?? 0), 2, ',', '.') }}
+                </div>
             </div>
-        </div>
 
-        <div class="rounded-2xl border bg-white p-4">
-            <div class="text-sm text-slate-500">Tarjeta</div>
-            <div class="text-2xl font-bold text-purple-700">
-                ${{ number_format((float)($totalTarjeta ?? 0), 2, ',', '.') }}
+            <div class="rounded-2xl border bg-white p-4">
+                <div class="text-sm text-slate-500">Tarjeta</div>
+                <div class="text-2xl font-bold text-purple-700">
+                    ${{ number_format((float)($totalTarjeta ?? 0), 2, ',', '.') }}
+                </div>
             </div>
-        </div>
 
-        <div class="rounded-2xl border bg-slate-900 p-4 text-white">
-            <div class="text-sm text-slate-300">Total general</div>
-            <div class="text-2xl font-bold">
-                ${{ number_format((float)($totalGeneral ?? 0), 2, ',', '.') }}
+            <div class="rounded-2xl border bg-slate-900 p-4 text-white">
+                <div class="text-sm text-slate-300">Total general</div>
+                <div class="text-2xl font-bold">
+                    ${{ number_format((float)($totalGeneral ?? 0), 2, ',', '.') }}
+                </div>
             </div>
         </div>
-    </div>
+    @endif
 
 @endsection

@@ -356,6 +356,8 @@
             'precio_efectivo_manual' => $p->precio_efectivo_manual !== null ? (float)$p->precio_efectivo_manual : null,
             'precio_tarjeta_manual' => $p->precio_tarjeta_manual !== null ? (float)$p->precio_tarjeta_manual : null,
             'ultimo_costo' => $p->ultimo_costo !== null ? (float)$p->ultimo_costo : null,
+            'ultimo_costo_at' => $p->ultimo_costo_at ?? null,
+            'precio_manual_updated_at' => $p->precio_manual_updated_at ?? null,
             'stock_venta' => (int)$p->stock_venta,
             'codigo_barra' => $p->codigo_barra,
         ];
@@ -422,30 +424,55 @@ function bindDatalist(inputEl, mapObj, hiddenEl){
     inputEl.addEventListener('blur', setId);
 }
 
-function precioUnitarioVenta(pid, metodo){
+function manualEsMasNuevoQueCompra(p){
+    if(p.precio_efectivo_manual === null){
+        return false;
+    }
+
+    if(!p.precio_manual_updated_at){
+        return false;
+    }
+
+    if(!p.ultimo_costo_at){
+        return true;
+    }
+
+    const manualTime = new Date(p.precio_manual_updated_at).getTime();
+    const compraTime = new Date(p.ultimo_costo_at).getTime();
+
+    return manualTime >= compraTime;
+}
+
+function precioUnitarioEfectivoVenta(pid){
     const p = PRODUCTOS_DATA[pid];
 
     if(!p) return 0;
 
-    if(metodo === 'tarjeta' && p.precio_tarjeta_manual !== null){
-        return round2(p.precio_tarjeta_manual);
-    }
-
-    if(metodo !== 'tarjeta' && p.precio_efectivo_manual !== null){
+    if(manualEsMasNuevoQueCompra(p)){
         return round2(p.precio_efectivo_manual);
     }
 
     const costo = p.ultimo_costo;
 
     if(costo !== null){
-        return round2(metodo === 'tarjeta' ? costo * 1.60 : costo * 1.40);
+        return round2(costo * 1.40);
     }
 
-    if(metodo === 'tarjeta'){
-        return round2((p.precio_manual / 1.40) * 1.60);
+    if(p.precio_efectivo_manual !== null){
+        return round2(p.precio_efectivo_manual);
     }
 
     return round2(p.precio_manual);
+}
+
+function precioUnitarioVenta(pid, metodo){
+    const precioEfectivo = precioUnitarioEfectivoVenta(pid);
+
+    if(metodo === 'tarjeta'){
+        return round2(precioEfectivo * 1.20);
+    }
+
+    return precioEfectivo;
 }
 
 function precioUnitarioCosto(pid){
@@ -474,14 +501,30 @@ function recalcular(){
     let subServ = 0;
 
     document.querySelectorAll('#tablaServicios tbody tr').forEach(tr => {
-        const precio = Number(tr.querySelector('input.precio-serv')?.value || 0);
+        const precioEfectivo = Number(tr.querySelector('input.precio-serv')?.value || 0);
+
+        let precioSegunMetodo = precioEfectivo;
+
+        /*
+            Nueva lógica para servicios:
+            efectivo / transferencia = precio normal
+            tarjeta = precio normal + 20%
+        */
+        if(getMetodo() === 'tarjeta'){
+            precioSegunMetodo = round2(precioEfectivo * 1.20);
+        }
+
         const desc = getDescPct(tr);
-        const precioFinal = applyDesc(precio, desc);
+        const precioFinal = applyDesc(precioSegunMetodo, desc);
 
         const precioShow = tr.querySelector('.precio-show');
 
         if(precioShow){
-            precioShow.textContent = money(precioFinal);
+            if(getMetodo() === 'tarjeta'){
+                precioShow.textContent = money(precioFinal) + ' (tarjeta)';
+            } else {
+                precioShow.textContent = money(precioFinal);
+            }
         }
 
         subServ += precioFinal;
@@ -630,7 +673,9 @@ function addServicioRow(){
         <td class="px-3 py-2">
             <input name="servicios[${idx}][precio]" type="number" step="0.01" min="0" value="0"
                    class="precio-serv w-32 rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500" />
-            <div class="text-xs text-slate-500 mt-1">Final: <span class="precio-show">$0,00</span></div>
+            <div class="text-xs text-slate-500 mt-1">
+                Final según método: <span class="precio-show">$0,00</span>
+            </div>
         </td>
 
         <td class="px-3 py-2">

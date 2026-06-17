@@ -13,7 +13,6 @@
     @endif
 
     @php
-        // Helper simple para links de ordenamiento
         function sort_link($label, $field, $sort, $dir) {
             $isActive = $sort === $field;
             $nextDir = ($isActive && $dir === 'asc') ? 'desc' : 'asc';
@@ -85,7 +84,10 @@
             @forelse($clientes as $c)
                 @php
                     $observacionLimpia = trim((string) $c->observacion);
-                    $tieneObs = $observacionLimpia !== '';
+                    $lineasObs = $observacionLimpia !== ''
+                        ? array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $observacionLimpia))))
+                        : [];
+                    $tieneObs = count($lineasObs) > 0;
                 @endphp
 
                 <tr class="border-t hover:bg-slate-50">
@@ -106,7 +108,6 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center justify-end gap-2">
 
-                            {{-- Ojo solo si hay observación --}}
                             @if($tieneObs)
                                 <button type="button"
                                         class="rounded-lg border px-3 py-1 hover:bg-white"
@@ -116,21 +117,18 @@
                                 </button>
                             @endif
 
-                            {{-- Ver cliente --}}
                             <a href="{{ route('clientes.show', $c) }}"
                                class="rounded-lg border px-3 py-1 hover:bg-white"
                                title="Ver cliente">
                                 🔎
                             </a>
 
-                            {{-- Editar --}}
                             <a href="{{ route('clientes.edit', $c) }}"
                                class="rounded-lg border px-3 py-1 hover:bg-white"
                                title="Editar">
                                 ✏️
                             </a>
 
-                            {{-- Eliminar --}}
                             <form method="POST" action="{{ route('clientes.destroy', $c) }}"
                                   onsubmit="return confirm('¿Eliminar este cliente?');">
                                 @csrf
@@ -141,10 +139,9 @@
                             </form>
                         </div>
 
-                        {{-- Modal observación --}}
                         @if($tieneObs)
                             <div id="obs-{{ $c->id }}" class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
-                                <div class="w-full max-w-xl bg-white rounded-2xl shadow p-5">
+                                <div class="w-full max-w-2xl bg-white rounded-2xl shadow p-5">
                                     <div class="flex items-start justify-between gap-4">
                                         <div>
                                             <div class="text-lg font-bold">Observación</div>
@@ -152,13 +149,19 @@
                                         </div>
 
                                         <button type="button"
-                                                class="text-slate-500 hover:text-slate-900"
+                                                class="text-slate-500 hover:text-slate-900 text-2xl leading-none"
                                                 data-close-obs="{{ $c->id }}">
                                             ✖
                                         </button>
                                     </div>
 
-                                    <div class="mt-4 rounded-xl border bg-slate-50 p-4 text-slate-800 whitespace-pre-line break-words leading-relaxed text-left">{{ $observacionLimpia }}</div>
+                                    <div class="mt-4 rounded-xl border bg-slate-50 overflow-hidden">
+                                        @foreach($lineasObs as $linea)
+                                            <div class="px-4 py-3 text-slate-800 leading-relaxed break-words border-b last:border-b-0">
+                                                {{ $linea }}
+                                            </div>
+                                        @endforeach
+                                    </div>
 
                                     <div class="mt-4 flex justify-end">
                                         <button type="button"
@@ -213,7 +216,6 @@
                 }
             }
 
-            // Cerrar tocando el fondo
             if (e.target.classList.contains('bg-black/40') && e.target.id && e.target.id.startsWith('obs-')) {
                 e.target.classList.add('hidden');
                 e.target.classList.remove('flex');

@@ -8,7 +8,7 @@
 
     {{-- PANTALLA PRINCIPAL CON LOGO --}}
     <section class="w-full h-[calc(100vh-57px)] bg-black overflow-hidden">
-        <img src="{{ asset('images/vir-tisone-logo-blanco.png') }}"
+        <img src="{{ asset('images/vir-tisone-logo-blanco1.png') }}"
             alt="Vir Tisone Studio"
             class="block w-full h-full object-cover">
     </section>

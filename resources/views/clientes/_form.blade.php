@@ -28,9 +28,22 @@
 
     <div class="md:col-span-2">
         <label class="text-sm font-semibold text-slate-700">Observación</label>
-        <textarea name="observacion" rows="4"
-                  class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">{{ old('observacion', $cliente->observacion ?? '') }}</textarea>
-        @error('observacion') <div class="text-sm text-red-600 mt-1">{{ $message }}</div> @enderror
+
+        <textarea name="observacion"
+                  rows="7"
+                  class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500 font-mono text-sm leading-7"
+                  placeholder="Ejemplo:
+COLOR CRECIMIENTOS 5(20) 6.33(20) 6.12(20) 10VOL
+COLOR LARGOS 6.33(50) 6.12(50) 10VOL
+S.O.S COLOR 5(2) 6(2) 6.33(2) 6.12(2) 10VOL">{{ old('observacion', $cliente->observacion ?? '') }}</textarea>
+
+        <div class="mt-2 rounded-xl border bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            Usá <strong>Enter</strong> para separar cada fórmula o nota en un renglón distinto.
+        </div>
+
+        @error('observacion')
+            <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+        @enderror
     </div>
 </div>
 

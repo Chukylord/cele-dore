@@ -108,10 +108,18 @@ class VentaController extends Controller
                 $q->from('compras')
                     ->select('precio_unitario')
                     ->whereColumn('compras.producto_id', 'productos.id')
-                    ->orderBy('fecha', 'desc')
+                    ->orderBy('created_at', 'desc')
                     ->orderBy('id', 'desc')
                     ->limit(1);
             }, 'ultimo_costo')
+            ->selectSub(function ($q) {
+                $q->from('compras')
+                    ->select('created_at')
+                    ->whereColumn('compras.producto_id', 'productos.id')
+                    ->orderBy('created_at', 'desc')
+                    ->orderBy('id', 'desc')
+                    ->limit(1);
+            }, 'ultimo_costo_at')
             ->with('proveedor')
             ->orderBy('marca')
             ->orderBy('tipo')
@@ -142,12 +150,12 @@ class VentaController extends Controller
 
     private function round2($n): float
     {
-        return round((float)$n, 2);
+        return round((float) $n, 2);
     }
 
     private function clampPct($pct): float
     {
-        $pct = (float)$pct;
+        $pct = (float) $pct;
 
         if ($pct < 0) {
             $pct = 0;
@@ -174,44 +182,50 @@ class VentaController extends Controller
             ->orderBy('id', 'desc')
             ->value('precio_unitario');
 
-        return $costo !== null ? (float)$costo : null;
+        return $costo !== null ? (float) $costo : null;
+    }
+
+    private function precioUnitarioEfectivoNormal(Producto $producto, ?float $ultimoCosto): float
+    {
+        if ($this->manualEsMasNuevoQueCompra($producto, $ultimoCosto)) {
+            return $this->round2((float) $producto->precio_efectivo_manual);
+        }
+
+        if ($ultimoCosto !== null) {
+            return $this->round2((float) $ultimoCosto * 1.40);
+        }
+
+        if ($producto->precio_efectivo_manual !== null) {
+            return $this->round2((float) $producto->precio_efectivo_manual);
+        }
+
+        return $this->round2((float) $producto->precio_venta);
     }
 
     private function precioUnitarioVentaNormal(Producto $producto, ?float $ultimoCosto, string $metodoPago): float
     {
         /*
-            Prioridad:
-            1) Precio manual de Lista de precios.
-            2) Último costo + 40% efectivo/transferencia o +60% tarjeta.
-            3) precio_venta como respaldo si nunca tuvo compras.
+            Nueva lógica:
+            efectivo / transferencia = costo + 40%
+            tarjeta = efectivo / transferencia + 20%
+
+            Importante:
+            precio_tarjeta_manual ya no se usa como precio independiente.
         */
 
-        if ($metodoPago === 'tarjeta' && $producto->precio_tarjeta_manual !== null) {
-            return $this->round2((float)$producto->precio_tarjeta_manual);
-        }
-
-        if ($metodoPago !== 'tarjeta' && $producto->precio_efectivo_manual !== null) {
-            return $this->round2((float)$producto->precio_efectivo_manual);
-        }
-
-        if ($ultimoCosto !== null) {
-            $costo = (float)$ultimoCosto;
-            $precio = $metodoPago === 'tarjeta' ? $costo * 1.60 : $costo * 1.40;
-
-            return $this->round2($precio);
-        }
+        $precioEfectivo = $this->precioUnitarioEfectivoNormal($producto, $ultimoCosto);
 
         if ($metodoPago === 'tarjeta') {
-            return $this->round2(((float)$producto->precio_venta / 1.40) * 1.60);
+            return $this->round2($precioEfectivo * 1.20);
         }
 
-        return $this->round2((float)$producto->precio_venta);
+        return $precioEfectivo;
     }
 
     private function precioUnitarioCostoColab(float $precioManual, ?float $ultimoCosto): float
     {
         if ($ultimoCosto !== null) {
-            return $this->round2((float)$ultimoCosto);
+            return $this->round2((float) $ultimoCosto);
         }
 
         return $this->round2($precioManual / 1.40);
@@ -304,7 +318,7 @@ class VentaController extends Controller
                 $subtotalProductos = 0.0;
 
                 foreach ($serviciosIn as $row) {
-                    $sid = (int)($row['servicio_id'] ?? 0);
+                    $sid = (int) ($row['servicio_id'] ?? 0);
 
                     if (!$sid) {
                         continue;
@@ -316,11 +330,22 @@ class VentaController extends Controller
                         continue;
                     }
 
-                    $precioBase = $row['precio'] !== null && $row['precio'] !== ''
-                        ? (float)$row['precio']
-                        : (float)$servicio->precio;
+                    $precioBaseEfectivo = $row['precio'] !== null && $row['precio'] !== ''
+                        ? (float) $row['precio']
+                        : (float) $servicio->precio;
 
-                    $descPct = isset($row['descuento_pct']) ? (float)$row['descuento_pct'] : 0;
+                    /*
+                        Nueva lógica para servicios:
+                        efectivo / transferencia = precio normal
+                        tarjeta = precio normal + 20%
+                    */
+                    if (($data['metodo_pago'] ?? '') === 'tarjeta') {
+                        $precioBase = $this->round2($precioBaseEfectivo * 1.20);
+                    } else {
+                        $precioBase = $this->round2($precioBaseEfectivo);
+                    }
+
+                    $descPct = isset($row['descuento_pct']) ? (float) $row['descuento_pct'] : 0;
                     $precioFinal = $this->applyDiscount($precioBase, $descPct);
 
                     VentaServicio::create([
@@ -334,8 +359,8 @@ class VentaController extends Controller
                 }
 
                 foreach ($productosIn as $row) {
-                    $pid = (int)($row['producto_id'] ?? 0);
-                    $cant = (int)($row['cantidad'] ?? 0);
+                    $pid = (int) ($row['producto_id'] ?? 0);
+                    $cant = (int) ($row['cantidad'] ?? 0);
 
                     if (!$pid || $cant <= 0) {
                         continue;
@@ -347,7 +372,7 @@ class VentaController extends Controller
                         continue;
                     }
 
-                    $stockActual = (int)$producto->stock_venta;
+                    $stockActual = (int) $producto->stock_venta;
 
                     if ($cant > $stockActual) {
                         throw new \Exception("Stock insuficiente para {$producto->marca} - {$producto->tipo} {$producto->contenido}. Stock: {$stockActual}, Cantidad: {$cant}");
@@ -357,12 +382,12 @@ class VentaController extends Controller
                     $costoRef = $ultimoCosto !== null ? $this->round2($ultimoCosto) : null;
 
                     if ($aColaboradora) {
-                        $precioUnit = $this->precioUnitarioCostoColab((float)$producto->precio_venta, $ultimoCosto);
+                        $precioUnit = $this->precioUnitarioCostoColab((float) $producto->precio_venta, $ultimoCosto);
                     } else {
                         $precioUnit = $this->precioUnitarioVentaNormal($producto, $ultimoCosto, $data['metodo_pago']);
                     }
 
-                    $descPct = isset($row['descuento_pct']) ? (float)$row['descuento_pct'] : 0;
+                    $descPct = isset($row['descuento_pct']) ? (float) $row['descuento_pct'] : 0;
                     $precioUnitFinal = $this->applyDiscount($precioUnit, $descPct);
                     $subtotal = $this->round2($precioUnitFinal * $cant);
 
@@ -388,8 +413,8 @@ class VentaController extends Controller
 
                 if (!$aColaboradora && $venta->vendedora_id) {
                     foreach ($productosIn as $row) {
-                        $pid = (int)($row['producto_id'] ?? 0);
-                        $cant = (int)($row['cantidad'] ?? 0);
+                        $pid = (int) ($row['producto_id'] ?? 0);
+                        $cant = (int) ($row['cantidad'] ?? 0);
 
                         if (!$pid || $cant <= 0) {
                             continue;
@@ -409,7 +434,7 @@ class VentaController extends Controller
                             'efectivo'
                         );
 
-                        $descPct = isset($row['descuento_pct']) ? (float)$row['descuento_pct'] : 0;
+                        $descPct = isset($row['descuento_pct']) ? (float) $row['descuento_pct'] : 0;
                         $precioUnitEfectivoFinal = $this->applyDiscount($precioUnitEfectivo, $descPct);
 
                         $baseComisionProductos += $this->round2($precioUnitEfectivoFinal * $cant);
@@ -422,7 +447,7 @@ class VentaController extends Controller
 
                 if (!$aColaboradora && $venta->vendedora_id) {
                     $vend = Colaboradora::find($venta->vendedora_id);
-                    $pct = $vend ? (float)$vend->comision_pct : 0.0;
+                    $pct = $vend ? (float) $vend->comision_pct : 0.0;
                     $comisionMonto = $this->round2($baseComisionProductos * ($pct / 100));
                 }
 
@@ -452,5 +477,28 @@ class VentaController extends Controller
         ]);
 
         return redirect()->route('ventas.index')->with('ok', 'Venta marcada como pagada.');
+    }
+
+    private function manualEsMasNuevoQueCompra(Producto $producto, ?float $ultimoCosto): bool
+    {
+        if ($producto->precio_efectivo_manual === null) {
+            return false;
+        }
+
+        if (empty($producto->precio_manual_updated_at)) {
+            return false;
+        }
+
+        $ultimaCompra = Compra::where('producto_id', $producto->id)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$ultimaCompra) {
+            return true;
+        }
+
+        return \Illuminate\Support\Carbon::parse($producto->precio_manual_updated_at)
+            ->greaterThanOrEqualTo($ultimaCompra->created_at);
     }
 }

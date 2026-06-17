@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ListaPrecioController;
+use App\Http\Controllers\CajaDiariaController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -14,6 +15,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/liquidaciones/{liquidacion}', [\App\Http\Controllers\LiquidacionController::class, 'show'])->name('liquidaciones.show');
 
     Route::get('/informes', [\App\Http\Controllers\InformeController::class, 'index'])->name('informes.index');
+
+    Route::get('/caja-diaria', [CajaDiariaController::class, 'index'])->name('caja-diaria.index');
+    Route::post('/caja-diaria/abrir', [CajaDiariaController::class, 'abrir'])->name('caja-diaria.abrir');
+    Route::patch('/caja-diaria/{caja}/cerrar', [CajaDiariaController::class, 'cerrar'])->name('caja-diaria.cerrar');
 });
 
 Route::middleware(['auth'])->group(function () {

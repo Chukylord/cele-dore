@@ -98,6 +98,11 @@
                         LIQUIDACIONES
                     </a>
 
+                    <a href="{{ route('caja-diaria.index') }}"
+                        class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('caja-diaria.*') ? 'bg-slate-800' : '' }}">
+                        CAJA DIARIA
+                    </a>
+
                     <a href="{{ route('informes.index') }}"
                        class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('informes.*') ? 'bg-slate-800' : '' }}">
                         INFORMES

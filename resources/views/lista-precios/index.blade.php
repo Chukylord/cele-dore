@@ -81,24 +81,43 @@
     </form>
 </div>
 
-<div class="rounded-2xl border bg-slate-900 text-white p-4 mb-5">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <div class="md:col-span-2">
-            <label class="text-sm font-semibold text-slate-200">Consultar precio con scanner</label>
+{{-- CONSULTA GRANDE CON SCANNER --}}
+<div class="rounded-2xl border bg-slate-950 text-white p-5 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+
+        <div class="lg:col-span-4">
+            <label class="text-sm font-semibold text-slate-200">
+                Consultar precio con scanner
+            </label>
+
             <input id="scanner_precio"
                    type="text"
                    autocomplete="off"
-                   placeholder="Hacé click acá y escaneá el producto..."
-                   class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white focus:border-white focus:ring-white">
-            <div class="text-xs text-slate-400 mt-1">
+                   placeholder="Hacé click acá y escaneá..."
+                   class="mt-2 w-full rounded-2xl border-slate-700 bg-slate-900 text-white text-lg px-4 py-4 focus:border-white focus:ring-white">
+
+            <div class="text-xs text-slate-400 mt-2">
                 El lector funciona como teclado. Al escanear, se muestra el precio automáticamente.
+            </div>
+
+            <button type="button"
+                    onclick="document.getElementById('scanner_precio').focus()"
+                    class="mt-4 w-full rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold hover:bg-slate-900">
+                Activar scanner
+            </button>
+        </div>
+
+        <div class="lg:col-span-8">
+            <div id="resultadoScanner"
+                 class="min-h-[220px] h-full rounded-2xl border border-slate-700 bg-slate-900 p-6 flex items-center justify-center">
+                <div class="text-center">
+                    <div class="text-5xl mb-3">🔎</div>
+                    <div class="text-2xl font-bold text-white">Esperando producto</div>
+                    <div class="text-slate-400 mt-2">Escaneá un código para ver el precio grande.</div>
+                </div>
             </div>
         </div>
 
-        <div id="resultadoScanner"
-             class="rounded-xl border border-slate-700 bg-slate-800 p-3 text-sm text-slate-300">
-            Esperando código...
-        </div>
     </div>
 </div>
 
@@ -156,7 +175,7 @@
                     <th class="px-4 py-3 text-left text-sm font-semibold">Stock</th>
                     <th class="px-4 py-3 text-left text-sm font-semibold">Costo</th>
                     <th class="px-4 py-3 text-left text-sm font-semibold">Efectivo / Transferencia</th>
-                    <th class="px-4 py-3 text-left text-sm font-semibold">Tarjeta</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold">Tarjeta (+20%)</th>
                     <th class="px-4 py-3 text-left text-sm font-semibold">Tipo</th>
                 </tr>
                 </thead>
@@ -165,7 +184,7 @@
                 @forelse($productos as $producto)
                     @php
                         $nombre = trim(($producto->marca ?? '') . ' - ' . ($producto->tipo ?? '') . ' ' . ($producto->contenido ?? ''));
-                        $esManual = $producto->precio_efectivo_manual !== null || $producto->precio_tarjeta_manual !== null;
+                        $esManual = ($producto->precio_origen ?? 'Automático') === 'Manual';
                     @endphp
 
                     <tr class="border-t hover:bg-slate-50">
@@ -202,16 +221,18 @@
                                    min="0"
                                    name="productos[{{ $producto->id }}][precio_efectivo_manual]"
                                    value="{{ number_format((float)$producto->precio_efectivo_calculado, 2, '.', '') }}"
-                                   class="w-32 rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+                                   class="precio-efectivo-input w-32 rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+                                   data-producto-id="{{ $producto->id }}">
                         </td>
 
                         <td class="px-4 py-3">
                             <input type="number"
                                    step="0.01"
                                    min="0"
-                                   name="productos[{{ $producto->id }}][precio_tarjeta_manual]"
                                    value="{{ number_format((float)$producto->precio_tarjeta_calculado, 2, '.', '') }}"
-                                   class="w-32 rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+                                   readonly
+                                   class="precio-tarjeta-view w-32 rounded-xl border-slate-200 bg-slate-100 text-slate-600 cursor-not-allowed"
+                                   data-producto-id="{{ $producto->id }}">
                         </td>
 
                         <td class="px-4 py-3">
@@ -247,6 +268,15 @@ function money(n){
     return '$' + n.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
+function escapeHtml(text) {
+    return String(text ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
 document.addEventListener('DOMContentLoaded', function(){
     const scanner = document.getElementById('scanner_precio');
     const resultado = document.getElementById('resultadoScanner');
@@ -263,18 +293,64 @@ document.addEventListener('DOMContentLoaded', function(){
 
         if (!producto) {
             resultado.innerHTML = `
-                <div class="font-bold text-red-300">Producto no encontrado</div>
-                <div class="text-slate-400">Código: ${codigoLimpio}</div>
+                <div class="w-full text-center">
+                    <div class="text-6xl mb-4">⚠️</div>
+                    <div class="text-3xl font-extrabold text-red-300">Producto no encontrado</div>
+                    <div class="mt-3 text-lg text-slate-300">Código escaneado:</div>
+                    <div class="mt-1 text-2xl font-bold text-white">${escapeHtml(codigoLimpio)}</div>
+                </div>
             `;
             return;
         }
 
         resultado.innerHTML = `
-            <div class="font-bold text-white">${producto.nombre}</div>
-            <div class="text-slate-300">Proveedor: ${producto.proveedor || '-'}</div>
-            <div class="text-slate-300">Stock: ${producto.stock}</div>
-            <div class="mt-2 text-green-300 font-bold">Efectivo / Transferencia: ${money(producto.efectivo)}</div>
-            <div class="text-blue-300 font-bold">Tarjeta: ${money(producto.tarjeta)}</div>
+            <div class="w-full">
+                <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 mb-6">
+                    <div>
+                        <div class="text-sm uppercase tracking-[0.28em] text-slate-400 font-semibold">
+                            Producto consultado
+                        </div>
+
+                        <div class="mt-2 text-3xl lg:text-4xl font-extrabold text-white leading-tight">
+                            ${escapeHtml(producto.nombre)}
+                        </div>
+
+                        <div class="mt-3 flex flex-wrap gap-2 text-sm">
+                            <span class="rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
+                                Proveedor: ${escapeHtml(producto.proveedor || '-')}
+                            </span>
+
+                            <span class="rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
+                                Stock: ${escapeHtml(producto.stock)}
+                            </span>
+
+                            <span class="rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
+                                Código: ${escapeHtml(producto.codigo_barra)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="rounded-2xl border border-green-400/30 bg-green-400/10 p-5">
+                        <div class="text-sm uppercase tracking-[0.20em] text-green-200 font-semibold">
+                            Efectivo / Transferencia
+                        </div>
+                        <div class="mt-3 text-4xl lg:text-5xl font-black text-green-300">
+                            ${money(producto.efectivo)}
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-blue-400/30 bg-blue-400/10 p-5">
+                        <div class="text-sm uppercase tracking-[0.20em] text-blue-200 font-semibold">
+                            Tarjeta
+                        </div>
+                        <div class="mt-3 text-4xl lg:text-5xl font-black text-blue-300">
+                            ${money(producto.tarjeta)}
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
     }
 
@@ -291,6 +367,8 @@ document.addEventListener('DOMContentLoaded', function(){
             consultarCodigo(this.value);
             this.value = '';
         });
+
+        scanner.focus();
     }
 
     if (checkTodos) {
@@ -300,6 +378,22 @@ document.addEventListener('DOMContentLoaded', function(){
             });
         });
     }
+
+    document.querySelectorAll('.precio-efectivo-input').forEach(input => {
+        input.addEventListener('input', function () {
+            const productoId = this.dataset.productoId;
+            const tarjetaInput = document.querySelector(`.precio-tarjeta-view[data-producto-id="${productoId}"]`);
+
+            if (!tarjetaInput) {
+                return;
+            }
+
+            const efectivo = Number(this.value || 0);
+            const tarjeta = round2(efectivo * 1.20);
+
+            tarjetaInput.value = tarjeta.toFixed(2);
+        });
+    });
 });
 </script>
 

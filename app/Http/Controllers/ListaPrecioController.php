@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Compra;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class ListaPrecioController extends Controller
 {
@@ -14,51 +14,83 @@ class ListaPrecioController extends Controller
         return round($n, 2);
     }
 
-    private function calcularPrecioEfectivo(Producto $producto): float
+    private function manualEsMasNuevoQueCompra(Producto $producto): bool
     {
-        if ($producto->precio_efectivo_manual !== null) {
-            return $this->round2((float)$producto->precio_efectivo_manual);
+        if ($producto->precio_efectivo_manual === null) {
+            return false;
         }
 
-        $costo = (float)($producto->ultimo_costo ?? 0);
+        if (empty($producto->precio_manual_updated_at)) {
+            return false;
+        }
+
+        if (empty($producto->ultimo_costo_at)) {
+            return true;
+        }
+
+        return Carbon::parse($producto->precio_manual_updated_at)
+            ->greaterThanOrEqualTo(Carbon::parse($producto->ultimo_costo_at));
+    }
+
+    private function calcularPrecioEfectivo(Producto $producto): float
+    {
+        if ($this->manualEsMasNuevoQueCompra($producto)) {
+            return $this->round2((float) $producto->precio_efectivo_manual);
+        }
+
+        $costo = (float) ($producto->ultimo_costo ?? 0);
 
         if ($costo > 0) {
             return $this->round2($costo * 1.40);
         }
 
-        return $this->round2((float)$producto->precio_venta);
+        if ($producto->precio_efectivo_manual !== null) {
+            return $this->round2((float) $producto->precio_efectivo_manual);
+        }
+
+        return $this->round2((float) $producto->precio_venta);
     }
 
     private function calcularPrecioTarjeta(Producto $producto): float
     {
-        if ($producto->precio_tarjeta_manual !== null) {
-            return $this->round2((float)$producto->precio_tarjeta_manual);
-        }
+        $precioEfectivo = $this->calcularPrecioEfectivo($producto);
 
-        $costo = (float)($producto->ultimo_costo ?? 0);
+        return $this->round2($precioEfectivo * 1.20);
+    }
 
-        if ($costo > 0) {
-            return $this->round2($costo * 1.60);
-        }
-
-        return $this->round2(((float)$producto->precio_venta / 1.40) * 1.60);
+    private function precioOrigen(Producto $producto): string
+    {
+        return $this->manualEsMasNuevoQueCompra($producto) ? 'Manual' : 'Automático';
     }
 
     public function index(Request $request)
     {
-        $buscar = trim((string)$request->get('buscar', ''));
-        $proveedor_id = trim((string)$request->get('proveedor_id', ''));
+        $buscar = trim((string) $request->get('buscar', ''));
+        $proveedor_id = trim((string) $request->get('proveedor_id', ''));
 
         $query = Producto::query()
             ->select('productos.*')
+
+            // Último costo cargado por orden real de carga
             ->selectSub(function ($q) {
                 $q->from('compras')
                     ->select('precio_unitario')
                     ->whereColumn('compras.producto_id', 'productos.id')
-                    ->orderBy('fecha', 'desc')
+                    ->orderBy('created_at', 'desc')
                     ->orderBy('id', 'desc')
                     ->limit(1);
             }, 'ultimo_costo')
+
+            // Fecha/hora de la última compra cargada
+            ->selectSub(function ($q) {
+                $q->from('compras')
+                    ->select('created_at')
+                    ->whereColumn('compras.producto_id', 'productos.id')
+                    ->orderBy('created_at', 'desc')
+                    ->orderBy('id', 'desc')
+                    ->limit(1);
+            }, 'ultimo_costo_at')
+
             ->with('proveedor');
 
         if ($buscar !== '') {
@@ -71,7 +103,7 @@ class ListaPrecioController extends Controller
         }
 
         if ($proveedor_id !== '') {
-            $query->where('proveedor_id', (int)$proveedor_id);
+            $query->where('proveedor_id', (int) $proveedor_id);
         }
 
         $productos = $query
@@ -83,6 +115,7 @@ class ListaPrecioController extends Controller
         $productos->each(function ($producto) {
             $producto->precio_efectivo_calculado = $this->calcularPrecioEfectivo($producto);
             $producto->precio_tarjeta_calculado = $this->calcularPrecioTarjeta($producto);
+            $producto->precio_origen = $this->precioOrigen($producto);
         });
 
         $proveedores = Proveedor::orderBy('nombre')->get();
@@ -111,22 +144,24 @@ class ListaPrecioController extends Controller
 
         if ($accion === 'guardar') {
             foreach (($data['productos'] ?? []) as $productoId => $valores) {
-                $producto = Producto::find((int)$productoId);
+                $producto = Producto::find((int) $productoId);
 
                 if (!$producto) {
                     continue;
                 }
 
                 $precioEfectivo = $valores['precio_efectivo_manual'] ?? null;
-                $precioTarjeta = $valores['precio_tarjeta_manual'] ?? null;
 
-                $producto->precio_efectivo_manual = $precioEfectivo !== null && $precioEfectivo !== ''
-                    ? round((float)$precioEfectivo, 2)
-                    : null;
+                if ($precioEfectivo !== null && $precioEfectivo !== '') {
+                    $producto->precio_efectivo_manual = round((float) $precioEfectivo, 2);
+                    $producto->precio_manual_updated_at = now();
+                } else {
+                    $producto->precio_efectivo_manual = null;
+                    $producto->precio_manual_updated_at = null;
+                }
 
-                $producto->precio_tarjeta_manual = $precioTarjeta !== null && $precioTarjeta !== ''
-                    ? round((float)$precioTarjeta, 2)
-                    : null;
+                // Tarjeta ya no se guarda aparte. Siempre se calcula como efectivo + 20%.
+                $producto->precio_tarjeta_manual = null;
 
                 $producto->save();
             }
@@ -138,7 +173,7 @@ class ListaPrecioController extends Controller
 
         if ($accion === 'aumentar') {
             $seleccionados = $data['seleccionados'] ?? [];
-            $porcentaje = (float)($data['porcentaje_aumento'] ?? 0);
+            $porcentaje = (float) ($data['porcentaje_aumento'] ?? 0);
 
             if (count($seleccionados) === 0) {
                 return back()->with('ok', 'Seleccioná al menos un producto para aumentar.');
@@ -154,19 +189,31 @@ class ListaPrecioController extends Controller
                     $q->from('compras')
                         ->select('precio_unitario')
                         ->whereColumn('compras.producto_id', 'productos.id')
-                        ->orderBy('fecha', 'desc')
+                        ->orderBy('created_at', 'desc')
                         ->orderBy('id', 'desc')
                         ->limit(1);
                 }, 'ultimo_costo')
+                ->selectSub(function ($q) {
+                    $q->from('compras')
+                        ->select('created_at')
+                        ->whereColumn('compras.producto_id', 'productos.id')
+                        ->orderBy('created_at', 'desc')
+                        ->orderBy('id', 'desc')
+                        ->limit(1);
+                }, 'ultimo_costo_at')
                 ->whereIn('id', $seleccionados)
                 ->get();
 
             foreach ($productos as $producto) {
                 $precioEfectivoActual = $this->calcularPrecioEfectivo($producto);
-                $precioTarjetaActual = $this->calcularPrecioTarjeta($producto);
 
-                $producto->precio_efectivo_manual = $this->round2($precioEfectivoActual * (1 + ($porcentaje / 100)));
-                $producto->precio_tarjeta_manual = $this->round2($precioTarjetaActual * (1 + ($porcentaje / 100)));
+                $producto->precio_efectivo_manual = $this->round2(
+                    $precioEfectivoActual * (1 + ($porcentaje / 100))
+                );
+
+                $producto->precio_manual_updated_at = now();
+                $producto->precio_tarjeta_manual = null;
+
                 $producto->save();
             }
 
