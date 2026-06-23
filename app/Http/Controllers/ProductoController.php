@@ -8,6 +8,7 @@ use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\VentaProducto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ProductoController extends Controller
@@ -15,14 +16,14 @@ class ProductoController extends Controller
     public function index(Request $request)
     {
         $proveedor_id = trim((string) $request->get('proveedor_id', ''));
-        $marca        = trim((string) $request->get('marca', ''));
-        $tipo         = trim((string) $request->get('tipo', ''));
-        $contenido    = trim((string) $request->get('contenido', ''));
+        $marca = trim((string) $request->get('marca', ''));
+        $tipo = trim((string) $request->get('tipo', ''));
+        $contenido = trim((string) $request->get('contenido', ''));
         $stock_estado = trim((string) $request->get('stock_estado', ''));
 
         $sort = $request->get('sort', 'created_at');
-        $dir  = $request->get('dir', 'desc');
-        $dir  = $dir === 'asc' ? 'asc' : 'desc';
+        $dir = $request->get('dir', 'desc');
+        $dir = $dir === 'asc' ? 'asc' : 'desc';
 
         $sortPermitidos = [
             'created_at',
@@ -63,7 +64,7 @@ class ProductoController extends Controller
 
         if ($stock_estado === 'stock_minimo') {
             $query->where('stock_venta', '>', 0)
-                  ->whereColumn('stock_venta', '<=', 'stock_minimo');
+                ->whereColumn('stock_venta', '<=', 'stock_minimo');
         }
 
         $productos = $query
@@ -189,6 +190,36 @@ class ProductoController extends Controller
         return redirect()->route('productos.index')->with('ok', 'Producto eliminado.');
     }
 
+    private function costoVigente(Producto $producto): float
+    {
+        $ultimaCompra = Compra::where('producto_id', $producto->id)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $manualMasNuevo = $producto->precio_efectivo_manual !== null
+            && !empty($producto->precio_manual_updated_at)
+            && (
+                !$ultimaCompra
+                || Carbon::parse($producto->precio_manual_updated_at)
+                    ->greaterThanOrEqualTo($ultimaCompra->created_at)
+            );
+
+        if ($manualMasNuevo) {
+            return round((float) $producto->precio_efectivo_manual / 1.40, 2);
+        }
+
+        if ($ultimaCompra) {
+            return round((float) $ultimaCompra->precio_unitario, 2);
+        }
+
+        if ($producto->precio_efectivo_manual !== null) {
+            return round((float) $producto->precio_efectivo_manual / 1.40, 2);
+        }
+
+        return round((float) $producto->precio_venta / 1.40, 2);
+    }
+
     public function consumo(Producto $producto)
     {
         try {
@@ -199,16 +230,13 @@ class ProductoController extends Controller
                     throw new \Exception('No hay stock de venta disponible para consumir.');
                 }
 
-                $ultimoCosto = Compra::where('producto_id', $p->id)
-                    ->orderBy('fecha', 'desc')
-                    ->orderBy('id', 'desc')
-                    ->value('precio_unitario');
+                $costo = $this->costoVigente($p);
 
-                $costo = $ultimoCosto !== null
-                    ? (float) $ultimoCosto
-                    : ((float) $p->precio_venta / 1.40);
-
-                $costo = round($costo, 2);
+                if ($costo <= 0) {
+                    throw new \Exception(
+                        'El producto no tiene un precio válido. Completalo primero en Lista de precios.'
+                    );
+                }
 
                 $p->stock_venta = (int) $p->stock_venta - 1;
                 $p->stock_peluqueria = (int) $p->stock_peluqueria + 1;

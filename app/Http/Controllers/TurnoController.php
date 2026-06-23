@@ -6,47 +6,98 @@ use App\Models\Cliente;
 use App\Models\Colaboradora;
 use App\Models\Turno;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class TurnoController extends Controller
 {
     public function index()
     {
-        $clientes = Cliente::orderBy('apellido')->orderBy('nombre')->get();
-        $colaboradoras = Colaboradora::where('activa', true)->orderBy('apellido')->orderBy('nombre')->get();
+        $clientes = Cliente::query()
+            ->orderBy('apellido')
+            ->orderBy('nombre')
+            ->get();
 
-        return view('turnos.index', compact('clientes', 'colaboradoras'));
+        $colaboradoras = Colaboradora::query()
+            ->where('activa', true)
+            ->orderBy('apellido')
+            ->orderBy('nombre')
+            ->get();
+
+        $hoy = now()->toDateString();
+
+        $estadisticas = [
+            'total' => Turno::query()->whereDate('inicio', $hoy)->count(),
+            'pendiente' => Turno::query()->whereDate('inicio', $hoy)->where('estado', 'pendiente')->count(),
+            'confirmado' => Turno::query()->whereDate('inicio', $hoy)->where('estado', 'confirmado')->count(),
+            'atendido' => Turno::query()->whereDate('inicio', $hoy)->where('estado', 'atendido')->count(),
+            'cancelado' => Turno::query()->whereDate('inicio', $hoy)->where('estado', 'cancelado')->count(),
+        ];
+
+        return view('turnos.index', compact('clientes', 'colaboradoras', 'estadisticas'));
     }
 
-    public function eventos()
+    public function eventos(Request $request)
     {
-        $turnos = Turno::with(['cliente', 'colaboradora'])->get();
+        $query = Turno::query()
+            ->with(['cliente', 'colaboradora']);
 
-        $eventos = $turnos->map(function ($t) {
-            $cliente = $t->cliente ? ($t->cliente->nombre . ' ' . $t->cliente->apellido) : 'Cliente';
-            $titulo = $t->titulo ? $t->titulo . ' - ' . $cliente : $cliente;
+        if ($request->filled('start')) {
+            $query->where('inicio', '>=', Carbon::parse((string) $request->get('start')));
+        }
 
-            $color = match ($t->estado) {
+        if ($request->filled('end')) {
+            $query->where('inicio', '<', Carbon::parse((string) $request->get('end')));
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('estado', (string) $request->get('estado'));
+        }
+
+        if ($request->filled('colaboradora_id')) {
+            $query->where('colaboradora_id', (int) $request->get('colaboradora_id'));
+        }
+
+        $turnos = $query
+            ->orderBy('inicio')
+            ->get();
+
+        $eventos = $turnos->map(function (Turno $turno) {
+            $cliente = $turno->cliente
+                ? trim($turno->cliente->nombre . ' ' . $turno->cliente->apellido)
+                : 'Cliente';
+
+            $telefono = $turno->cliente?->telefono ?: '-';
+            $servicio = trim((string) $turno->titulo);
+            $tituloEvento = $servicio !== ''
+                ? $cliente . ' · ' . $servicio
+                : $cliente;
+
+            $color = match ($turno->estado) {
                 'confirmado' => '#16a34a',
-                'cancelado'  => '#dc2626',
-                'atendido'   => '#2563eb',
-                default      => '#f59e0b', // pendiente
+                'cancelado' => '#dc2626',
+                'atendido' => '#2563eb',
+                default => '#f59e0b',
             };
 
             return [
-                'id' => $t->id,
-                'title' => $titulo,
-                'start' => $t->inicio?->format('Y-m-d\TH:i:s'),
-                'end' => $t->fin?->format('Y-m-d\TH:i:s'),
+                'id' => $turno->id,
+                'title' => $tituloEvento,
+                'start' => $turno->inicio?->format('Y-m-d\TH:i:s'),
+                'end' => $turno->fin?->format('Y-m-d\TH:i:s'),
                 'backgroundColor' => $color,
                 'borderColor' => $color,
+                'textColor' => '#ffffff',
                 'extendedProps' => [
-                    'detalle' => $t->detalle,
-                    'estado' => $t->estado,
+                    'detalle' => $turno->detalle,
+                    'estado' => $turno->estado,
                     'cliente' => $cliente,
-                    'cliente_id' => $t->cliente_id,
-                    'colaboradora' => $t->colaboradora ? ($t->colaboradora->nombre . ' ' . $t->colaboradora->apellido) : '-',
-                    'colaboradora_id' => $t->colaboradora_id,
-                    'titulo' => $t->titulo,
+                    'cliente_id' => $turno->cliente_id,
+                    'telefono' => $telefono,
+                    'colaboradora' => $turno->colaboradora
+                        ? trim($turno->colaboradora->nombre . ' ' . $turno->colaboradora->apellido)
+                        : '-',
+                    'colaboradora_id' => $turno->colaboradora_id,
+                    'titulo' => $turno->titulo,
                 ],
             ];
         });
@@ -56,47 +107,89 @@ class TurnoController extends Controller
 
     public function show(Turno $turno)
     {
+        $turno->load(['cliente', 'colaboradora']);
+
         return response()->json($turno);
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'cliente_id' => ['required', 'exists:clientes,id'],
-            'colaboradora_id' => ['nullable', 'exists:colaboradoras,id'],
-            'titulo' => ['nullable', 'string', 'max:255'],
-            'detalle' => ['nullable', 'string'],
-            'inicio' => ['required', 'date', 'after_or_equal:now'],
-            'fin' => ['nullable', 'date', 'after_or_equal:inicio'],
-            'estado' => ['required', 'in:pendiente,confirmado,cancelado,atendido'],
-        ]);
+        $data = $this->validarTurno($request, true);
+        $data = $this->normalizarDatos($data);
 
         Turno::create($data);
 
-        return redirect()->route('turnos.index')->with('ok', 'Turno creado correctamente.');
+        return redirect()
+            ->route('turnos.index')
+            ->with('ok', 'Turno creado correctamente.');
     }
 
     public function update(Request $request, Turno $turno)
     {
-        $data = $request->validate([
-            'cliente_id' => ['required', 'exists:clientes,id'],
-            'colaboradora_id' => ['nullable', 'exists:colaboradoras,id'],
-            'titulo' => ['nullable', 'string', 'max:255'],
-            'detalle' => ['nullable', 'string'],
-            'inicio' => ['required', 'date'],
-            'fin' => ['nullable', 'date', 'after_or_equal:inicio'],
-            'estado' => ['required', 'in:pendiente,confirmado,cancelado,atendido'],
-        ]);
+        $data = $this->validarTurno($request, false);
+        $data = $this->normalizarDatos($data);
 
         $turno->update($data);
 
-        return redirect()->route('turnos.index')->with('ok', 'Turno actualizado correctamente.');
+        return redirect()
+            ->route('turnos.index')
+            ->with('ok', 'Turno actualizado correctamente.');
     }
 
     public function destroy(Turno $turno)
     {
         $turno->delete();
 
-        return redirect()->route('turnos.index')->with('ok', 'Turno eliminado.');
+        return redirect()
+            ->route('turnos.index')
+            ->with('ok', 'Turno eliminado correctamente.');
+    }
+
+    private function validarTurno(Request $request, bool $esNuevo): array
+    {
+        $reglaInicio = ['required', 'date'];
+
+        if ($esNuevo) {
+            $reglaInicio[] = 'after_or_equal:now';
+        }
+
+        return $request->validate([
+            'turno_id' => ['nullable', 'integer'],
+            'cliente_id' => ['required', 'exists:clientes,id'],
+            'colaboradora_id' => ['nullable', 'exists:colaboradoras,id'],
+            'titulo' => ['nullable', 'string', 'max:255'],
+            'detalle' => ['nullable', 'string', 'max:2000'],
+            'inicio' => $reglaInicio,
+            'fin' => ['nullable', 'date', 'after:inicio'],
+            'estado' => ['required', 'in:pendiente,confirmado,cancelado,atendido'],
+        ], [
+            'cliente_id.required' => 'Seleccioná una clienta válida de la lista.',
+            'cliente_id.exists' => 'La clienta seleccionada no es válida.',
+            'inicio.required' => 'La fecha y hora de inicio son obligatorias.',
+            'inicio.after_or_equal' => 'No se puede crear un turno en una fecha u hora pasada.',
+            'fin.after' => 'La hora de finalización debe ser posterior al inicio.',
+            'estado.required' => 'Seleccioná el estado del turno.',
+        ]);
+    }
+
+    private function normalizarDatos(array $data): array
+    {
+        $inicio = Carbon::parse($data['inicio']);
+
+        if (empty($data['fin'])) {
+            $data['fin'] = $inicio->copy()->addHour();
+        }
+
+        $data['titulo'] = isset($data['titulo']) && trim((string) $data['titulo']) !== ''
+            ? trim((string) $data['titulo'])
+            : null;
+
+        $data['detalle'] = isset($data['detalle']) && trim((string) $data['detalle']) !== ''
+            ? trim((string) $data['detalle'])
+            : null;
+
+        unset($data['turno_id']);
+
+        return $data;
     }
 }

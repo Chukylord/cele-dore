@@ -17,7 +17,15 @@ class Producto extends Model
         'stock_minimo',
         'precio_efectivo_manual',
         'precio_tarjeta_manual',
+        'precio_manual_updated_at',
         'codigo_barra',
+    ];
+
+    protected $casts = [
+        'precio_venta' => 'decimal:2',
+        'precio_efectivo_manual' => 'decimal:2',
+        'precio_tarjeta_manual' => 'decimal:2',
+        'precio_manual_updated_at' => 'datetime',
     ];
 
     public function proveedor()

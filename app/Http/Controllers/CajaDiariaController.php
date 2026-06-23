@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\CajaDiaria;
 use App\Models\Venta;
+use App\Models\VentaPago;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class CajaDiariaController extends Controller
 {
@@ -13,66 +15,196 @@ class CajaDiariaController extends Controller
         return round($n, 2);
     }
 
-    private function totalVentasPorMetodo(string $fecha, string $metodo): float
+    /**
+     * Obtiene todos los cobros registrados en una fecha.
+     *
+     * Incluye:
+     * - Pagos nuevos guardados en venta_pagos.
+     * - Ventas anteriores al nuevo módulo que todavía no tienen venta_pagos.
+     */
+    private function movimientosDelDia(string $fecha): Collection
+    {
+        $movimientos = collect();
+
+        $pagos = VentaPago::query()
+            ->with([
+                'venta.cliente',
+                'venta.clienteColaboradora',
+                'venta.vendedora',
+            ])
+            ->whereDate('fecha_pago', $fecha)
+            ->orderBy('fecha_pago')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($pagos as $pago) {
+            $monto = (float) $pago->monto;
+            $recargo = (float) $pago->recargo;
+            $montoBase = (float) $pago->monto_base;
+
+            if ($montoBase <= 0) {
+                $montoBase = max($monto - $recargo, 0);
+            }
+
+            $movimientos->push([
+                'id' => 'pago-' . $pago->id,
+                'fecha_pago' => $pago->fecha_pago,
+                'metodo_pago' => $pago->metodo_pago,
+                'monto_base' => $this->round2($montoBase),
+                'recargo' => $this->round2($recargo),
+                'monto' => $this->round2($monto),
+                'venta' => $pago->venta,
+                'es_legacy' => false,
+            ]);
+        }
+
+        /*
+         * Compatibilidad con ventas antiguas:
+         * toma solamente las ventas pagadas que no tienen registros
+         * en la tabla venta_pagos, para evitar duplicarlas.
+         */
+        $ventasAnteriores = Venta::query()
+            ->with([
+                'cliente',
+                'clienteColaboradora',
+                'vendedora',
+            ])
+            ->whereDoesntHave('pagos')
+            ->where('pendiente_pago', false)
+            ->whereNotNull('fecha_pago')
+            ->whereDate('fecha_pago', $fecha)
+            ->orderBy('fecha_pago')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($ventasAnteriores as $venta) {
+            $monto = (float) $venta->total;
+
+            $montoBase = (float) $venta->total_base;
+
+            if ($montoBase <= 0) {
+                $montoBase =
+                    (float) $venta->subtotal_productos
+                    + (float) $venta->subtotal_servicios;
+            }
+
+            $recargo = max($monto - $montoBase, 0);
+
+            $movimientos->push([
+                'id' => 'venta-anterior-' . $venta->id,
+                'fecha_pago' => $venta->fecha_pago,
+                'metodo_pago' => $venta->metodo_pago,
+                'monto_base' => $this->round2($montoBase),
+                'recargo' => $this->round2($recargo),
+                'monto' => $this->round2($monto),
+                'venta' => $venta,
+                'es_legacy' => true,
+            ]);
+        }
+
+        return $movimientos
+            ->sortBy(function (array $movimiento) {
+                return $movimiento['fecha_pago']?->timestamp ?? 0;
+            })
+            ->values();
+    }
+
+    private function totalPorMetodo(Collection $movimientos, string $metodo): float
     {
         return $this->round2(
-            (float) Venta::query()
-                ->whereDate('fecha', $fecha)
+            (float) $movimientos
                 ->where('metodo_pago', $metodo)
-                ->where('pendiente_pago', false)
-                ->sum('total')
+                ->sum('monto')
         );
     }
 
-    private function ventasEfectivoDetalle(string $fecha)
+    private function totalesDelDia(string $fecha): array
     {
-        return Venta::query()
-            ->with(['cliente', 'clienteColaboradora', 'vendedora'])
-            ->whereDate('fecha', $fecha)
-            ->where('metodo_pago', 'efectivo')
-            ->where('pendiente_pago', false)
-            ->orderBy('fecha')
-            ->get();
+        $movimientos = $this->movimientosDelDia($fecha);
+
+        $efectivo = $this->totalPorMetodo($movimientos, 'efectivo');
+        $transferencia = $this->totalPorMetodo($movimientos, 'transferencia');
+        $tarjeta = $this->totalPorMetodo($movimientos, 'tarjeta');
+
+        return [
+            'movimientos' => $movimientos,
+            'efectivo' => $efectivo,
+            'transferencia' => $transferencia,
+            'tarjeta' => $tarjeta,
+            'total' => $this->round2(
+                $efectivo + $transferencia + $tarjeta
+            ),
+        ];
     }
 
     public function index(Request $request)
     {
-        $fecha = $request->get('fecha', now()->toDateString());
+        $request->validate([
+            'fecha' => ['nullable', 'date'],
+        ]);
+
+        $fecha = (string) $request->get(
+            'fecha',
+            now()->toDateString()
+        );
 
         $caja = CajaDiaria::query()
             ->whereDate('fecha', $fecha)
             ->first();
 
-        $ventasEfectivoActual = $this->totalVentasPorMetodo($fecha, 'efectivo');
-        $ventasTransferenciaActual = $this->totalVentasPorMetodo($fecha, 'transferencia');
-        $ventasTarjetaActual = $this->totalVentasPorMetodo($fecha, 'tarjeta');
+        $resumenActual = $this->totalesDelDia($fecha);
 
-        $ventasEfectivoDetalle = $this->ventasEfectivoDetalle($fecha);
+        $movimientos = $resumenActual['movimientos'];
 
-        $cajaInicial = $caja ? (float) $caja->caja_inicial : 0;
+        $cobrosEfectivoActual = $resumenActual['efectivo'];
+        $cobrosTransferenciaActual = $resumenActual['transferencia'];
+        $cobrosTarjetaActual = $resumenActual['tarjeta'];
+        $totalCobradoActual = $resumenActual['total'];
 
+        $cajaInicial = $caja
+            ? (float) $caja->caja_inicial
+            : 0;
+
+        /*
+         * Si la caja está cerrada, mostramos los importes guardados
+         * al momento del cierre.
+         *
+         * Si está abierta, mostramos los cobros actualizados.
+         */
         if ($caja && $caja->estaCerrada()) {
-            $ventasEfectivo = (float) $caja->ventas_efectivo;
-            $ventasTransferencia = (float) $caja->ventas_transferencia;
-            $ventasTarjeta = (float) $caja->ventas_tarjeta;
+            $cobrosEfectivo = (float) $caja->ventas_efectivo;
+            $cobrosTransferencia = (float) $caja->ventas_transferencia;
+            $cobrosTarjeta = (float) $caja->ventas_tarjeta;
             $efectivoEsperado = (float) $caja->efectivo_esperado;
+
+            $totalCobrado = $this->round2(
+                $cobrosEfectivo
+                + $cobrosTransferencia
+                + $cobrosTarjeta
+            );
         } else {
-            $ventasEfectivo = $ventasEfectivoActual;
-            $ventasTransferencia = $ventasTransferenciaActual;
-            $ventasTarjeta = $ventasTarjetaActual;
-            $efectivoEsperado = $this->round2($cajaInicial + $ventasEfectivoActual);
+            $cobrosEfectivo = $cobrosEfectivoActual;
+            $cobrosTransferencia = $cobrosTransferenciaActual;
+            $cobrosTarjeta = $cobrosTarjetaActual;
+            $totalCobrado = $totalCobradoActual;
+
+            $efectivoEsperado = $this->round2(
+                $cajaInicial + $cobrosEfectivoActual
+            );
         }
 
         return view('caja-diaria.index', compact(
             'fecha',
             'caja',
-            'ventasEfectivo',
-            'ventasTransferencia',
-            'ventasTarjeta',
-            'ventasEfectivoActual',
-            'ventasTransferenciaActual',
-            'ventasTarjetaActual',
-            'ventasEfectivoDetalle',
+            'movimientos',
+            'cobrosEfectivo',
+            'cobrosTransferencia',
+            'cobrosTarjeta',
+            'totalCobrado',
+            'cobrosEfectivoActual',
+            'cobrosTransferenciaActual',
+            'cobrosTarjetaActual',
+            'totalCobradoActual',
             'efectivoEsperado'
         ));
     }
@@ -101,19 +233,22 @@ class CajaDiariaController extends Controller
                 ->with('ok', 'Ya existe una caja para esa fecha.');
         }
 
-        $ventasEfectivo = $this->totalVentasPorMetodo($fecha, 'efectivo');
-        $ventasTransferencia = $this->totalVentasPorMetodo($fecha, 'transferencia');
-        $ventasTarjeta = $this->totalVentasPorMetodo($fecha, 'tarjeta');
+        $resumen = $this->totalesDelDia($fecha);
 
-        $cajaInicial = $this->round2((float) $data['caja_inicial']);
-        $efectivoEsperado = $this->round2($cajaInicial + $ventasEfectivo);
+        $cajaInicial = $this->round2(
+            (float) $data['caja_inicial']
+        );
+
+        $efectivoEsperado = $this->round2(
+            $cajaInicial + $resumen['efectivo']
+        );
 
         CajaDiaria::create([
             'fecha' => $fecha,
             'caja_inicial' => $cajaInicial,
-            'ventas_efectivo' => $ventasEfectivo,
-            'ventas_transferencia' => $ventasTransferencia,
-            'ventas_tarjeta' => $ventasTarjeta,
+            'ventas_efectivo' => $resumen['efectivo'],
+            'ventas_transferencia' => $resumen['transferencia'],
+            'ventas_tarjeta' => $resumen['tarjeta'],
             'efectivo_esperado' => $efectivoEsperado,
             'estado' => 'abierta',
             'fecha_apertura' => now(),
@@ -127,9 +262,21 @@ class CajaDiariaController extends Controller
 
     public function cerrar(Request $request, CajaDiaria $caja)
     {
+        /*
+         * Seguridad extra.
+         * Además de esta comprobación, la ruta debe conservar
+         * el middleware admin.
+         */
+        abort_unless(
+            auth()->user()?->esAdmin(),
+            403
+        );
+
         if ($caja->estaCerrada()) {
             return redirect()
-                ->route('caja-diaria.index', ['fecha' => $caja->fecha->format('Y-m-d')])
+                ->route('caja-diaria.index', [
+                    'fecha' => $caja->fecha->format('Y-m-d'),
+                ])
                 ->with('ok', 'La caja ya estaba cerrada.');
         }
 
@@ -144,19 +291,26 @@ class CajaDiariaController extends Controller
 
         $fecha = $caja->fecha->format('Y-m-d');
 
-        $ventasEfectivo = $this->totalVentasPorMetodo($fecha, 'efectivo');
-        $ventasTransferencia = $this->totalVentasPorMetodo($fecha, 'transferencia');
-        $ventasTarjeta = $this->totalVentasPorMetodo($fecha, 'tarjeta');
+        $resumen = $this->totalesDelDia($fecha);
 
         $cajaInicial = (float) $caja->caja_inicial;
-        $efectivoEsperado = $this->round2($cajaInicial + $ventasEfectivo);
-        $efectivoContado = $this->round2((float) $data['efectivo_contado']);
-        $diferencia = $this->round2($efectivoContado - $efectivoEsperado);
+
+        $efectivoEsperado = $this->round2(
+            $cajaInicial + $resumen['efectivo']
+        );
+
+        $efectivoContado = $this->round2(
+            (float) $data['efectivo_contado']
+        );
+
+        $diferencia = $this->round2(
+            $efectivoContado - $efectivoEsperado
+        );
 
         $caja->update([
-            'ventas_efectivo' => $ventasEfectivo,
-            'ventas_transferencia' => $ventasTransferencia,
-            'ventas_tarjeta' => $ventasTarjeta,
+            'ventas_efectivo' => $resumen['efectivo'],
+            'ventas_transferencia' => $resumen['transferencia'],
+            'ventas_tarjeta' => $resumen['tarjeta'],
             'efectivo_esperado' => $efectivoEsperado,
             'efectivo_contado' => $efectivoContado,
             'diferencia' => $diferencia,

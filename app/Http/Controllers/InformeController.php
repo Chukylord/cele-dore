@@ -2,71 +2,232 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ConsumoPeluqueria;
 use App\Models\Gasto;
 use App\Models\Liquidacion;
-use App\Models\Venta;
-use App\Models\ConsumoPeluqueria;
 use App\Models\ProveedorPago;
+use App\Models\Venta;
+use App\Models\VentaPago;
 use Illuminate\Http\Request;
 
 class InformeController extends Controller
 {
+    private function round2(float $valor): float
+    {
+        return round($valor, 2);
+    }
+
     public function index(Request $request)
     {
         $desde = trim((string) $request->get('desde', ''));
         $hasta = trim((string) $request->get('hasta', ''));
 
-        // -------------------------
-        // INGRESOS COBRADOS
-        // -------------------------
-        $ventasQuery = Venta::query()
+        /*
+        |--------------------------------------------------------------------------
+        | INGRESOS COBRADOS CON LA NUEVA TABLA venta_pagos
+        |--------------------------------------------------------------------------
+        |
+        | Los ingresos se computan por la fecha real en que se realizó el pago.
+        | Una venta puede tener efectivo, transferencia y tarjeta combinados.
+        |
+        */
+
+        $pagosQuery = VentaPago::query()
+            ->with([
+                'venta:id,subtotal_productos,subtotal_servicios,total_base,total',
+            ]);
+
+        if ($desde !== '') {
+            $pagosQuery->whereDate('fecha_pago', '>=', $desde);
+        }
+
+        if ($hasta !== '') {
+            $pagosQuery->whereDate('fecha_pago', '<=', $hasta);
+        }
+
+        $pagos = $pagosQuery->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | VENTAS ANTERIORES A venta_pagos
+        |--------------------------------------------------------------------------
+        |
+        | Este bloque mantiene el historial viejo. Solamente toma ventas pagadas
+        | que no tengan registros en venta_pagos, para evitar duplicarlas.
+        |
+        */
+
+        $ventasAnterioresQuery = Venta::query()
+            ->whereDoesntHave('pagos')
             ->where('pendiente_pago', false)
             ->whereNotNull('fecha_pago');
 
         if ($desde !== '') {
-            $ventasQuery->whereDate('fecha_pago', '>=', $desde);
+            $ventasAnterioresQuery->whereDate('fecha_pago', '>=', $desde);
         }
 
         if ($hasta !== '') {
-            $ventasQuery->whereDate('fecha_pago', '<=', $hasta);
+            $ventasAnterioresQuery->whereDate('fecha_pago', '<=', $hasta);
         }
 
-        $ventas = (clone $ventasQuery)->get();
+        $ventasAnteriores = $ventasAnterioresQuery->get();
 
-        $ingresoProductos = (float) $ventas->sum('subtotal_productos');
-        $ingresoServicios = (float) $ventas->sum('subtotal_servicios');
-        $totalIngresos = $ingresoProductos + $ingresoServicios;
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL COBRADO POR MÉTODO
+        |--------------------------------------------------------------------------
+        */
 
-        $ingresoEfectivo = (float) $ventas->where('metodo_pago', 'efectivo')->sum('total');
-        $ingresoTransferencia = (float) $ventas->where('metodo_pago', 'transferencia')->sum('total');
-        $ingresoTarjeta = (float) $ventas->where('metodo_pago', 'tarjeta')->sum('total');
+        $ingresoEfectivo = $this->round2(
+            (float) $pagos->where('metodo_pago', 'efectivo')->sum('monto')
+            + (float) $ventasAnteriores->where('metodo_pago', 'efectivo')->sum('total')
+        );
 
-        // -------------------------
-        // PENDIENTE DE COBRAR
-        // Ventas pendientes por fecha de venta
-        // -------------------------
-        $pendQuery = Venta::query()
+        $ingresoTransferencia = $this->round2(
+            (float) $pagos->where('metodo_pago', 'transferencia')->sum('monto')
+            + (float) $ventasAnteriores->where('metodo_pago', 'transferencia')->sum('total')
+        );
+
+        $ingresoTarjeta = $this->round2(
+            (float) $pagos->where('metodo_pago', 'tarjeta')->sum('monto')
+            + (float) $ventasAnteriores->where('metodo_pago', 'tarjeta')->sum('total')
+        );
+
+        $ingresoRecargoTarjeta = $this->round2(
+            (float) $pagos->where('metodo_pago', 'tarjeta')->sum('recargo')
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DISTRIBUCIÓN ENTRE PRODUCTOS Y SERVICIOS
+        |--------------------------------------------------------------------------
+        |
+        | Cada pago guarda cuánto corresponde al importe base. Ese importe se
+        | distribuye proporcionalmente entre productos y servicios de la venta.
+        | El recargo de tarjeta se muestra aparte.
+        |
+        */
+
+        $ingresoProductos = 0.0;
+        $ingresoServicios = 0.0;
+
+        foreach ($pagos as $pago) {
+            $venta = $pago->venta;
+
+            if (!$venta) {
+                continue;
+            }
+
+            $subtotalProductos = (float) $venta->subtotal_productos;
+            $subtotalServicios = (float) $venta->subtotal_servicios;
+
+            $baseVenta = (float) $venta->total_base;
+
+            if ($baseVenta <= 0) {
+                $baseVenta = $subtotalProductos + $subtotalServicios;
+            }
+
+            if ($baseVenta <= 0) {
+                continue;
+            }
+
+            $basePago = (float) $pago->monto_base;
+
+            if ($basePago <= 0) {
+                $basePago = max(
+                    (float) $pago->monto - (float) $pago->recargo,
+                    0
+                );
+            }
+
+            $parteProductos = $basePago * ($subtotalProductos / $baseVenta);
+            $parteServicios = $basePago - $parteProductos;
+
+            $ingresoProductos += $parteProductos;
+            $ingresoServicios += $parteServicios;
+        }
+
+        /*
+         * Se incorporan las ventas históricas que todavía no tenían venta_pagos.
+         */
+        $ingresoProductos += (float) $ventasAnteriores->sum('subtotal_productos');
+        $ingresoServicios += (float) $ventasAnteriores->sum('subtotal_servicios');
+
+        $ingresoProductos = $this->round2($ingresoProductos);
+        $ingresoServicios = $this->round2($ingresoServicios);
+
+        /*
+         * El total real cobrado sale del monto de los pagos.
+         * Incluye el recargo aplicado sobre la parte abonada con tarjeta.
+         */
+        $totalIngresos = $this->round2(
+            (float) $pagos->sum('monto')
+            + (float) $ventasAnteriores->sum('total')
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PENDIENTE DE COBRAR
+        |--------------------------------------------------------------------------
+        |
+        | Se calcula sobre el importe base porque todavía no sabemos qué método
+        | utilizará la clienta cuando pague. Por eso no se anticipa el recargo.
+        |
+        */
+
+        $pendientesQuery = Venta::query()
+            ->withSum('pagos as total_pagado_base', 'monto_base')
             ->where('pendiente_pago', true);
 
         if ($desde !== '') {
-            $pendQuery->whereDate('fecha', '>=', $desde);
+            $pendientesQuery->whereDate('fecha', '>=', $desde);
         }
 
         if ($hasta !== '') {
-            $pendQuery->whereDate('fecha', '<=', $hasta);
+            $pendientesQuery->whereDate('fecha', '<=', $hasta);
         }
 
-        $ventasPendientes = (clone $pendQuery)->get();
+        $ventasPendientes = $pendientesQuery->get();
 
-        $pendienteProductos = (float) $ventasPendientes->sum('subtotal_productos');
-        $pendienteServicios = (float) $ventasPendientes->sum('subtotal_servicios');
-        $pendienteTotal = $pendienteProductos + $pendienteServicios;
+        $pendienteProductos = 0.0;
+        $pendienteServicios = 0.0;
 
-        // -------------------------
-        // EGRESOS REALES
-        // -------------------------
+        foreach ($ventasPendientes as $venta) {
+            $subtotalProductos = (float) $venta->subtotal_productos;
+            $subtotalServicios = (float) $venta->subtotal_servicios;
 
-        // Entregas / pagos reales a proveedores
+            $baseVenta = (float) $venta->total_base;
+
+            if ($baseVenta <= 0) {
+                $baseVenta = $subtotalProductos + $subtotalServicios;
+            }
+
+            if ($baseVenta <= 0) {
+                continue;
+            }
+
+            $pagadoBase = (float) ($venta->total_pagado_base ?? 0);
+            $saldoBase = max($baseVenta - $pagadoBase, 0);
+
+            $parteProductos = $saldoBase * ($subtotalProductos / $baseVenta);
+            $parteServicios = $saldoBase - $parteProductos;
+
+            $pendienteProductos += $parteProductos;
+            $pendienteServicios += $parteServicios;
+        }
+
+        $pendienteProductos = $this->round2($pendienteProductos);
+        $pendienteServicios = $this->round2($pendienteServicios);
+        $pendienteTotal = $this->round2(
+            $pendienteProductos + $pendienteServicios
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | EGRESOS REALES
+        |--------------------------------------------------------------------------
+        */
+
         $proveedorPagosQuery = ProveedorPago::query();
 
         if ($desde !== '') {
@@ -77,22 +238,24 @@ class InformeController extends Controller
             $proveedorPagosQuery->whereDate('fecha', '<=', $hasta);
         }
 
-        $egresoCompras = (float) $proveedorPagosQuery->sum('monto');
+        $egresoCompras = $this->round2(
+            (float) $proveedorPagosQuery->sum('monto')
+        );
 
-        // Liquidaciones / sueldos reales pagados
-        $liqQuery = Liquidacion::query();
+        $liquidacionesQuery = Liquidacion::query();
 
         if ($desde !== '') {
-            $liqQuery->whereDate('fecha_pago', '>=', $desde);
+            $liquidacionesQuery->whereDate('fecha_pago', '>=', $desde);
         }
 
         if ($hasta !== '') {
-            $liqQuery->whereDate('fecha_pago', '<=', $hasta);
+            $liquidacionesQuery->whereDate('fecha_pago', '<=', $hasta);
         }
 
-        $egresoLiquidaciones = (float) $liqQuery->sum('total_pagado');
+        $egresoLiquidaciones = $this->round2(
+            (float) $liquidacionesQuery->sum('total_pagado')
+        );
 
-        // Gastos manuales
         $gastosQuery = Gasto::query();
 
         if ($desde !== '') {
@@ -103,44 +266,45 @@ class InformeController extends Controller
             $gastosQuery->whereDate('fecha', '<=', $hasta);
         }
 
-        $egresoGastos = (float) $gastosQuery->sum('monto');
+        $egresoGastos = $this->round2(
+            (float) $gastosQuery->sum('monto')
+        );
 
-        // Consumo interno de peluquería
-        $consQuery = ConsumoPeluqueria::query();
+        $consumosQuery = ConsumoPeluqueria::query();
 
         if ($desde !== '') {
-            $consQuery->whereDate('fecha', '>=', $desde);
+            $consumosQuery->whereDate('fecha', '>=', $desde);
         }
 
         if ($hasta !== '') {
-            $consQuery->whereDate('fecha', '<=', $hasta);
+            $consumosQuery->whereDate('fecha', '<=', $hasta);
         }
 
-        $egresoConsumoPeluqueria = (float) $consQuery->sum('total');
+        $egresoConsumoPeluqueria = $this->round2(
+            (float) $consumosQuery->sum('total')
+        );
 
-        /*
-            OJO:
-            Si querés un informe de "plata que salió de caja", no deberías sumar consumo peluquería,
-            porque la compra ya se pagó al proveedor.
-
-            Si querés un informe de "rentabilidad", sí tiene sentido mostrar el consumo peluquería como costo.
-            Acá lo dejamos visible y también sumado porque ya lo venías mostrando como egreso.
-        */
-        $totalEgresos = $egresoCompras
+        $totalEgresos = $this->round2(
+            $egresoCompras
             + $egresoLiquidaciones
             + $egresoGastos
-            + $egresoConsumoPeluqueria;
+            + $egresoConsumoPeluqueria
+        );
 
-        // -------------------------
-        // BALANCE
-        // -------------------------
-        $ganancia = $totalIngresos - $totalEgresos;
+        /*
+        |--------------------------------------------------------------------------
+        | BALANCE
+        |--------------------------------------------------------------------------
+        */
+
+        $ganancia = $this->round2($totalIngresos - $totalEgresos);
 
         return view('informes.index', compact(
             'desde',
             'hasta',
             'ingresoProductos',
             'ingresoServicios',
+            'ingresoRecargoTarjeta',
             'totalIngresos',
             'ingresoEfectivo',
             'ingresoTransferencia',
