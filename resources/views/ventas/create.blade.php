@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Venta - Vir Tisone Studio')
+@section('title', 'Nueva Venta - Cele Dore Estilista')
 @section('h1', 'Nueva Venta')
 @section('sub', 'Ingresar venta de servicios y/o productos.')
 
@@ -178,7 +178,7 @@
             <div>
                 <div class="text-lg font-bold text-slate-900">Productos</div>
                 <div class="text-sm text-slate-600">
-                    Muestra stock y calcula el precio base de efectivo/transferencia.
+                    Muestra stock y propone el precio de efectivo/transferencia. Podés modificarlo para esta venta.
                 </div>
             </div>
 
@@ -218,7 +218,7 @@
                         <th class="text-left px-3 py-2 text-sm font-semibold">Producto</th>
                         <th class="text-left px-3 py-2 text-sm font-semibold">Stock</th>
                         <th class="text-left px-3 py-2 text-sm font-semibold">Cant.</th>
-                        <th class="text-left px-3 py-2 text-sm font-semibold">Unit. base</th>
+                        <th class="text-left px-3 py-2 text-sm font-semibold">Precio unitario</th>
                         <th class="text-left px-3 py-2 text-sm font-semibold">Subtotal</th>
                         <th class="text-right px-3 py-2 text-sm font-semibold">Quitar</th>
                     </tr>
@@ -241,143 +241,229 @@
         </div>
     </div>
 
-    <div class="mt-6 rounded-2xl border bg-slate-900 text-white p-5">
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
-            <div class="xl:col-span-3">
-                <div class="text-sm text-slate-300">TOTAL A COBRAR</div>
-                <div class="text-4xl font-extrabold mt-1" id="totalFinal">$0,00</div>
+    <div class="mt-6 overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-xl">
 
-                <div class="mt-3 space-y-1 text-sm">
-                    <div class="flex justify-between gap-3 text-slate-300">
-                        <span>Total base:</span>
-                        <strong id="totalBaseResumen" class="text-white">$0,00</strong>
-                    </div>
+        <div class="grid grid-cols-1 xl:grid-cols-[0.9fr_1.4fr]">
 
-                    <div class="flex justify-between gap-3 text-slate-300">
-                        <span>Recargo tarjeta:</span>
-                        <strong id="recargoTarjetaResumen" class="text-white">$0,00</strong>
-                    </div>
+            {{-- RESUMEN DEL TOTAL --}}
+            <div class="border-b border-slate-800 p-6 xl:border-b-0 xl:border-r">
+
+                <div class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                    Total a cobrar
                 </div>
-            </div>
 
-            <div class="xl:col-span-3">
-                <label class="text-sm font-semibold text-slate-200">Forma de pago *</label>
-
-                <select id="tipo_pago"
-                        name="tipo_pago"
-                        class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white focus:border-white focus:ring-white">
-                    <option value="efectivo" {{ old('tipo_pago', 'efectivo') === 'efectivo' ? 'selected' : '' }}>
-                        Efectivo
-                    </option>
-                    <option value="transferencia" {{ old('tipo_pago') === 'transferencia' ? 'selected' : '' }}>
-                        Transferencia
-                    </option>
-                    <option value="tarjeta" {{ old('tipo_pago') === 'tarjeta' ? 'selected' : '' }}>
-                        Tarjeta
-                    </option>
-                    <option value="combinado" {{ old('tipo_pago') === 'combinado' ? 'selected' : '' }}>
-                        Pago combinado
-                    </option>
-                </select>
-
-                <div class="text-xs text-slate-400 mt-2">
-                    Solo la parte pagada con tarjeta lleva 20% de recargo.
+                <div id="totalFinal"
+                    class="mt-2 text-4xl font-black tracking-tight sm:text-5xl">
+                    $0,00
                 </div>
-            </div>
 
-            <div class="xl:col-span-3">
-                <label class="flex items-start gap-3 rounded-xl border border-slate-700 bg-slate-800 p-3">
-                    <input type="checkbox"
-                           name="pendiente_pago"
-                           id="pendiente_pago"
-                           value="1"
-                           class="mt-1 rounded border-slate-500 text-slate-900 focus:ring-slate-500"
-                        {{ old('pendiente_pago') ? 'checked' : '' }}>
+                <div class="mt-5 space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
 
-                    <span>
-                        <span class="block text-sm font-semibold">Pendiente de pago</span>
-                        <span class="block text-xs text-slate-400 mt-1">
-                            No se guarda ninguna forma de pago hasta que la clienta abone.
+                    <div class="flex items-center justify-between gap-4 text-sm">
+                        <span class="text-slate-400">
+                            Total base
                         </span>
-                    </span>
-                </label>
+
+                        <strong id="totalBaseResumen"
+                                class="text-base text-white">
+                            $0,00
+                        </strong>
+                    </div>
+
+                    <div class="h-px bg-slate-800"></div>
+
+                    <div class="flex items-center justify-between gap-4 text-sm">
+                        <span class="text-slate-400">
+                            Recargo de tarjeta
+                        </span>
+
+                        <strong id="recargoTarjetaResumen"
+                                class="text-base text-white">
+                            $0,00
+                        </strong>
+                    </div>
+
+                </div>
+
             </div>
 
-            <div class="xl:col-span-3 flex flex-wrap gap-2 xl:justify-end">
-                <button type="button"
-                        id="btnDescuento"
-                        class="rounded-xl border border-slate-500 px-4 py-2 hover:bg-slate-800">
-                    Aplicar descuento
-                </button>
+            {{-- PAGO Y ACCIONES --}}
+            <div class="p-6">
 
-                <a href="{{ route('ventas.index') }}"
-                   class="rounded-xl border border-slate-500 px-4 py-2 hover:bg-slate-800">
-                    Cancelar
-                </a>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-                <a href="https://www.afip.gob.ar/"
-                   target="_blank"
-                   class="rounded-xl border border-slate-500 px-4 py-2 hover:bg-slate-800">
-                    Facturar
-                </a>
+                    {{-- Forma de pago --}}
+                    <div class="rounded-2xl border border-slate-700 bg-slate-900 p-4">
 
-                <button class="rounded-xl bg-white text-slate-900 px-4 py-2 hover:bg-slate-100 font-semibold">
-                    Registrar venta
-                </button>
+                        <label class="text-sm font-semibold text-slate-200">
+                            Forma de pago *
+                        </label>
+
+                        <select id="tipo_pago"
+                                name="tipo_pago"
+                                class="mt-2 w-full rounded-xl border-slate-600 bg-slate-800 text-white focus:border-white focus:ring-white">
+
+                            <option value="efectivo"
+                                {{ old('tipo_pago', 'efectivo') === 'efectivo' ? 'selected' : '' }}>
+                                Efectivo
+                            </option>
+
+                            <option value="transferencia"
+                                {{ old('tipo_pago') === 'transferencia' ? 'selected' : '' }}>
+                                Transferencia
+                            </option>
+
+                            <option value="tarjeta"
+                                {{ old('tipo_pago') === 'tarjeta' ? 'selected' : '' }}>
+                                Tarjeta
+                            </option>
+
+                            <option value="combinado"
+                                {{ old('tipo_pago') === 'combinado' ? 'selected' : '' }}>
+                                Pago combinado
+                            </option>
+
+                        </select>
+
+                        <div class="mt-2 text-xs leading-5 text-slate-400">
+                            Solo la parte abonada con tarjeta lleva un 20% de recargo.
+                        </div>
+
+                    </div>
+
+                    {{-- Pendiente --}}
+                    <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-700 bg-slate-900 p-4 transition hover:border-slate-500">
+
+                        <input type="checkbox"
+                            name="pendiente_pago"
+                            id="pendiente_pago"
+                            value="1"
+                            class="mt-1 h-5 w-5 rounded border-slate-500 text-slate-900 focus:ring-slate-500"
+                            {{ old('pendiente_pago') ? 'checked' : '' }}>
+
+                        <span>
+                            <span class="block font-semibold text-white">
+                                Pendiente de pago
+                            </span>
+
+                            <span class="mt-1 block text-xs leading-5 text-slate-400">
+                                La venta se registra sin forma de pago hasta que la clienta abone.
+                            </span>
+                        </span>
+
+                    </label>
+
+                </div>
+
+                {{-- Botones --}}
+                <div class="mt-5 flex flex-col gap-3 border-t border-slate-800 pt-5 lg:flex-row lg:items-center lg:justify-between">
+
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+
+                        <button type="button"
+                                id="btnDescuento"
+                                class="rounded-xl border border-slate-600 px-4 py-2.5 font-medium hover:bg-slate-800">
+                            Aplicar descuento
+                        </button>
+
+                        <a href="{{ route('ventas.index') }}"
+                        class="rounded-xl border border-slate-600 px-4 py-2.5 text-center font-medium hover:bg-slate-800">
+                            Cancelar
+                        </a>
+
+                        <a href="https://www.afip.gob.ar/"
+                        target="_blank"
+                        class="rounded-xl border border-slate-600 px-4 py-2.5 text-center font-medium hover:bg-slate-800">
+                            Facturar
+                        </a>
+
+                    </div>
+
+                    <button type="submit"
+                            class="rounded-xl bg-white px-7 py-3 text-lg font-bold text-slate-950 shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-100">
+                        Registrar venta
+                    </button>
+
+                </div>
+
             </div>
+
         </div>
 
+        {{-- PAGO COMBINADO --}}
         <div id="boxPagoCombinado"
-             class="hidden mt-5 rounded-2xl border border-slate-700 bg-slate-800 p-4">
-            <div class="font-bold">Distribución del total base</div>
-            <div class="text-xs text-slate-400 mt-1">
-                Estos importes deben sumar el total base. El sistema agrega 20% únicamente a la parte de tarjeta.
+            class="hidden border-t border-slate-800 bg-slate-900/80 p-6">
+
+            <div>
+                <div class="text-lg font-bold">
+                    Distribución del pago combinado
+                </div>
+
+                <div class="mt-1 text-xs leading-5 text-slate-400">
+                    Los importes deben sumar el total base. El sistema agrega el 20% solamente a la parte abonada con tarjeta.
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+
                 <div>
-                    <label class="text-sm font-semibold text-slate-200">Parte en efectivo</label>
+                    <label class="text-sm font-semibold text-slate-200">
+                        Parte en efectivo
+                    </label>
+
                     <input type="number"
-                           step="0.01"
-                           min="0"
-                           name="pagos[efectivo]"
-                           id="pago_efectivo"
-                           value="{{ old('pagos.efectivo', 0) }}"
-                           class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-900 text-white">
+                        step="0.01"
+                        min="0"
+                        name="pagos[efectivo]"
+                        id="pago_efectivo"
+                        value="{{ old('pagos.efectivo', 0) }}"
+                        class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-950 text-white">
                 </div>
 
                 <div>
-                    <label class="text-sm font-semibold text-slate-200">Parte en transferencia</label>
+                    <label class="text-sm font-semibold text-slate-200">
+                        Parte en transferencia
+                    </label>
+
                     <input type="number"
-                           step="0.01"
-                           min="0"
-                           name="pagos[transferencia]"
-                           id="pago_transferencia"
-                           value="{{ old('pagos.transferencia', 0) }}"
-                           class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-900 text-white">
+                        step="0.01"
+                        min="0"
+                        name="pagos[transferencia]"
+                        id="pago_transferencia"
+                        value="{{ old('pagos.transferencia', 0) }}"
+                        class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-950 text-white">
                 </div>
 
                 <div>
-                    <label class="text-sm font-semibold text-slate-200">Parte en tarjeta</label>
-                    <input type="number"
-                           step="0.01"
-                           min="0"
-                           name="pagos[tarjeta]"
-                           id="pago_tarjeta"
-                           value="{{ old('pagos.tarjeta', 0) }}"
-                           class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-900 text-white">
+                    <label class="text-sm font-semibold text-slate-200">
+                        Parte en tarjeta
+                    </label>
 
-                    <div class="text-xs text-blue-300 mt-1">
-                        La tarjeta cobrará: <strong id="tarjetaFinalPreview">$0,00</strong>
+                    <input type="number"
+                        step="0.01"
+                        min="0"
+                        name="pagos[tarjeta]"
+                        id="pago_tarjeta"
+                        value="{{ old('pagos.tarjeta', 0) }}"
+                        class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-950 text-white">
+
+                    <div class="mt-2 text-xs text-blue-300">
+                        Total de tarjeta:
+                        <strong id="tarjetaFinalPreview">
+                            $0,00
+                        </strong>
                     </div>
                 </div>
+
             </div>
 
             <div id="estadoDistribucionPago"
-                 class="mt-4 rounded-xl border border-slate-600 px-4 py-3 text-sm text-slate-300">
+                class="mt-4 rounded-xl border border-slate-600 px-4 py-3 text-sm text-slate-300">
                 Falta asignar: $0,00
             </div>
+
         </div>
+
     </div>
 
     <div id="modalDescuento" class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
@@ -568,7 +654,7 @@ function precioUnitarioEfectivoVenta(pid){
     }
 
     if(p.ultimo_costo !== null){
-        return round2(p.ultimo_costo * 1.40);
+        return round2(p.ultimo_costo * 1.45);
     }
 
     if(p.precio_efectivo_manual !== null){
@@ -585,10 +671,10 @@ function precioUnitarioCosto(pid){
 
     /*
         Si el precio manual es más nuevo que la última compra,
-        usamos el precio efectivo vigente y quitamos el 40%.
+        usamos el precio efectivo vigente y quitamos el 45%.
     */
     if(manualEsMasNuevoQueCompra(p)){
-        return round2(Number(p.precio_efectivo_manual || 0) / 1.40);
+        return round2(Number(p.precio_efectivo_manual || 0) / 1.45);
     }
 
     /* Si la compra es más reciente, usamos el costo real. */
@@ -598,10 +684,10 @@ function precioUnitarioCosto(pid){
 
     /* Producto sin compras: costo estimado desde el precio vigente. */
     if(p.precio_efectivo_manual !== null){
-        return round2(Number(p.precio_efectivo_manual) / 1.40);
+        return round2(Number(p.precio_efectivo_manual) / 1.45);
     }
 
-    return round2(Number(p.precio_manual || 0) / 1.40);
+    return round2(Number(p.precio_manual || 0) / 1.45);
 }
 
 function getDescPct(tr){
@@ -716,13 +802,12 @@ function recalcular(){
         const pid = Number(tr.querySelector('input.prod-id')?.value || 0);
         const qty = Number(tr.querySelector('input.cant')?.value || 0);
         const stockCell = tr.querySelector('.stock');
-        const unitCell = tr.querySelector('.unit-main');
+        const precioInput = tr.querySelector('.precio-producto');
         const unitFinalCell = tr.querySelector('.unit-final');
         const subCell = tr.querySelector('.sub');
 
         if(!pid || qty <= 0){
             if(stockCell) stockCell.textContent = '-';
-            if(unitCell) unitCell.textContent = '-';
             if(unitFinalCell) unitFinalCell.textContent = '';
             if(subCell) subCell.textContent = '-';
             return;
@@ -730,16 +815,14 @@ function recalcular(){
 
         const p = PRODUCTOS_DATA[pid];
         const stock = Number(p.stock_venta || 0);
-        const unitOriginal = esClienteColab()
-            ? precioUnitarioCosto(pid)
-            : precioUnitarioEfectivoVenta(pid);
-
+        const unitOriginal = Number(precioInput?.value || 0);
         const unitFinal = applyDesc(unitOriginal, getDescPct(tr));
         const sub = round2(unitFinal * qty);
 
         stockCell.textContent = stock;
-        unitCell.textContent = money(unitOriginal);
-        unitFinalCell.textContent = getDescPct(tr) > 0 ? 'Final: ' + money(unitFinal) : '';
+        unitFinalCell.textContent = getDescPct(tr) > 0
+            ? 'Final con descuento: ' + money(unitFinal)
+            : '';
         subCell.textContent = money(sub);
 
         stockCell.classList.toggle('text-red-700', qty > stock);
@@ -761,8 +844,12 @@ function recalcular(){
 
             if(!pid || qty <= 0) return;
 
+            const precioIngresado = Number(
+                tr.querySelector('.precio-producto')?.value || 0
+            );
+
             const unitFinal = applyDesc(
-                precioUnitarioEfectivoVenta(pid),
+                precioIngresado,
                 getDescPct(tr)
             );
 
@@ -863,6 +950,7 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
     const tr = document.createElement('tr');
 
     tr.className = 'border-t';
+
     tr.innerHTML = `
         <td class="px-3 py-2">
             <input list="dl_productos_${idx}"
@@ -870,14 +958,25 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
                    placeholder="Escribí para buscar...">
 
             <datalist id="dl_productos_${idx}">
-                ${Object.keys(PRODUCTOS_MAP).map(n => `<option value="${n}"></option>`).join('')}
+                ${Object.keys(PRODUCTOS_MAP)
+                    .map(nombre => `<option value="${nombre}"></option>`)
+                    .join('')}
             </datalist>
 
-            <input type="hidden" name="productos[${idx}][producto_id]" class="prod-id" value="">
-            <input type="hidden" name="productos[${idx}][descuento_pct]" class="desc-pct" value="0">
+            <input type="hidden"
+                   name="productos[${idx}][producto_id]"
+                   class="prod-id"
+                   value="">
+
+            <input type="hidden"
+                   name="productos[${idx}][descuento_pct]"
+                   class="desc-pct"
+                   value="0">
         </td>
 
-        <td class="px-3 py-2 stock">-</td>
+        <td class="px-3 py-2 stock">
+            -
+        </td>
 
         <td class="px-3 py-2">
             <input name="productos[${idx}][cantidad]"
@@ -888,11 +987,22 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
         </td>
 
         <td class="px-3 py-2">
-            <div class="unit-main">-</div>
+            <input
+                name="productos[${idx}][precio_unitario]"
+                type="number"
+                step="0.01"
+                min="0"
+                value=""
+                data-manual="0"
+                class="precio-producto w-32 rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+            >
+
             <div class="unit-final text-xs text-slate-500 mt-1"></div>
         </td>
 
-        <td class="px-3 py-2 sub">-</td>
+        <td class="sub px-3 py-2">
+            -
+        </td>
 
         <td class="px-3 py-2 text-right">
             <button type="button"
@@ -904,64 +1014,212 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
 
     const inputText = tr.querySelector('.prod-text');
     const inputId = tr.querySelector('.prod-id');
+    const cantidadInput = tr.querySelector('.cant');
+    const precioInput = tr.querySelector('.precio-producto');
+
+    function precioSugerido(pid){
+        return esClienteColab()
+            ? precioUnitarioCosto(pid)
+            : precioUnitarioEfectivoVenta(pid);
+    }
+
+    function completarConProducto(pid, cantidad = 1){
+        const producto = PRODUCTOS_DATA[pid];
+
+        if(!producto){
+            return false;
+        }
+
+        inputText.value = producto.label;
+        inputId.value = String(pid);
+        cantidadInput.value = String(cantidad);
+        precioInput.value = precioSugerido(pid).toFixed(2);
+        precioInput.dataset.manual = '0';
+
+        recalcular();
+
+        return true;
+    }
+
+    function estaVacia(){
+        const productoId = Number(inputId.value || 0);
+        const productoTexto = (inputText.value || '').trim();
+        const precio = Number(precioInput.value || 0);
+
+        return productoId === 0
+            && productoTexto === ''
+            && precio === 0;
+    }
+
+    /*
+     * Estas funciones quedan asociadas a la fila para que
+     * el scanner pueda reutilizarla.
+     */
+    tr.completarConProducto = completarConProducto;
+    tr.estaVacia = estaVacia;
 
     const setProducto = () => {
         const valor = (inputText.value || '').trim();
-        const pid = PRODUCTOS_MAP[valor] ? Number(PRODUCTOS_MAP[valor]) : 0;
+        const pidAnterior = Number(inputId.value || 0);
 
-        inputId.value = pid ? String(pid) : '';
+        const pid = PRODUCTOS_MAP[valor]
+            ? Number(PRODUCTOS_MAP[valor])
+            : 0;
+
+        inputId.value = pid
+            ? String(pid)
+            : '';
+
+        if(pid && (pid !== pidAnterior || precioInput.value === '')){
+            precioInput.value = precioSugerido(pid).toFixed(2);
+            precioInput.dataset.manual = '0';
+        }
+
+        if(!pid){
+            precioInput.value = '';
+            precioInput.dataset.manual = '0';
+        }
+
         recalcular();
     };
 
     inputText.addEventListener('change', setProducto);
     inputText.addEventListener('blur', setProducto);
-    tr.querySelector('.cant').addEventListener('input', recalcular);
 
-    tr.querySelector('.btn-remove-producto').addEventListener('click', () => {
-        tr.remove();
+    cantidadInput.addEventListener('input', recalcular);
+
+    precioInput.addEventListener('input', function(){
+        this.dataset.manual = '1';
         recalcular();
     });
+
+    tr.querySelector('.btn-remove-producto')
+        .addEventListener('click', () => {
+            tr.remove();
+            recalcular();
+
+            /*
+             * Si eliminan la última fila, dejamos nuevamente
+             * una disponible para carga manual.
+             */
+            if(tbody.children.length === 0){
+                addProductoRow();
+            }
+        });
 
     tbody.appendChild(tr);
 
     if(prefillPid && PRODUCTOS_DATA[prefillPid]){
-        inputText.value = PRODUCTOS_DATA[prefillPid].label;
-        inputId.value = String(prefillPid);
+        completarConProducto(
+            prefillPid,
+            prefillQty
+        );
     }
 
     recalcular();
+
+    return tr;
 }
 
 function agregarProductoPorCodigo(codigo){
     const limpio = String(codigo || '').trim();
 
-    if(!limpio) return;
+    if(!limpio){
+        return;
+    }
 
     const pid = PRODUCTOS_BARCODE_MAP[limpio]
         ? Number(PRODUCTOS_BARCODE_MAP[limpio])
         : 0;
 
-    if(!pid){
+    if(!pid || !PRODUCTOS_DATA[pid]){
         alert('No existe un producto con ese código de barras.');
         return;
     }
 
-    const filaExistente = Array.from(
+    const filas = Array.from(
         document.querySelectorAll('#tablaProductos tbody tr')
-    ).find(tr => Number(tr.querySelector('.prod-id')?.value || 0) === pid);
+    );
 
-    const nombre = PRODUCTOS_DATA[pid]?.label || 'Producto';
+    const nombre =
+        PRODUCTOS_DATA[pid]?.label || 'Producto';
+
+    /*
+     * Si el producto ya está cargado,
+     * aumenta la cantidad.
+     */
+    const filaExistente = filas.find(tr => {
+        return Number(
+            tr.querySelector('.prod-id')?.value || 0
+        ) === pid;
+    });
 
     if(filaExistente){
-        const qty = filaExistente.querySelector('.cant');
-        qty.value = String(Number(qty.value || 0) + 1);
+        const cantidadInput =
+            filaExistente.querySelector('.cant');
+
+        cantidadInput.value = String(
+            Number(cantidadInput.value || 0) + 1
+        );
+
         recalcular();
-        mostrarToastProductoAgregado(nombre + ' agregado');
+
+        mostrarToastProductoAgregado(
+            nombre + ' agregado'
+        );
+
         return;
     }
 
-    addProductoRow(pid, 1);
-    mostrarToastProductoAgregado(nombre + ' agregado');
+    /*
+     * Buscamos primero una fila vacía.
+     */
+    const filaVacia = filas.find(tr => {
+        return typeof tr.estaVacia === 'function'
+            && tr.estaVacia();
+    });
+
+    if(
+        filaVacia &&
+        typeof filaVacia.completarConProducto === 'function'
+    ){
+        filaVacia.completarConProducto(pid, 1);
+    }else{
+        addProductoRow(pid, 1);
+    }
+
+    mostrarToastProductoAgregado(
+        nombre + ' agregado'
+    );
+}
+
+function actualizarPreciosSugeridosProductos(){
+    document.querySelectorAll('#tablaProductos tbody tr').forEach(tr => {
+        const pid = Number(
+            tr.querySelector('.prod-id')?.value || 0
+        );
+
+        const precioInput =
+            tr.querySelector('.precio-producto');
+
+        if(!pid || !precioInput){
+            return;
+        }
+
+        /*
+         * Si Celeste ya modificó manualmente el precio,
+         * no lo sobrescribimos al cambiar el tipo de cliente.
+         */
+        if(precioInput.dataset.manual === '1'){
+            return;
+        }
+
+        const sugerido = esClienteColab()
+            ? precioUnitarioCosto(pid)
+            : precioUnitarioEfectivoVenta(pid);
+
+        precioInput.value = sugerido.toFixed(2);
+    });
 }
 
 function toggleClienteBoxes(){
@@ -970,6 +1228,7 @@ function toggleClienteBoxes(){
     document.getElementById('box_cliente').classList.toggle('hidden', colab);
     document.getElementById('box_colab').classList.toggle('hidden', !colab);
 
+    actualizarPreciosSugeridosProductos();
     recalcular();
 }
 

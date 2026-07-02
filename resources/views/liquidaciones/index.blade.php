@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Liquidaciones - Peluquería TOP')
+@section('title', 'Liquidaciones - Cele Dore Estilista')
 @section('h1', 'Liquidaciones')
 @section('sub', 'Pagos registrados a colaboradoras y cálculo de mejor mes para aguinaldo.')
 

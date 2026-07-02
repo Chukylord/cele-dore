@@ -212,7 +212,7 @@ class VentaController extends Controller
         }
 
         if ($ultimoCosto !== null) {
-            return $this->round2($ultimoCosto * 1.40);
+            return $this->round2($ultimoCosto * 1.45);
         }
 
         if ($producto->precio_efectivo_manual !== null) {
@@ -226,10 +226,10 @@ class VentaController extends Controller
     {
         /*
          * Si el precio manual fue actualizado después de la última compra,
-         * usamos ese precio vigente y quitamos el 40% de margen.
+         * usamos ese precio vigente y quitamos el 45% de margen.
          */
         if ($this->manualEsMasNuevoQueCompra($producto)) {
-            return $this->round2((float) $producto->precio_efectivo_manual / 1.40);
+            return $this->round2((float) $producto->precio_efectivo_manual / 1.45);
         }
 
         /*
@@ -243,10 +243,10 @@ class VentaController extends Controller
          * Producto sin compras: costo estimado desde el precio efectivo vigente.
          */
         if ($producto->precio_efectivo_manual !== null) {
-            return $this->round2((float) $producto->precio_efectivo_manual / 1.40);
+            return $this->round2((float) $producto->precio_efectivo_manual / 1.45);
         }
 
-        return $this->round2((float) $producto->precio_venta / 1.40);
+        return $this->round2((float) $producto->precio_venta / 1.45);
     }
 
     private function resolverPagos(float $totalBase, string $tipoPago, array $pagosIngresados = []): array
@@ -363,6 +363,7 @@ class VentaController extends Controller
             'productos' => ['nullable', 'array'],
             'productos.*.producto_id' => ['nullable', 'exists:productos,id'],
             'productos.*.cantidad' => ['nullable', 'integer', 'min:1'],
+            'productos.*.precio_unitario' => ['nullable', 'numeric', 'min:0'],
             'productos.*.descuento_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
 
             'servicios' => ['nullable', 'array'],
@@ -494,14 +495,18 @@ class VentaController extends Controller
                     $ultimoCosto = $this->getUltimoCosto($pid);
                     $costoRef = $ultimoCosto !== null ? $this->round2($ultimoCosto) : null;
 
-                    $precioUnitBase = $aColaboradora
+                    $precioSugerido = $aColaboradora
                         ? $this->precioUnitarioCostoColab($producto, $ultimoCosto)
                         : $this->precioUnitarioBaseNormal($producto, $ultimoCosto);
 
-                    if ($aColaboradora && $precioUnitBase <= 0) {
+                    $precioUnitBase = array_key_exists('precio_unitario', $row)
+                        ? $this->round2((float) ($row['precio_unitario'] ?? 0))
+                        : $precioSugerido;
+
+                    if ($precioUnitBase <= 0) {
                         throw new \Exception(
                             "El producto {$producto->marca} - {$producto->tipo} {$producto->contenido} " .
-                            "no tiene un precio válido. Completalo primero en Lista de precios."
+                            "no tiene un precio válido."
                         );
                     }
 
@@ -546,7 +551,15 @@ class VentaController extends Controller
                         }
 
                         $ultimoCosto = $this->getUltimoCosto($pid);
-                        $precioUnitBase = $this->precioUnitarioBaseNormal($producto, $ultimoCosto);
+                        $precioSugerido = $this->precioUnitarioBaseNormal(
+                            $producto,
+                            $ultimoCosto
+                        );
+
+                        $precioUnitBase = array_key_exists('precio_unitario', $row)
+                            ? $this->round2((float) ($row['precio_unitario'] ?? 0))
+                            : $precioSugerido;
+
                         $descPct = (float) ($row['descuento_pct'] ?? 0);
                         $precioUnitFinalBase = $this->applyDiscount($precioUnitBase, $descPct);
 

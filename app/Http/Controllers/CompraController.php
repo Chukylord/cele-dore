@@ -44,6 +44,41 @@ class CompraController extends Controller
         return $cantidad * $precioConDescuento;
     }
 
+
+    private function normalizarItemsCompra(Request $request): void
+    {
+        $items = collect($request->input('items', []))
+            ->filter(function ($item) {
+                if (!is_array($item)) {
+                    return false;
+                }
+
+                $productoId = trim((string) ($item['producto_id'] ?? ''));
+                $productoTexto = trim((string) ($item['producto_texto'] ?? ''));
+                $precioTexto = trim((string) ($item['precio_unitario'] ?? ''));
+                $descuento = (float) ($item['descuento_pct'] ?? 0);
+
+                /*
+                 * Una línea nueva puede tener cantidad 1 y un proveedor copiado
+                 * de la fila anterior. Se considera vacía mientras no tenga
+                 * producto, precio ni descuento cargados.
+                 */
+                $precioVacio = $precioTexto === '' || abs((float) $precioTexto) < 0.00001;
+                $descuentoVacio = abs($descuento) < 0.00001;
+
+                return !(
+                    $productoId === ''
+                    && $productoTexto === ''
+                    && $precioVacio
+                    && $descuentoVacio
+                );
+            })
+            ->values()
+            ->all();
+
+        $request->merge(['items' => $items]);
+    }
+
     public function index(Request $request)
     {
         $proveedor_id = trim((string)$request->get('proveedor_id', ''));
@@ -76,7 +111,8 @@ class CompraController extends Controller
         }
 
         $lotes = $query
-            ->orderBy('fecha', 'desc')
+            ->orderByDesc('fecha')
+            ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
@@ -114,10 +150,11 @@ class CompraController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizarItemsCompra($request);
+
         $data = $request->validate([
             'fecha' => ['required', 'date'],
             'nota' => ['nullable', 'string', 'max:255'],
-            'entrega_inicial' => ['nullable', 'numeric', 'min:0'],
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.proveedor_id' => ['required', 'exists:proveedores,id'],
@@ -125,57 +162,77 @@ class CompraController extends Controller
             'items.*.cantidad' => ['required', 'integer', 'min:1'],
             'items.*.precio_unitario' => ['required', 'numeric', 'min:0'],
             'items.*.descuento_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'items.*.proveedor_texto' => ['nullable', 'string', 'max:255'],
+            'items.*.producto_texto' => ['nullable', 'string', 'max:255'],
+        ], [
+            'items.required' => 'Agregá al menos un producto a la compra.',
+            'items.min' => 'Agregá al menos un producto a la compra.',
+            'items.*.proveedor_id.required' => 'Hay una línea sin un proveedor válido.',
+            'items.*.proveedor_id.exists' => 'Hay una línea con un proveedor que no existe.',
+            'items.*.producto_id.required' => 'Hay una línea sin un producto válido.',
+            'items.*.producto_id.exists' => 'Hay una línea con un producto que no existe.',
+            'items.*.cantidad.required' => 'Hay una línea sin cantidad.',
+            'items.*.cantidad.integer' => 'La cantidad debe ser un número entero.',
+            'items.*.cantidad.min' => 'La cantidad debe ser de al menos 1.',
+            'items.*.precio_unitario.required' => 'Hay una línea sin precio unitario.',
+            'items.*.precio_unitario.numeric' => 'El precio unitario debe ser numérico.',
+            'items.*.precio_unitario.min' => 'El precio unitario no puede ser negativo.',
+            'items.*.descuento_pct.numeric' => 'El descuento debe ser numérico.',
+            'items.*.descuento_pct.min' => 'El descuento no puede ser negativo.',
+            'items.*.descuento_pct.max' => 'El descuento no puede ser mayor al 100%.',
         ]);
 
         DB::transaction(function () use ($data) {
             $montoTotal = 0;
 
-            foreach ($data['items'] as $it) {
-                $montoTotal += $this->subtotalConDescuento($it);
+            foreach ($data['items'] as $item) {
+                $montoTotal += $this->subtotalConDescuento($item);
             }
 
             $montoTotal = round($montoTotal, 2);
-            $montoPagado = min((float)($data['entrega_inicial'] ?? 0), $montoTotal);
-            $montoPagado = round($montoPagado, 2);
 
             $lote = CompraLote::create([
                 'fecha' => $data['fecha'],
                 'nota' => $data['nota'] ?? null,
                 'monto_total' => $montoTotal,
-                'monto_pagado' => $montoPagado,
-                'estado_pago' => $this->estadoPagoCompra($montoTotal, $montoPagado),
+
+                /*
+                * Los pagos al proveedor se administran desde
+                * la cuenta corriente del proveedor.
+                */
+                'monto_pagado' => 0,
+                'estado_pago' => 'pendiente',
             ]);
 
-            foreach ($data['items'] as $it) {
+            foreach ($data['items'] as $item) {
                 Compra::create([
                     'lote_id' => $lote->id,
                     'fecha' => $data['fecha'],
-                    'proveedor_id' => (int)$it['proveedor_id'],
-                    'producto_id' => (int)$it['producto_id'],
-                    'cantidad' => (int)$it['cantidad'],
-                    'precio_unitario' => (float)$it['precio_unitario'], // queda SIN descuento para ventas
-                    'descuento_pct' => isset($it['descuento_pct']) ? (float)$it['descuento_pct'] : 0,
+                    'proveedor_id' => (int) $item['proveedor_id'],
+                    'producto_id' => (int) $item['producto_id'],
+                    'cantidad' => (int) $item['cantidad'],
+                    'precio_unitario' => (float) $item['precio_unitario'],
+                    'descuento_pct' => isset($item['descuento_pct'])
+                        ? (float) $item['descuento_pct']
+                        : 0,
                 ]);
 
-                $producto = Producto::lockForUpdate()->find((int)$it['producto_id']);
+                $producto = Producto::lockForUpdate()
+                    ->find((int) $item['producto_id']);
 
                 if ($producto) {
-                    $producto->stock_venta = (int)$producto->stock_venta + (int)$it['cantidad'];
+                    $producto->stock_venta =
+                        (int) $producto->stock_venta +
+                        (int) $item['cantidad'];
+
                     $producto->save();
                 }
             }
-
-            if ($montoPagado > 0) {
-                CompraPago::create([
-                    'compra_lote_id' => $lote->id,
-                    'fecha' => $data['fecha'],
-                    'monto' => $montoPagado,
-                    'observacion' => 'Entrega inicial',
-                ]);
-            }
         });
 
-        return redirect()->route('compras.index')->with('ok', 'Compra registrada correctamente.');
+        return redirect()
+            ->route('compras.index')
+            ->with('ok', 'Compra registrada correctamente.');
     }
 
     public function show(Compra $compra)
@@ -200,14 +257,14 @@ class CompraController extends Controller
 
     public function showLote(CompraLote $lote)
     {
-        $lote->load(['compras.proveedor', 'compras.producto', 'pagos']);
+        $lote->load(['compras.proveedor', 'compras.producto']);
 
         return view('compras.lotes.show', compact('lote'));
     }
 
     public function editLote(CompraLote $lote)
     {
-        $lote->load(['compras.proveedor', 'compras.producto', 'pagos']);
+        $lote->load(['compras.proveedor', 'compras.producto']);
 
         $proveedores = Proveedor::orderBy('nombre')->get();
 
@@ -217,19 +274,20 @@ class CompraController extends Controller
             ->orderBy('contenido')
             ->get();
 
-        $entregaInicial = (float) $lote->pagos()
-            ->where('observacion', 'Entrega inicial')
-            ->value('monto');
-
-        return view('compras.lotes.edit', compact('lote', 'proveedores', 'productos', 'entregaInicial'));
+        return view('compras.lotes.edit', compact(
+            'lote',
+            'proveedores',
+            'productos'
+        ));
     }
 
     public function updateLote(Request $request, CompraLote $lote)
     {
+        $this->normalizarItemsCompra($request);
+
         $data = $request->validate([
             'fecha' => ['required', 'date'],
             'nota' => ['nullable', 'string', 'max:255'],
-            'entrega_inicial' => ['nullable', 'numeric', 'min:0'],
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.proveedor_id' => ['required', 'exists:proveedores,id'],
@@ -237,6 +295,24 @@ class CompraController extends Controller
             'items.*.cantidad' => ['required', 'integer', 'min:1'],
             'items.*.precio_unitario' => ['required', 'numeric', 'min:0'],
             'items.*.descuento_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'items.*.proveedor_texto' => ['nullable', 'string', 'max:255'],
+            'items.*.producto_texto' => ['nullable', 'string', 'max:255'],
+        ], [
+            'items.required' => 'Agregá al menos un producto al lote.',
+            'items.min' => 'Agregá al menos un producto al lote.',
+            'items.*.proveedor_id.required' => 'Hay una línea sin un proveedor válido.',
+            'items.*.proveedor_id.exists' => 'Hay una línea con un proveedor que no existe.',
+            'items.*.producto_id.required' => 'Hay una línea sin un producto válido.',
+            'items.*.producto_id.exists' => 'Hay una línea con un producto que no existe.',
+            'items.*.cantidad.required' => 'Hay una línea sin cantidad.',
+            'items.*.cantidad.integer' => 'La cantidad debe ser un número entero.',
+            'items.*.cantidad.min' => 'La cantidad debe ser de al menos 1.',
+            'items.*.precio_unitario.required' => 'Hay una línea sin precio unitario.',
+            'items.*.precio_unitario.numeric' => 'El precio unitario debe ser numérico.',
+            'items.*.precio_unitario.min' => 'El precio unitario no puede ser negativo.',
+            'items.*.descuento_pct.numeric' => 'El descuento debe ser numérico.',
+            'items.*.descuento_pct.min' => 'El descuento no puede ser negativo.',
+            'items.*.descuento_pct.max' => 'El descuento no puede ser mayor al 100%.',
         ]);
 
         try {
@@ -244,17 +320,29 @@ class CompraController extends Controller
                 $comprasViejas = Compra::where('lote_id', $lote->id)->get();
 
                 foreach ($comprasViejas as $compraVieja) {
-                    $producto = Producto::lockForUpdate()->find($compraVieja->producto_id);
+                    $producto = Producto::lockForUpdate()
+                        ->find($compraVieja->producto_id);
 
                     if (!$producto) {
                         continue;
                     }
 
-                    $nuevoStock = (int)$producto->stock_venta - (int)$compraVieja->cantidad;
+                    $nuevoStock = (int) $producto->stock_venta
+                        - (int) $compraVieja->cantidad;
 
                     if ($nuevoStock < 0) {
-                        $nombre = trim(($producto->marca . ' - ' . $producto->tipo . ' ' . $producto->contenido));
-                        throw new \Exception("No se puede editar el lote: el producto '{$nombre}' ya fue vendido/consumido y no alcanza el stock para revertir.");
+                        $nombre = trim(
+                            ($producto->marca ?? '')
+                            . ' - '
+                            . ($producto->tipo ?? '')
+                            . ' '
+                            . ($producto->contenido ?? '')
+                        );
+
+                        throw new \Exception(
+                            "No se puede editar el lote: el producto '{$nombre}' "
+                            . 'ya fue vendido o consumido y no alcanza el stock para revertir.'
+                        );
                     }
 
                     $producto->stock_venta = $nuevoStock;
@@ -265,84 +353,74 @@ class CompraController extends Controller
 
                 $montoTotal = 0;
 
-                foreach ($data['items'] as $it) {
-                    $montoTotal += $this->subtotalConDescuento($it);
+                foreach ($data['items'] as $item) {
+                    $montoTotal += $this->subtotalConDescuento($item);
                 }
 
                 $montoTotal = round($montoTotal, 2);
+
+                /*
+                 * Las entregas ya no se registran desde Compras.
+                 * Los movimientos se administran desde la cuenta corriente
+                 * del proveedor. Se preservan pagos históricos, si existieran.
+                 */
+                $montoPagadoHistorico = round(
+                    (float) $lote->pagos()->sum('monto'),
+                    2
+                );
+
+                if ($montoPagadoHistorico > $montoTotal) {
+                    throw new \Exception(
+                        'No se puede guardar porque los pagos históricos del lote '
+                        . 'superan el nuevo total. Revisá primero esos movimientos.'
+                    );
+                }
 
                 $lote->update([
                     'fecha' => $data['fecha'],
                     'nota' => $data['nota'] ?? null,
                     'monto_total' => $montoTotal,
+                    'monto_pagado' => $montoPagadoHistorico,
+                    'estado_pago' => $this->estadoPagoCompra(
+                        $montoTotal,
+                        $montoPagadoHistorico
+                    ),
                 ]);
 
-                foreach ($data['items'] as $it) {
+                foreach ($data['items'] as $item) {
                     Compra::create([
                         'lote_id' => $lote->id,
                         'fecha' => $data['fecha'],
-                        'proveedor_id' => (int)$it['proveedor_id'],
-                        'producto_id' => (int)$it['producto_id'],
-                        'cantidad' => (int)$it['cantidad'],
-                        'precio_unitario' => (float)$it['precio_unitario'], // queda SIN descuento para ventas
-                        'descuento_pct' => isset($it['descuento_pct']) ? (float)$it['descuento_pct'] : 0,
+                        'proveedor_id' => (int) $item['proveedor_id'],
+                        'producto_id' => (int) $item['producto_id'],
+                        'cantidad' => (int) $item['cantidad'],
+                        'precio_unitario' => (float) $item['precio_unitario'],
+                        'descuento_pct' => isset($item['descuento_pct'])
+                            ? (float) $item['descuento_pct']
+                            : 0,
                     ]);
 
-                    $producto = Producto::lockForUpdate()->find((int)$it['producto_id']);
+                    $producto = Producto::lockForUpdate()
+                        ->find((int) $item['producto_id']);
 
                     if ($producto) {
-                        $producto->stock_venta = (int)$producto->stock_venta + (int)$it['cantidad'];
+                        $producto->stock_venta =
+                            (int) $producto->stock_venta
+                            + (int) $item['cantidad'];
+
                         $producto->save();
                     }
                 }
-
-                $entregaInicialNueva = round((float)($data['entrega_inicial'] ?? 0), 2);
-
-                $pagoInicial = $lote->pagos()
-                    ->where('observacion', 'Entrega inicial')
-                    ->first();
-
-                if ($entregaInicialNueva > $montoTotal) {
-                    throw new \Exception('La entrega inicial no puede ser mayor al total del lote.');
-                }
-
-                if ($pagoInicial) {
-                    if ($entregaInicialNueva > 0) {
-                        $pagoInicial->update([
-                            'fecha' => $data['fecha'],
-                            'monto' => $entregaInicialNueva,
-                            'observacion' => 'Entrega inicial',
-                        ]);
-                    } else {
-                        $pagoInicial->delete();
-                    }
-                } else {
-                    if ($entregaInicialNueva > 0) {
-                        CompraPago::create([
-                            'compra_lote_id' => $lote->id,
-                            'fecha' => $data['fecha'],
-                            'monto' => $entregaInicialNueva,
-                            'observacion' => 'Entrega inicial',
-                        ]);
-                    }
-                }
-
-                $nuevoPagado = round((float)$lote->pagos()->sum('monto'), 2);
-
-                if ($nuevoPagado > $montoTotal) {
-                    throw new \Exception('Los pagos registrados superan el total del lote. Ajustá la entrega inicial o los pagos cargados.');
-                }
-
-                $lote->update([
-                    'monto_pagado' => $nuevoPagado,
-                    'estado_pago' => $this->estadoPagoCompra($montoTotal, $nuevoPagado),
-                ]);
             });
         } catch (\Exception $e) {
-            return back()->withInput()->with('ok', $e->getMessage());
+            return back()
+                ->withInput()
+                ->withErrors(['compra' => $e->getMessage()]);
         }
 
-        return redirect()->route('compras.index')->with('ok', 'Lote actualizado correctamente.');
+        return redirect()
+            ->route('compras.index')
+            ->with('ok', 'Lote actualizado correctamente.');
     }
 
     public function destroyLote(CompraLote $lote)

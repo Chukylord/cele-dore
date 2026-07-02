@@ -54,8 +54,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('compras.lotes.update');
     Route::delete('/compras/lotes/{lote}', [\App\Http\Controllers\CompraController::class, 'destroyLote'])
         ->name('compras.lotes.destroy');
-    Route::post('/compras/lotes/{lote}/pagos', [\App\Http\Controllers\CompraController::class, 'storePago'])
-        ->name('compras.lotes.pagos.store');
 
     // Después el resource
     Route::resource('compras', \App\Http\Controllers\CompraController::class);

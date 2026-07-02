@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Liquidación - Vir Tisone Studio')
+@section('title', 'Nueva Liquidación - Cele Dore Estilista')
 @section('h1', 'Nueva Liquidación')
 @section('sub', 'Calcular y registrar pago de colaboradora.')
 

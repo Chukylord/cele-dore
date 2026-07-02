@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ventas - Peluquería TOP')
+@section('title', 'Ventas - Cele Dore Estilista')
 @section('h1', 'Ventas')
 @section('sub', 'Ventas de servicios y productos.')
 

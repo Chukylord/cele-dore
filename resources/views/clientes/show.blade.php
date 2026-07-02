@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ver Cliente - Peluquería TOP')
+@section('title', 'Ver Cliente - Cele Dore Estilista')
 @section('h1', 'Ver Cliente')
 @section('sub', 'Ficha e historial de compras.')
 

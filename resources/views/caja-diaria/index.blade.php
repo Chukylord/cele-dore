@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Caja diaria - Vir Tisone Studio')
+@section('title', 'Caja diaria - Cele Dore Estilista')
 @section('h1', 'Caja diaria')
 @section('sub', 'Hoja diaria de cobros y control del efectivo.')
 

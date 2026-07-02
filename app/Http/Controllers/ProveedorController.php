@@ -128,6 +128,10 @@ class ProveedorController extends Controller
 
     public function cuenta(Proveedor $proveedor)
     {
+        /*
+        * Primero obtenemos todos los movimientos en orden cronológico.
+        * El saldo histórico se calcula desde el más antiguo al más nuevo.
+        */
         $compras = Compra::query()
             ->with(['producto', 'lote'])
             ->where('proveedor_id', $proveedor->id)
@@ -135,7 +139,7 @@ class ProveedorController extends Controller
             ->orderBy('id')
             ->get()
             ->map(function ($compra) {
-                $descuento = (float)($compra->descuento_pct ?? 0);
+                $descuento = (float) ($compra->descuento_pct ?? 0);
 
                 if ($descuento < 0) {
                     $descuento = 0;
@@ -146,23 +150,37 @@ class ProveedorController extends Controller
                 }
 
                 $subtotal = round(
-                    (int)$compra->cantidad * (float)$compra->precio_unitario * (1 - ($descuento / 100)),
+                    (int) $compra->cantidad
+                    * (float) $compra->precio_unitario
+                    * (1 - ($descuento / 100)),
                     2
                 );
 
                 $productoNombre = trim(
-                    ($compra->producto?->marca ?? '') . ' - ' .
-                    ($compra->producto?->tipo ?? '') . ' ' .
-                    ($compra->producto?->contenido ?? '')
+                    ($compra->producto?->marca ?? '')
+                    . ' - '
+                    . ($compra->producto?->tipo ?? '')
+                    . ' '
+                    . ($compra->producto?->contenido ?? '')
                 );
 
                 return [
                     'fecha' => $compra->fecha,
                     'tipo' => 'compra',
-                    'detalle' => 'Compra lote #' . $compra->lote_id . ' - ' . $productoNombre,
+                    'detalle' => 'Compra lote #'
+                        . $compra->lote_id
+                        . ' - '
+                        . $productoNombre,
                     'monto' => $subtotal,
                     'compra_id' => $compra->id,
                     'lote_id' => $compra->lote_id,
+
+                    /*
+                    * Las compras se ordenan antes que las entregas
+                    * cuando tienen exactamente la misma fecha.
+                    */
+                    'orden_tipo' => 1,
+                    'orden_id' => $compra->id,
                 ];
             });
 
@@ -175,32 +193,67 @@ class ProveedorController extends Controller
                 return [
                     'fecha' => $pago->fecha,
                     'tipo' => 'pago',
-                    'detalle' => $pago->observacion ?: 'Entrega al proveedor',
-                    'monto' => -abs((float)$pago->monto),
+                    'detalle' => $pago->observacion
+                        ?: 'Entrega al proveedor',
+                    'monto' => -abs((float) $pago->monto),
                     'pago_id' => $pago->id,
                     'lote_id' => null,
+                    'orden_tipo' => 2,
+                    'orden_id' => $pago->id,
                 ];
             });
 
+        /*
+        * Para calcular el saldo correctamente:
+        * movimientos antiguos primero.
+        */
         $movimientos = $compras
             ->concat($pagos)
             ->sortBy([
                 ['fecha', 'asc'],
-                ['tipo', 'asc'],
+                ['orden_tipo', 'asc'],
+                ['orden_id', 'asc'],
             ])
             ->values();
 
         $saldo = 0;
 
-        $movimientos = $movimientos->map(function ($mov) use (&$saldo) {
-            $saldo += (float)$mov['monto'];
-            $mov['saldo'] = round($saldo, 2);
-            return $mov;
+        $movimientos = $movimientos->map(function ($movimiento) use (&$saldo) {
+            $saldo += (float) $movimiento['monto'];
+
+            $movimiento['saldo'] = round($saldo, 2);
+
+            unset(
+                $movimiento['orden_tipo'],
+                $movimiento['orden_id']
+            );
+
+            return $movimiento;
         });
 
-        $totalCompras = round((float)$compras->sum('monto'), 2);
-        $totalPagos = round(abs((float)$pagos->sum('monto')), 2);
-        $saldoFinal = round($totalCompras - $totalPagos, 2);
+        /*
+        * El saldo ya está correctamente calculado.
+        * Recién ahora invertimos la colección para mostrar
+        * los movimientos más recientes arriba.
+        */
+        $movimientos = $movimientos
+            ->reverse()
+            ->values();
+
+        $totalCompras = round(
+            (float) $compras->sum('monto'),
+            2
+        );
+
+        $totalPagos = round(
+            abs((float) $pagos->sum('monto')),
+            2
+        );
+
+        $saldoFinal = round(
+            $totalCompras - $totalPagos,
+            2
+        );
 
         return view('proveedores.cuenta', compact(
             'proveedor',

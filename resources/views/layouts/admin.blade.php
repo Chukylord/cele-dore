@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Peluquería TOP')</title>
+    <title>@yield('title', 'Cele Dore Estilista')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -13,7 +13,7 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-slate-900 text-white p-4 flex flex-col">
         <div class="mb-6">
-            <div class="text-2xl font-bold">VIR TISONE STUDIO</div>
+            <div class="text-2xl font-bold">CELE DORE ESTILISTA</div>
             <div class="text-sm text-slate-300">Sistema de gestión</div>
         </div>
 
@@ -134,7 +134,7 @@
             <div class="px-6 py-3 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
                     <span class="text-sm text-slate-600 hidden md:inline">
-                        VIR TISONE STUDIO - Sistema de gestión
+                        Sistema de gestión
                     </span>
                     <span class="text-slate-300">|</span>
                     <span class="font-bold text-slate-900">Accesos rápidos</span>

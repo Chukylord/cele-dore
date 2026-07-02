@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Informes - Vir Tisone Studio')
+@section('title', 'Informes - Cele Dore Estilista')
 @section('h1', 'Informes')
 @section('sub', 'Balance de ingresos y egresos según la fecha real de cobro.')
 

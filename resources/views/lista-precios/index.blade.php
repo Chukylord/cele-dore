@@ -210,7 +210,7 @@
     <div class="mb-4 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-blue-900">
         <div class="font-bold">Cómo funciona</div>
         <div class="text-sm mt-1">
-            El sistema guarda únicamente las filas que realmente modificaste. La tarjeta se calcula automáticamente con 20% y el valor para colaboradora se estima quitando el 40% al precio efectivo vigente cuando corresponde.
+            El sistema guarda únicamente las filas que realmente modificaste. La tarjeta se calcula automáticamente con 20% y el valor para colaboradora se estima quitando el 45% al precio efectivo vigente cuando corresponde.
         </div>
     </div>
 
@@ -548,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const productoId = this.dataset.productoId;
             const efectivo = Number(this.value || 0);
             const tarjeta = round2(efectivo * 1.20);
-            const colaboradora = round2(efectivo / 1.40);
+            const colaboradora = round2(efectivo / 1.45);
 
             const tarjetaView = document.querySelector(`.precio-tarjeta-view[data-producto-id="${productoId}"]`);
             const colaboradoraView = document.querySelector(`.precio-colaboradora-view[data-producto-id="${productoId}"]`);

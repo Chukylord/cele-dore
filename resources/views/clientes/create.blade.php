@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Cliente Nuevo - Peluquería TOP')
+@section('title', 'Cliente Nuevo - Cele Dore Estilista')
 @section('h1', 'Cliente Nuevo')
 @section('sub', 'Cargá los datos del cliente.')
 
