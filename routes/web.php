@@ -39,11 +39,13 @@ Route::middleware(['auth'])->group(function () {
         ->name('proveedores.pagos.destroy');
     Route::resource('proveedores', \App\Http\Controllers\ProveedorController::class);
 
-    Route::resource('productos', \App\Http\Controllers\ProductoController::class);
+    Route::get('/productos/scan/{codigo}', \App\Http\Controllers\ProductoScannerController::class)
+        ->name('productos.scan');
     Route::patch('/productos/{producto}/consumo', [\App\Http\Controllers\ProductoController::class, 'consumo'])
         ->name('productos.consumo');
     Route::patch('/productos/{producto}/usar-peluqueria', [\App\Http\Controllers\ProductoController::class, 'usarPeluqueria'])
         ->name('productos.usarPeluqueria');
+    Route::resource('productos', \App\Http\Controllers\ProductoController::class);
 
     Route::get('/compras/lotes/{lote}', [\App\Http\Controllers\CompraController::class, 'showLote'])
         ->name('compras.lotes.show');
