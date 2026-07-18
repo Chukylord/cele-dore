@@ -87,29 +87,53 @@ class Venta extends Model
         return round(max($totalBase, 0), 2);
     }
 
-    public function totalPagadoBase(): float
+    private function pagosCargados()
     {
-        $pagos = $this->relationLoaded('pagos')
+        return $this->relationLoaded('pagos')
             ? $this->pagos
             : $this->pagos()->get();
+    }
+
+    private function esVentaHistoricaPagadaSinDetalle(): bool
+    {
+        return !$this->pendiente_pago && $this->pagosCargados()->isEmpty();
+    }
+
+    public function totalPagadoBase(): float
+    {
+        $pagos = $this->pagosCargados();
+
+        if ($pagos->isEmpty() && $this->esVentaHistoricaPagadaSinDetalle()) {
+            return $this->totalBaseReal();
+        }
 
         return round((float) $pagos->sum('monto_base'), 2);
     }
 
     public function totalCobrado(): float
     {
-        $pagos = $this->relationLoaded('pagos')
-            ? $this->pagos
-            : $this->pagos()->get();
+        $pagos = $this->pagosCargados();
+
+        if ($pagos->isEmpty() && $this->esVentaHistoricaPagadaSinDetalle()) {
+            return round((float) $this->total, 2);
+        }
 
         return round((float) $pagos->sum('monto'), 2);
     }
 
     public function totalRecargoCobrado(): float
     {
-        $pagos = $this->relationLoaded('pagos')
-            ? $this->pagos
-            : $this->pagos()->get();
+        $pagos = $this->pagosCargados();
+
+        if ($pagos->isEmpty() && $this->esVentaHistoricaPagadaSinDetalle()) {
+            $recargo = (float) $this->recargo_tarjeta;
+
+            if ($recargo <= 0) {
+                $recargo = max((float) $this->total - $this->totalBaseReal(), 0);
+            }
+
+            return round($recargo, 2);
+        }
 
         return round((float) $pagos->sum('recargo'), 2);
     }
