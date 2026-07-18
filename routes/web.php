@@ -15,6 +15,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/liquidaciones/{liquidacion}', [\App\Http\Controllers\LiquidacionController::class, 'show'])->name('liquidaciones.show');
 
     Route::get('/informes', [\App\Http\Controllers\InformeController::class, 'index'])->name('informes.index');
+
+    Route::resource('gastos', \App\Http\Controllers\GastoController::class);
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -51,12 +53,13 @@ Route::middleware(['auth'])->group(function () {
         ->name('compras.lotes.destroy');
     Route::post('/compras/lotes/{lote}/pagos', [\App\Http\Controllers\CompraController::class, 'storePago'])
         ->name('compras.lotes.pagos.store');
-
     Route::resource('compras', \App\Http\Controllers\CompraController::class);
 
-    Route::resource('ventas', \App\Http\Controllers\VentaController::class)->except(['edit', 'update']);
+    Route::get('/ventas/{venta}/saldo', [\App\Http\Controllers\VentaController::class, 'saldo'])
+        ->name('ventas.saldo');
     Route::patch('/ventas/{venta}/marcar-pagado', [\App\Http\Controllers\VentaController::class, 'marcarPagado'])
         ->name('ventas.marcarPagado');
+    Route::resource('ventas', \App\Http\Controllers\VentaController::class)->except(['edit', 'update']);
 
     Route::get('/turnos', [\App\Http\Controllers\TurnoController::class, 'index'])->name('turnos.index');
     Route::get('/turnos/eventos', [\App\Http\Controllers\TurnoController::class, 'eventos'])->name('turnos.eventos');
@@ -67,14 +70,17 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('fichadas', \App\Http\Controllers\FichadaController::class);
 
-    Route::resource('gastos', \App\Http\Controllers\GastoController::class);
+    Route::get('/caja-diaria', [CajaDiariaController::class, 'index'])
+        ->name('caja-diaria.index');
+    Route::post('/caja-diaria/abrir', [CajaDiariaController::class, 'abrir'])
+        ->name('caja-diaria.abrir');
+    Route::post('/caja-diaria/gastos', [CajaDiariaController::class, 'registrarGasto'])
+        ->name('caja-diaria.gastos.store');
+    Route::patch('/caja-diaria/{caja}/cerrar', [CajaDiariaController::class, 'cerrar'])
+        ->name('caja-diaria.cerrar');
 
     Route::get('/lista-precios', [ListaPrecioController::class, 'index'])->name('lista-precios.index');
     Route::post('/lista-precios/actualizar', [ListaPrecioController::class, 'actualizar'])->name('lista-precios.actualizar');
-
-    Route::get('/caja-diaria', [CajaDiariaController::class, 'index'])->name('caja-diaria.index');
-    Route::post('/caja-diaria/abrir', [CajaDiariaController::class, 'abrir'])->name('caja-diaria.abrir');
-    Route::patch('/caja-diaria/{caja}/cerrar', [CajaDiariaController::class, 'cerrar'])->name('caja-diaria.cerrar');
 });
 
 require __DIR__.'/auth.php';
