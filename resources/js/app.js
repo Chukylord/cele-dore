@@ -12,6 +12,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 
 import { initNuevaVentaPagosParciales } from './ventas-create-pagos';
 import { initListadoVentasPagosParciales } from './ventas-index-pagos';
+import { initClientesDniEnVenta } from './ventas-clientes-dni';
 
 window.FullCalendar = {
     Calendar,
@@ -23,4 +24,5 @@ window.FullCalendar = {
 document.addEventListener('DOMContentLoaded', function () {
     initNuevaVentaPagosParciales();
     initListadoVentasPagosParciales();
+    initClientesDniEnVenta();
 });
