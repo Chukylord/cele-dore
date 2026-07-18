@@ -152,9 +152,13 @@ export function initNuevaVentaPagosParciales() {
         const esPendiente = condicionUi.value === 'pendiente';
         const esParcial = condicionUi.value === 'parcial';
         const esCombinado = tipoPago.value === 'combinado';
+        const cambioPendiente = pendienteOriginal.checked !== esPendiente;
 
         pendienteOriginal.checked = esPendiente;
-        pendienteOriginal.dispatchEvent(new Event('change', { bubbles: true }));
+
+        if (cambioPendiente) {
+            pendienteOriginal.dispatchEvent(new Event('change', { bubbles: true }));
+        }
 
         montoBox.classList.toggle('hidden', !esParcial || esCombinado);
         montoInput.disabled = !esParcial || esCombinado;
