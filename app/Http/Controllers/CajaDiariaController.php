@@ -107,6 +107,7 @@ class CajaDiariaController extends Controller
     {
         return Gasto::query()
             ->with('usuario')
+            ->where('impacta_caja', true)
             ->whereDate('fecha', $fecha)
             ->orderBy('created_at')
             ->orderBy('id')
@@ -291,6 +292,7 @@ class CajaDiariaController extends Controller
                 : null,
             'monto' => $this->round2((float) $data['monto']),
             'medio_pago' => $data['medio_pago'],
+            'impacta_caja' => true,
             'user_id' => auth()->id(),
         ]);
 
