@@ -10,7 +10,6 @@
 <body class="bg-slate-100 text-slate-900">
 <div class="min-h-screen flex">
 
-    <!-- Sidebar -->
     <aside class="w-64 bg-slate-900 text-white p-4 flex flex-col">
         <div class="mb-6">
             <div class="text-2xl font-bold">VIR TISONE STUDIO</div>
@@ -19,7 +18,6 @@
 
         <nav class="space-y-2 flex-1">
             @auth
-
                 <a href="{{ route('dashboard') }}"
                    class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('dashboard') ? 'bg-slate-800' : '' }}">
                     Dashboard
@@ -47,6 +45,11 @@
                 <a href="{{ route('fichadas.index') }}"
                    class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('fichadas.*') ? 'bg-slate-800' : '' }}">
                     FICHADAS
+                </a>
+
+                <a href="{{ route('caja-diaria.index') }}"
+                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('caja-diaria.*') ? 'bg-slate-800' : '' }}">
+                    CAJA DIARIA
                 </a>
 
                 <div class="mt-4 text-xs uppercase tracking-wider text-slate-400 px-3">
@@ -83,24 +86,19 @@
                     PROVEEDORES
                 </a>
 
-                <div class="mt-4 text-xs uppercase tracking-wider text-slate-400 px-3">
-                    FINANZAS
-                </div>
-
-                <a href="{{ route('gastos.index') }}"
-                   class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('gastos.*') ? 'bg-slate-800' : '' }}">
-                    GASTOS
-                </a>
-
                 @if(auth()->user()->esAdmin())
+                    <div class="mt-4 text-xs uppercase tracking-wider text-slate-400 px-3">
+                        FINANZAS
+                    </div>
+
+                    <a href="{{ route('gastos.index') }}"
+                       class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('gastos.*') ? 'bg-slate-800' : '' }}">
+                        GASTOS
+                    </a>
+
                     <a href="{{ route('liquidaciones.index') }}"
                        class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('liquidaciones.*') ? 'bg-slate-800' : '' }}">
                         LIQUIDACIONES
-                    </a>
-
-                    <a href="{{ route('caja-diaria.index') }}"
-                        class="block px-3 py-2 rounded-lg hover:bg-slate-800 {{ request()->routeIs('caja-diaria.*') ? 'bg-slate-800' : '' }}">
-                        CAJA DIARIA
                     </a>
 
                     <a href="{{ route('informes.index') }}"
@@ -111,7 +109,6 @@
             @endauth
         </nav>
 
-        <!-- Usuario + logout -->
         <div class="pt-4 border-t border-slate-700">
             <div class="text-sm text-slate-300 mb-2">
                 {{ Auth::user()->name }}
@@ -126,10 +123,7 @@
         </div>
     </aside>
 
-    <!-- Content -->
     <div class="flex-1 flex flex-col">
-
-        {{-- Topbar --}}
         <div class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
             <div class="px-6 py-3 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
@@ -190,7 +184,6 @@
             </main>
         @endif
     </div>
-
 </div>
 </body>
 </html>

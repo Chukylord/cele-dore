@@ -16,15 +16,15 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/informes', [\App\Http\Controllers\InformeController::class, 'index'])->name('informes.index');
 
-    Route::get('/caja-diaria', [CajaDiariaController::class, 'index'])->name('caja-diaria.index');
-    Route::post('/caja-diaria/abrir', [CajaDiariaController::class, 'abrir'])->name('caja-diaria.abrir');
-    Route::patch('/caja-diaria/{caja}/cerrar', [CajaDiariaController::class, 'cerrar'])->name('caja-diaria.cerrar');
+    Route::resource('gastos', \App\Http\Controllers\GastoController::class);
 });
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
         ->name('dashboard');
 
+    Route::get('/clientes/busqueda-venta', \App\Http\Controllers\ClientesVentaController::class)
+        ->name('clientes.busqueda-venta');
     Route::resource('clientes', \App\Http\Controllers\ClienteController::class);
     Route::resource('colaboradoras', \App\Http\Controllers\ColaboradoraController::class);
     Route::resource('servicios', \App\Http\Controllers\ServicioController::class);
@@ -39,13 +39,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('proveedores.pagos.destroy');
     Route::resource('proveedores', \App\Http\Controllers\ProveedorController::class);
 
-    Route::resource('productos', \App\Http\Controllers\ProductoController::class);
+    Route::get('/productos/scan/{codigo}', \App\Http\Controllers\ProductoScannerController::class)
+        ->name('productos.scan');
     Route::patch('/productos/{producto}/consumo', [\App\Http\Controllers\ProductoController::class, 'consumo'])
         ->name('productos.consumo');
     Route::patch('/productos/{producto}/usar-peluqueria', [\App\Http\Controllers\ProductoController::class, 'usarPeluqueria'])
         ->name('productos.usarPeluqueria');
+    Route::resource('productos', \App\Http\Controllers\ProductoController::class);
 
-    // Compras por lote: primero las rutas específicas
     Route::get('/compras/lotes/{lote}', [\App\Http\Controllers\CompraController::class, 'showLote'])
         ->name('compras.lotes.show');
     Route::get('/compras/lotes/{lote}/edit', [\App\Http\Controllers\CompraController::class, 'editLote'])
@@ -56,13 +57,13 @@ Route::middleware(['auth'])->group(function () {
         ->name('compras.lotes.destroy');
     Route::post('/compras/lotes/{lote}/pagos', [\App\Http\Controllers\CompraController::class, 'storePago'])
         ->name('compras.lotes.pagos.store');
-
-    // Después el resource
     Route::resource('compras', \App\Http\Controllers\CompraController::class);
 
-    Route::resource('ventas', \App\Http\Controllers\VentaController::class)->except(['edit', 'update']);
+    Route::get('/ventas/{venta}/saldo', \App\Http\Controllers\VentaSaldoController::class)
+        ->name('ventas.saldo');
     Route::patch('/ventas/{venta}/marcar-pagado', [\App\Http\Controllers\VentaController::class, 'marcarPagado'])
         ->name('ventas.marcarPagado');
+    Route::resource('ventas', \App\Http\Controllers\VentaController::class)->except(['edit', 'update']);
 
     Route::get('/turnos', [\App\Http\Controllers\TurnoController::class, 'index'])->name('turnos.index');
     Route::get('/turnos/eventos', [\App\Http\Controllers\TurnoController::class, 'eventos'])->name('turnos.eventos');
@@ -73,11 +74,17 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('fichadas', \App\Http\Controllers\FichadaController::class);
 
-    Route::resource('gastos', \App\Http\Controllers\GastoController::class);
+    Route::get('/caja-diaria', [CajaDiariaController::class, 'index'])
+        ->name('caja-diaria.index');
+    Route::post('/caja-diaria/abrir', [CajaDiariaController::class, 'abrir'])
+        ->name('caja-diaria.abrir');
+    Route::post('/caja-diaria/gastos', [CajaDiariaController::class, 'registrarGasto'])
+        ->name('caja-diaria.gastos.store');
+    Route::patch('/caja-diaria/{caja}/cerrar', [CajaDiariaController::class, 'cerrar'])
+        ->name('caja-diaria.cerrar');
 
     Route::get('/lista-precios', [ListaPrecioController::class, 'index'])->name('lista-precios.index');
     Route::post('/lista-precios/actualizar', [ListaPrecioController::class, 'actualizar'])->name('lista-precios.actualizar');
-
 });
 
 require __DIR__.'/auth.php';

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CajaDiaria;
+use App\Models\Gasto;
 use App\Models\Venta;
 use App\Models\VentaPago;
 use Illuminate\Http\Request;
@@ -15,13 +16,6 @@ class CajaDiariaController extends Controller
         return round($n, 2);
     }
 
-    /**
-     * Obtiene todos los cobros registrados en una fecha.
-     *
-     * Incluye:
-     * - Pagos nuevos guardados en venta_pagos.
-     * - Ventas anteriores al nuevo módulo que todavía no tienen venta_pagos.
-     */
     private function movimientosDelDia(string $fecha): Collection
     {
         $movimientos = collect();
@@ -58,11 +52,6 @@ class CajaDiariaController extends Controller
             ]);
         }
 
-        /*
-         * Compatibilidad con ventas antiguas:
-         * toma solamente las ventas pagadas que no tienen registros
-         * en la tabla venta_pagos, para evitar duplicarlas.
-         */
         $ventasAnteriores = Venta::query()
             ->with([
                 'cliente',
@@ -79,12 +68,10 @@ class CajaDiariaController extends Controller
 
         foreach ($ventasAnteriores as $venta) {
             $monto = (float) $venta->total;
-
             $montoBase = (float) $venta->total_base;
 
             if ($montoBase <= 0) {
-                $montoBase =
-                    (float) $venta->subtotal_productos
+                $montoBase = (float) $venta->subtotal_productos
                     + (float) $venta->subtotal_servicios;
             }
 
@@ -103,9 +90,7 @@ class CajaDiariaController extends Controller
         }
 
         return $movimientos
-            ->sortBy(function (array $movimiento) {
-                return $movimiento['fecha_pago']?->timestamp ?? 0;
-            })
+            ->sortBy(fn (array $movimiento) => $movimiento['fecha_pago']?->timestamp ?? 0)
             ->values();
     }
 
@@ -118,22 +103,44 @@ class CajaDiariaController extends Controller
         );
     }
 
+    private function gastosDelDia(string $fecha): Collection
+    {
+        return Gasto::query()
+            ->with('usuario')
+            ->where('impacta_caja', true)
+            ->whereDate('fecha', $fecha)
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+    }
+
     private function totalesDelDia(string $fecha): array
     {
         $movimientos = $this->movimientosDelDia($fecha);
+        $gastos = $this->gastosDelDia($fecha);
 
         $efectivo = $this->totalPorMetodo($movimientos, 'efectivo');
         $transferencia = $this->totalPorMetodo($movimientos, 'transferencia');
         $tarjeta = $this->totalPorMetodo($movimientos, 'tarjeta');
 
+        $gastosEfectivo = $this->round2(
+            (float) $gastos->where('medio_pago', 'efectivo')->sum('monto')
+        );
+
+        $gastosTransferencia = $this->round2(
+            (float) $gastos->where('medio_pago', 'transferencia')->sum('monto')
+        );
+
         return [
             'movimientos' => $movimientos,
+            'gastos' => $gastos,
             'efectivo' => $efectivo,
             'transferencia' => $transferencia,
             'tarjeta' => $tarjeta,
-            'total' => $this->round2(
-                $efectivo + $transferencia + $tarjeta
-            ),
+            'total' => $this->round2($efectivo + $transferencia + $tarjeta),
+            'gastos_efectivo' => $gastosEfectivo,
+            'gastos_transferencia' => $gastosTransferencia,
+            'gastos_total' => $this->round2($gastosEfectivo + $gastosTransferencia),
         ];
     }
 
@@ -143,53 +150,43 @@ class CajaDiariaController extends Controller
             'fecha' => ['nullable', 'date'],
         ]);
 
-        $fecha = (string) $request->get(
-            'fecha',
-            now()->toDateString()
-        );
+        $fecha = (string) $request->get('fecha', now()->toDateString());
 
         $caja = CajaDiaria::query()
+            ->with(['usuarioApertura', 'usuarioCierre'])
             ->whereDate('fecha', $fecha)
             ->first();
 
         $resumenActual = $this->totalesDelDia($fecha);
 
         $movimientos = $resumenActual['movimientos'];
+        $gastos = $resumenActual['gastos'];
 
         $cobrosEfectivoActual = $resumenActual['efectivo'];
         $cobrosTransferenciaActual = $resumenActual['transferencia'];
         $cobrosTarjetaActual = $resumenActual['tarjeta'];
         $totalCobradoActual = $resumenActual['total'];
+        $gastosEfectivoActual = $resumenActual['gastos_efectivo'];
+        $gastosTransferenciaActual = $resumenActual['gastos_transferencia'];
+        $gastosTotalActual = $resumenActual['gastos_total'];
 
-        $cajaInicial = $caja
-            ? (float) $caja->caja_inicial
-            : 0;
+        $cajaInicial = $caja ? (float) $caja->caja_inicial : 0;
 
-        /*
-         * Si la caja está cerrada, mostramos los importes guardados
-         * al momento del cierre.
-         *
-         * Si está abierta, mostramos los cobros actualizados.
-         */
         if ($caja && $caja->estaCerrada()) {
             $cobrosEfectivo = (float) $caja->ventas_efectivo;
             $cobrosTransferencia = (float) $caja->ventas_transferencia;
             $cobrosTarjeta = (float) $caja->ventas_tarjeta;
             $efectivoEsperado = (float) $caja->efectivo_esperado;
-
             $totalCobrado = $this->round2(
-                $cobrosEfectivo
-                + $cobrosTransferencia
-                + $cobrosTarjeta
+                $cobrosEfectivo + $cobrosTransferencia + $cobrosTarjeta
             );
         } else {
             $cobrosEfectivo = $cobrosEfectivoActual;
             $cobrosTransferencia = $cobrosTransferenciaActual;
             $cobrosTarjeta = $cobrosTarjetaActual;
             $totalCobrado = $totalCobradoActual;
-
             $efectivoEsperado = $this->round2(
-                $cajaInicial + $cobrosEfectivoActual
+                $cajaInicial + $cobrosEfectivoActual - $gastosEfectivoActual
             );
         }
 
@@ -197,6 +194,7 @@ class CajaDiariaController extends Controller
             'fecha',
             'caja',
             'movimientos',
+            'gastos',
             'cobrosEfectivo',
             'cobrosTransferencia',
             'cobrosTarjeta',
@@ -205,6 +203,9 @@ class CajaDiariaController extends Controller
             'cobrosTransferenciaActual',
             'cobrosTarjetaActual',
             'totalCobradoActual',
+            'gastosEfectivoActual',
+            'gastosTransferenciaActual',
+            'gastosTotalActual',
             'efectivoEsperado'
         ));
     }
@@ -234,13 +235,9 @@ class CajaDiariaController extends Controller
         }
 
         $resumen = $this->totalesDelDia($fecha);
-
-        $cajaInicial = $this->round2(
-            (float) $data['caja_inicial']
-        );
-
+        $cajaInicial = $this->round2((float) $data['caja_inicial']);
         $efectivoEsperado = $this->round2(
-            $cajaInicial + $resumen['efectivo']
+            $cajaInicial + $resumen['efectivo'] - $resumen['gastos_efectivo']
         );
 
         CajaDiaria::create([
@@ -260,18 +257,52 @@ class CajaDiariaController extends Controller
             ->with('ok', 'Caja diaria iniciada correctamente.');
     }
 
+    public function registrarGasto(Request $request)
+    {
+        $data = $request->validate([
+            'fecha' => ['required', 'date'],
+            'categoria' => ['required', 'string', 'max:255'],
+            'descripcion' => ['nullable', 'string', 'max:255'],
+            'monto' => ['required', 'numeric', 'gt:0'],
+            'medio_pago' => ['required', 'in:efectivo,transferencia'],
+        ], [
+            'categoria.required' => 'Ingresá el concepto o categoría del gasto.',
+            'monto.required' => 'Ingresá el importe del gasto.',
+            'monto.gt' => 'El gasto debe ser mayor a $0.',
+            'medio_pago.required' => 'Seleccioná cómo se pagó el gasto.',
+        ]);
+
+        $caja = CajaDiaria::query()
+            ->whereDate('fecha', $data['fecha'])
+            ->first();
+
+        if (!$caja || $caja->estaCerrada()) {
+            return redirect()
+                ->route('caja-diaria.index', ['fecha' => $data['fecha']])
+                ->withErrors([
+                    'gasto' => 'Para registrar un gasto, la caja de esa fecha debe estar abierta.',
+                ]);
+        }
+
+        Gasto::create([
+            'fecha' => $data['fecha'],
+            'categoria' => trim($data['categoria']),
+            'descripcion' => isset($data['descripcion'])
+                ? trim((string) $data['descripcion'])
+                : null,
+            'monto' => $this->round2((float) $data['monto']),
+            'medio_pago' => $data['medio_pago'],
+            'impacta_caja' => true,
+            'user_id' => auth()->id(),
+        ]);
+
+        return redirect()
+            ->route('caja-diaria.index', ['fecha' => $data['fecha']])
+            ->with('ok', 'Gasto registrado correctamente en la caja del día.');
+    }
+
     public function cerrar(Request $request, CajaDiaria $caja)
     {
-        /*
-         * Seguridad extra.
-         * Además de esta comprobación, la ruta debe conservar
-         * el middleware admin.
-         */
-        abort_unless(
-            auth()->user()?->esAdmin(),
-            403
-        );
-
         if ($caja->estaCerrada()) {
             return redirect()
                 ->route('caja-diaria.index', [
@@ -290,22 +321,15 @@ class CajaDiariaController extends Controller
         ]);
 
         $fecha = $caja->fecha->format('Y-m-d');
-
         $resumen = $this->totalesDelDia($fecha);
-
         $cajaInicial = (float) $caja->caja_inicial;
 
         $efectivoEsperado = $this->round2(
-            $cajaInicial + $resumen['efectivo']
+            $cajaInicial + $resumen['efectivo'] - $resumen['gastos_efectivo']
         );
 
-        $efectivoContado = $this->round2(
-            (float) $data['efectivo_contado']
-        );
-
-        $diferencia = $this->round2(
-            $efectivoContado - $efectivoEsperado
-        );
+        $efectivoContado = $this->round2((float) $data['efectivo_contado']);
+        $diferencia = $this->round2($efectivoContado - $efectivoEsperado);
 
         $caja->update([
             'ventas_efectivo' => $resumen['efectivo'],

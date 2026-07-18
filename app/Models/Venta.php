@@ -70,4 +70,79 @@ class Venta extends Model
     {
         return $this->belongsTo(Liquidacion::class);
     }
+
+    public function totalBaseReal(): float
+    {
+        $totalBase = (float) $this->total_base;
+
+        if ($totalBase <= 0) {
+            $totalBase = (float) $this->subtotal_servicios
+                + (float) $this->subtotal_productos;
+        }
+
+        if ($totalBase <= 0) {
+            $totalBase = (float) $this->total;
+        }
+
+        return round(max($totalBase, 0), 2);
+    }
+
+    private function pagosCargados()
+    {
+        return $this->relationLoaded('pagos')
+            ? $this->pagos
+            : $this->pagos()->get();
+    }
+
+    private function esVentaHistoricaPagadaSinDetalle(): bool
+    {
+        return !$this->pendiente_pago && $this->pagosCargados()->isEmpty();
+    }
+
+    public function totalPagadoBase(): float
+    {
+        $pagos = $this->pagosCargados();
+
+        if ($pagos->isEmpty() && $this->esVentaHistoricaPagadaSinDetalle()) {
+            return $this->totalBaseReal();
+        }
+
+        return round((float) $pagos->sum('monto_base'), 2);
+    }
+
+    public function totalCobrado(): float
+    {
+        $pagos = $this->pagosCargados();
+
+        if ($pagos->isEmpty() && $this->esVentaHistoricaPagadaSinDetalle()) {
+            return round((float) $this->total, 2);
+        }
+
+        return round((float) $pagos->sum('monto'), 2);
+    }
+
+    public function totalRecargoCobrado(): float
+    {
+        $pagos = $this->pagosCargados();
+
+        if ($pagos->isEmpty() && $this->esVentaHistoricaPagadaSinDetalle()) {
+            $recargo = (float) $this->recargo_tarjeta;
+
+            if ($recargo <= 0) {
+                $recargo = max((float) $this->total - $this->totalBaseReal(), 0);
+            }
+
+            return round($recargo, 2);
+        }
+
+        return round((float) $pagos->sum('recargo'), 2);
+    }
+
+    public function saldoPendienteBase(): float
+    {
+        return round(
+            max($this->totalBaseReal() - $this->totalPagadoBase(), 0),
+            2
+        );
+    }
 }

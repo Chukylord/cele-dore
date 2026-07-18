@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
 {
@@ -16,27 +17,37 @@ class ClienteController extends Controller
         }
 
         $lineas = preg_split('/\r\n|\r|\n/', $observacion);
-
-        $lineas = array_map(function ($linea) {
-            return trim($linea);
-        }, $lineas);
-
-        $lineas = array_values(array_filter($lineas, function ($linea) {
-            return $linea !== '';
-        }));
+        $lineas = array_map(fn ($linea) => trim($linea), $lineas);
+        $lineas = array_values(array_filter($lineas, fn ($linea) => $linea !== ''));
 
         return count($lineas) ? implode(PHP_EOL, $lineas) : null;
     }
 
+    private function normalizarDni(?string $dni): ?string
+    {
+        $dni = preg_replace('/\D+/', '', (string) $dni);
+
+        return $dni !== '' ? $dni : null;
+    }
+
     public function index(Request $request)
     {
-        $nombre   = trim((string) $request->get('nombre', ''));
+        $nombre = trim((string) $request->get('nombre', ''));
         $apellido = trim((string) $request->get('apellido', ''));
+        $dni = trim((string) $request->get('dni', ''));
 
         $sort = $request->get('sort', 'ultima_compra');
-        $dir  = $request->get('dir', 'desc');
+        $dir = $request->get('dir', 'desc');
 
-        $allowedSorts = ['nombre', 'apellido', 'ultima_compra', 'prod_total', 'serv_total', 'created_at'];
+        $allowedSorts = [
+            'nombre',
+            'apellido',
+            'dni',
+            'ultima_compra',
+            'prod_total',
+            'serv_total',
+            'created_at',
+        ];
 
         if (!in_array($sort, $allowedSorts, true)) {
             $sort = 'ultima_compra';
@@ -67,6 +78,10 @@ class ClienteController extends Controller
             ->when($apellido !== '', function ($q) use ($apellido) {
                 $q->where('apellido', 'like', "%{$apellido}%");
             })
+            ->when($dni !== '', function ($q) use ($dni) {
+                $dniLimpio = preg_replace('/\D+/', '', $dni);
+                $q->where('dni', 'like', "%{$dniLimpio}%");
+            })
             ->when($sort === 'ultima_compra', function ($q) use ($dir) {
                 $q->orderByRaw('ultima_compra IS NULL ASC')
                     ->orderBy('ultima_compra', $dir);
@@ -76,7 +91,14 @@ class ClienteController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('clientes.index', compact('clientes', 'nombre', 'apellido', 'sort', 'dir'));
+        return view('clientes.index', compact(
+            'clientes',
+            'nombre',
+            'apellido',
+            'dni',
+            'sort',
+            'dir'
+        ));
     }
 
     public function create()
@@ -96,26 +118,43 @@ class ClienteController extends Controller
             ->orderBy('fecha', 'desc')
             ->get();
 
-        $historial = $ventas->map(function ($v) {
-            $serviciosTxt = $v->servicios->map(function ($s) {
-                return $s->servicio?->nombre . ' ($' . number_format((float)$s->precio, 2, ',', '.') . ')';
+        $historial = $ventas->map(function ($venta) {
+            $serviciosTxt = $venta->servicios->map(function ($servicioVenta) {
+                return $servicioVenta->servicio?->nombre
+                    . ' ($'
+                    . number_format((float) $servicioVenta->precio, 2, ',', '.')
+                    . ')';
             })->implode(', ');
 
-            $productosTxt = $v->productos->map(function ($p) {
-                $nombre = trim(($p->producto?->marca ?? '').' - '.($p->producto?->tipo ?? '').' '.($p->producto?->contenido ?? ''));
-                return $p->cantidad . ' x ' . $nombre . ' ($' . number_format((float)$p->precio_unitario, 2, ',', '.') . ')';
+            $productosTxt = $venta->productos->map(function ($productoVenta) {
+                $nombre = trim(
+                    ($productoVenta->producto?->marca ?? '')
+                    . ' - '
+                    . ($productoVenta->producto?->tipo ?? '')
+                    . ' '
+                    . ($productoVenta->producto?->contenido ?? '')
+                );
+
+                return $productoVenta->cantidad
+                    . ' x '
+                    . $nombre
+                    . ' ($'
+                    . number_format((float) $productoVenta->precio_unitario, 2, ',', '.')
+                    . ')';
             })->implode(', ');
 
             return [
-                'fecha' => $v->fecha ? $v->fecha->format('d/m/Y H:i') : '',
-                'servicios' => $v->subtotal_servicios,
-                'productos' => $v->subtotal_productos,
-                'total' => $v->total,
+                'fecha' => $venta->fecha ? $venta->fecha->format('d/m/Y H:i') : '',
+                'servicios' => $venta->subtotal_servicios,
+                'productos' => $venta->subtotal_productos,
+                'total' => $venta->total,
                 'detalle_servicios' => $serviciosTxt ?: '-',
                 'detalle_productos' => $productosTxt ?: '-',
-                'vendedora' => $v->vendedora ? ($v->vendedora->nombre.' '.$v->vendedora->apellido) : '-',
-                'metodo' => $v->metodo_pago,
-                'venta_id' => $v->id,
+                'vendedora' => $venta->vendedora
+                    ? ($venta->vendedora->nombre . ' ' . $venta->vendedora->apellido)
+                    : '-',
+                'metodo' => $venta->metodo_pago,
+                'venta_id' => $venta->id,
             ];
         });
 
@@ -127,11 +166,23 @@ class ClienteController extends Controller
         $data = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'apellido' => ['required', 'string', 'max:255'],
+            'dni' => [
+                'nullable',
+                'string',
+                'min:7',
+                'max:11',
+                'regex:/^[0-9.\s]+$/',
+                'unique:clientes,dni',
+            ],
             'telefono' => ['required', 'string', 'min:8', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'observacion' => ['nullable', 'string'],
         ], [
             'nombre.required' => 'El nombre es obligatorio.',
             'apellido.required' => 'El apellido es obligatorio.',
+            'dni.min' => 'El DNI debe tener al menos 7 números.',
+            'dni.max' => 'El DNI no puede superar los 11 números.',
+            'dni.regex' => 'El DNI solo puede contener números, puntos y espacios.',
+            'dni.unique' => 'Ya existe una clienta con ese DNI.',
             'telefono.required' => 'El teléfono es obligatorio.',
             'telefono.min' => 'El teléfono debe tener al menos 8 caracteres.',
             'telefono.max' => 'El teléfono no puede superar los 20 caracteres.',
@@ -140,6 +191,7 @@ class ClienteController extends Controller
 
         $data['nombre'] = trim($data['nombre']);
         $data['apellido'] = trim($data['apellido']);
+        $data['dni'] = $this->normalizarDni($data['dni'] ?? null);
         $data['telefono'] = trim($data['telefono']);
         $data['observacion'] = $this->normalizarObservacion($data['observacion'] ?? null);
 
@@ -158,11 +210,23 @@ class ClienteController extends Controller
         $data = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'apellido' => ['required', 'string', 'max:255'],
+            'dni' => [
+                'nullable',
+                'string',
+                'min:7',
+                'max:11',
+                'regex:/^[0-9.\s]+$/',
+                Rule::unique('clientes', 'dni')->ignore($cliente->id),
+            ],
             'telefono' => ['required', 'string', 'min:8', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'observacion' => ['nullable', 'string'],
         ], [
             'nombre.required' => 'El nombre es obligatorio.',
             'apellido.required' => 'El apellido es obligatorio.',
+            'dni.min' => 'El DNI debe tener al menos 7 números.',
+            'dni.max' => 'El DNI no puede superar los 11 números.',
+            'dni.regex' => 'El DNI solo puede contener números, puntos y espacios.',
+            'dni.unique' => 'Ya existe una clienta con ese DNI.',
             'telefono.required' => 'El teléfono es obligatorio.',
             'telefono.min' => 'El teléfono debe tener al menos 8 caracteres.',
             'telefono.max' => 'El teléfono no puede superar los 20 caracteres.',
@@ -171,6 +235,7 @@ class ClienteController extends Controller
 
         $data['nombre'] = trim($data['nombre']);
         $data['apellido'] = trim($data['apellido']);
+        $data['dni'] = $this->normalizarDni($data['dni'] ?? null);
         $data['telefono'] = trim($data['telefono']);
         $data['observacion'] = $this->normalizarObservacion($data['observacion'] ?? null);
 

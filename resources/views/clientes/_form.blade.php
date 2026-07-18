@@ -3,24 +3,47 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>
         <label class="text-sm font-semibold text-slate-700">Nombre *</label>
-        <input name="nombre" value="{{ old('nombre', $cliente->nombre ?? '') }}"
-               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500" />
-        @error('nombre') <div class="text-sm text-red-600 mt-1">{{ $message }}</div> @enderror
+        <input name="nombre"
+               value="{{ old('nombre', $cliente->nombre ?? '') }}"
+               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+        @error('nombre')
+            <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+        @enderror
     </div>
 
     <div>
         <label class="text-sm font-semibold text-slate-700">Apellido *</label>
-        <input name="apellido" value="{{ old('apellido', $cliente->apellido ?? '') }}"
-               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500" />
-        @error('apellido') <div class="text-sm text-red-600 mt-1">{{ $message }}</div> @enderror
+        <input name="apellido"
+               value="{{ old('apellido', $cliente->apellido ?? '') }}"
+               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+        @error('apellido')
+            <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div>
+        <label class="text-sm font-semibold text-slate-700">DNI</label>
+        <input name="dni"
+               inputmode="numeric"
+               maxlength="11"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+               value="{{ old('dni', $cliente->dni ?? '') }}"
+               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+               placeholder="Ej: 34025037">
+        <div class="text-xs text-slate-500 mt-1">
+            Se usa para identificar a la clienta y copiarlo al facturador.
+        </div>
+        @error('dni')
+            <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+        @enderror
     </div>
 
     <div>
         <label class="text-sm font-semibold text-slate-700">Teléfono *</label>
         <input name="telefono"
-            value="{{ old('telefono', $cliente->telefono ?? '') }}"
-            class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
-            placeholder="Ej: 3402123456 o +54 9 3402 123456" />
+               value="{{ old('telefono', $cliente->telefono ?? '') }}"
+               class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
+               placeholder="Ej: 3402123456 o +54 9 3402 123456">
         @error('telefono')
             <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
         @enderror
@@ -52,7 +75,8 @@ S.O.S COLOR 5(2) 6(2) 6.33(2) 6.12(2) 10VOL">{{ old('observacion', $cliente->obs
         Guardar
     </button>
 
-    <a href="{{ route('clientes.index') }}" class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+    <a href="{{ route('clientes.index') }}"
+       class="rounded-xl border px-4 py-2 hover:bg-slate-50">
         Cancelar
     </a>
 </div>
