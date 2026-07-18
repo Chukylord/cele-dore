@@ -23,6 +23,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
         ->name('dashboard');
 
+    Route::get('/clientes/busqueda-venta', \App\Http\Controllers\ClientesVentaController::class)
+        ->name('clientes.busqueda-venta');
     Route::resource('clientes', \App\Http\Controllers\ClienteController::class);
     Route::resource('colaboradoras', \App\Http\Controllers\ColaboradoraController::class);
     Route::resource('servicios', \App\Http\Controllers\ServicioController::class);
