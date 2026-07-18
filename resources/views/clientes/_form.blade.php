@@ -25,6 +25,8 @@
         <label class="text-sm font-semibold text-slate-700">DNI</label>
         <input name="dni"
                inputmode="numeric"
+               maxlength="11"
+               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                value="{{ old('dni', $cliente->dni ?? '') }}"
                class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500"
                placeholder="Ej: 34025037">
