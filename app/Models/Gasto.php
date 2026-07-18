@@ -14,12 +14,14 @@ class Gasto extends Model
         'descripcion',
         'monto',
         'medio_pago',
+        'impacta_caja',
         'user_id',
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'monto' => 'decimal:2',
+        'impacta_caja' => 'boolean',
     ];
 
     public function usuario()
