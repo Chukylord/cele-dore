@@ -55,7 +55,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('compras.lotes.pagos.store');
     Route::resource('compras', \App\Http\Controllers\CompraController::class);
 
-    Route::get('/ventas/{venta}/saldo', [\App\Http\Controllers\VentaController::class, 'saldo'])
+    Route::get('/ventas/{venta}/saldo', \App\Http\Controllers\VentaSaldoController::class)
         ->name('ventas.saldo');
     Route::patch('/ventas/{venta}/marcar-pagado', [\App\Http\Controllers\VentaController::class, 'marcarPagado'])
         ->name('ventas.marcarPagado');
