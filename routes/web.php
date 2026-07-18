@@ -15,10 +15,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/liquidaciones/{liquidacion}', [\App\Http\Controllers\LiquidacionController::class, 'show'])->name('liquidaciones.show');
 
     Route::get('/informes', [\App\Http\Controllers\InformeController::class, 'index'])->name('informes.index');
-
-    Route::get('/caja-diaria', [CajaDiariaController::class, 'index'])->name('caja-diaria.index');
-    Route::post('/caja-diaria/abrir', [CajaDiariaController::class, 'abrir'])->name('caja-diaria.abrir');
-    Route::patch('/caja-diaria/{caja}/cerrar', [CajaDiariaController::class, 'cerrar'])->name('caja-diaria.cerrar');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -45,7 +41,6 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/productos/{producto}/usar-peluqueria', [\App\Http\Controllers\ProductoController::class, 'usarPeluqueria'])
         ->name('productos.usarPeluqueria');
 
-    // Compras por lote: primero las rutas específicas
     Route::get('/compras/lotes/{lote}', [\App\Http\Controllers\CompraController::class, 'showLote'])
         ->name('compras.lotes.show');
     Route::get('/compras/lotes/{lote}/edit', [\App\Http\Controllers\CompraController::class, 'editLote'])
@@ -57,7 +52,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/compras/lotes/{lote}/pagos', [\App\Http\Controllers\CompraController::class, 'storePago'])
         ->name('compras.lotes.pagos.store');
 
-    // Después el resource
     Route::resource('compras', \App\Http\Controllers\CompraController::class);
 
     Route::resource('ventas', \App\Http\Controllers\VentaController::class)->except(['edit', 'update']);
@@ -78,6 +72,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/lista-precios', [ListaPrecioController::class, 'index'])->name('lista-precios.index');
     Route::post('/lista-precios/actualizar', [ListaPrecioController::class, 'actualizar'])->name('lista-precios.actualizar');
 
+    Route::get('/caja-diaria', [CajaDiariaController::class, 'index'])->name('caja-diaria.index');
+    Route::post('/caja-diaria/abrir', [CajaDiariaController::class, 'abrir'])->name('caja-diaria.abrir');
+    Route::patch('/caja-diaria/{caja}/cerrar', [CajaDiariaController::class, 'cerrar'])->name('caja-diaria.cerrar');
 });
 
 require __DIR__.'/auth.php';
