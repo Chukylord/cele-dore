@@ -13,9 +13,13 @@ return new class extends Migration
                 ->default('efectivo')
                 ->after('monto');
 
+            $table->boolean('impacta_caja')
+                ->default(false)
+                ->after('medio_pago');
+
             $table->foreignId('user_id')
                 ->nullable()
-                ->after('medio_pago')
+                ->after('impacta_caja')
                 ->constrained('users')
                 ->nullOnDelete();
         });
@@ -25,7 +29,7 @@ return new class extends Migration
     {
         Schema::table('gastos', function (Blueprint $table) {
             $table->dropConstrainedForeignId('user_id');
-            $table->dropColumn('medio_pago');
+            $table->dropColumn(['medio_pago', 'impacta_caja']);
         });
     }
 };
