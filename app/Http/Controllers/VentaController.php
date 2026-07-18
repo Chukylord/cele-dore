@@ -224,24 +224,14 @@ class VentaController extends Controller
 
     private function precioUnitarioCostoColab(Producto $producto, ?float $ultimoCosto): float
     {
-        /*
-         * Si el precio manual fue actualizado después de la última compra,
-         * usamos ese precio vigente y quitamos el 40% de margen.
-         */
         if ($this->manualEsMasNuevoQueCompra($producto)) {
             return $this->round2((float) $producto->precio_efectivo_manual / 1.40);
         }
 
-        /*
-         * Si la compra es la información más reciente, usamos su costo real.
-         */
         if ($ultimoCosto !== null) {
             return $this->round2($ultimoCosto);
         }
 
-        /*
-         * Producto sin compras: costo estimado desde el precio efectivo vigente.
-         */
         if ($producto->precio_efectivo_manual !== null) {
             return $this->round2((float) $producto->precio_efectivo_manual / 1.40);
         }
@@ -249,13 +239,25 @@ class VentaController extends Controller
         return $this->round2((float) $producto->precio_venta / 1.40);
     }
 
-    private function resolverPagos(float $totalBase, string $tipoPago, array $pagosIngresados = []): array
-    {
-        $totalBase = $this->round2($totalBase);
+    /**
+     * Arma uno o varios pagos sobre un importe base disponible.
+     *
+     * - En pago completo, la base debe cubrir todo el importe disponible.
+     * - En pago parcial, puede cubrir una parte, pero nunca exceder el saldo.
+     * - El 20% se aplica solamente sobre la base abonada con tarjeta.
+     */
+    private function resolverPagos(
+        float $limiteBase,
+        string $tipoPago,
+        array $pagosIngresados = [],
+        ?float $montoSimple = null,
+        bool $debeCompletar = false
+    ): array {
+        $limiteBase = $this->round2($limiteBase);
 
-        if ($totalBase <= 0) {
+        if ($limiteBase <= 0) {
             throw ValidationException::withMessages([
-                'tipo_pago' => 'El total de la venta debe ser mayor a $0 para registrar el pago.',
+                'tipo_pago' => 'No existe saldo pendiente para registrar.',
             ]);
         }
 
@@ -266,18 +268,16 @@ class VentaController extends Controller
         ];
 
         if (in_array($tipoPago, ['efectivo', 'transferencia', 'tarjeta'], true)) {
-            $bases[$tipoPago] = $totalBase;
+            $baseSimple = $montoSimple !== null && $montoSimple > 0
+                ? $this->round2($montoSimple)
+                : $limiteBase;
+
+            $bases[$tipoPago] = $baseSimple;
         } elseif ($tipoPago === 'combinado') {
             foreach (array_keys($bases) as $metodo) {
-                $bases[$metodo] = $this->round2(max(0, (float) ($pagosIngresados[$metodo] ?? 0)));
-            }
-
-            $sumaBase = $this->round2(array_sum($bases));
-
-            if (abs($sumaBase - $totalBase) > 0.01) {
-                throw ValidationException::withMessages([
-                    'pagos' => 'En pago combinado, la suma de efectivo, transferencia y tarjeta debe coincidir con el total base de la venta.',
-                ]);
+                $bases[$metodo] = $this->round2(
+                    max(0, (float) ($pagosIngresados[$metodo] ?? 0))
+                );
             }
 
             $cantidadMetodos = count(array_filter($bases, fn ($monto) => $monto > 0));
@@ -290,6 +290,26 @@ class VentaController extends Controller
         } else {
             throw ValidationException::withMessages([
                 'tipo_pago' => 'Seleccioná una forma de pago válida.',
+            ]);
+        }
+
+        $sumaBase = $this->round2(array_sum($bases));
+
+        if ($sumaBase <= 0) {
+            throw ValidationException::withMessages([
+                'monto_pago' => 'Ingresá un importe mayor a $0.',
+            ]);
+        }
+
+        if ($sumaBase - $limiteBase > 0.01) {
+            throw ValidationException::withMessages([
+                'monto_pago' => 'El pago no puede superar el saldo pendiente de la venta.',
+            ]);
+        }
+
+        if ($debeCompletar && abs($sumaBase - $limiteBase) > 0.01) {
+            throw ValidationException::withMessages([
+                'pagos' => 'El pago completo debe cubrir todo el total base de la venta.',
             ]);
         }
 
@@ -321,6 +341,7 @@ class VentaController extends Controller
 
         return [
             'metodo_resumen' => count($detalle) > 1 ? 'combinado' : $detalle[0]['metodo_pago'],
+            'base_pagada' => $this->round2($sumaBase),
             'recargo_tarjeta' => $this->round2($recargoTarjeta),
             'total_final' => $this->round2($totalFinal),
             'detalle' => $detalle,
@@ -342,11 +363,51 @@ class VentaController extends Controller
         }
     }
 
+    private function actualizarResumenPagos(Venta $venta): void
+    {
+        $venta->load('pagos');
+
+        $totalBase = $venta->totalBaseReal();
+        $pagadoBase = $venta->totalPagadoBase();
+        $recargoTotal = $venta->totalRecargoCobrado();
+        $saldo = $this->round2(max($totalBase - $pagadoBase, 0));
+        $estaPagada = $saldo <= 0.01;
+
+        $metodos = $venta->pagos
+            ->pluck('metodo_pago')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $metodoResumen = null;
+
+        if ($metodos->count() === 1) {
+            $metodoResumen = (string) $metodos->first();
+        } elseif ($metodos->count() > 1) {
+            $metodoResumen = 'combinado';
+        }
+
+        $ultimaFechaPago = $estaPagada
+            ? $venta->pagos->max('fecha_pago')
+            : null;
+
+        $venta->update([
+            'metodo_pago' => $metodoResumen,
+            'total_base' => $totalBase,
+            'recargo_tarjeta' => $recargoTotal,
+            'total' => $this->round2($totalBase + $recargoTotal),
+            'pendiente_pago' => !$estaPagada,
+            'fecha_pago' => $ultimaFechaPago,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
             'fecha' => ['required', 'date'],
+            'condicion_pago' => ['nullable', 'in:completo,parcial,pendiente'],
             'tipo_pago' => ['nullable', 'in:efectivo,transferencia,tarjeta,combinado'],
+            'monto_pago' => ['nullable', 'numeric', 'min:0'],
             'pagos' => ['nullable', 'array'],
             'pagos.efectivo' => ['nullable', 'numeric', 'min:0'],
             'pagos.transferencia' => ['nullable', 'numeric', 'min:0'],
@@ -372,12 +433,27 @@ class VentaController extends Controller
             'servicios.*.descuento_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        $esPendiente = $request->boolean('pendiente_pago');
+        $condicionPago = (string) ($data['condicion_pago'] ?? '');
+
+        if ($condicionPago === '') {
+            $condicionPago = $request->boolean('pendiente_pago')
+                ? 'pendiente'
+                : 'completo';
+        }
+
         $aColaboradora = $data['tipo_cliente'] === 'colaboradora';
 
-        if (!$esPendiente && empty($data['tipo_pago'])) {
+        if ($condicionPago !== 'pendiente' && empty($data['tipo_pago'])) {
             return back()
-                ->withErrors(['tipo_pago' => 'Seleccioná la forma de pago o marcá la venta como pendiente.'])
+                ->withErrors(['tipo_pago' => 'Seleccioná la forma de pago.'])
+                ->withInput();
+        }
+
+        if ($condicionPago === 'parcial'
+            && ($data['tipo_pago'] ?? '') !== 'combinado'
+            && (float) ($data['monto_pago'] ?? 0) <= 0) {
+            return back()
+                ->withErrors(['monto_pago' => 'Ingresá cuánto abona la clienta en este momento.'])
                 ->withInput();
         }
 
@@ -416,12 +492,12 @@ class VentaController extends Controller
                 $productosIn,
                 $serviciosIn,
                 $aColaboradora,
-                $esPendiente
+                $condicionPago
             ) {
                 $venta = Venta::create([
                     'fecha' => $data['fecha'],
                     'metodo_pago' => null,
-                    'pendiente_pago' => $esPendiente,
+                    'pendiente_pago' => true,
                     'fecha_pago' => null,
                     'vendedora_id' => $data['vendedora_id'] ?? null,
                     'cliente_id' => $clienteId,
@@ -501,7 +577,7 @@ class VentaController extends Controller
                     if ($aColaboradora && $precioUnitBase <= 0) {
                         throw new \Exception(
                             "El producto {$producto->marca} - {$producto->tipo} {$producto->contenido} " .
-                            "no tiene un precio válido. Completalo primero en Lista de precios."
+                            'no tiene un precio válido. Completalo primero en Lista de precios.'
                         );
                     }
 
@@ -527,6 +603,10 @@ class VentaController extends Controller
                 $subtotalServicios = $this->round2($subtotalServicios);
                 $subtotalProductos = $this->round2($subtotalProductos);
                 $totalBase = $this->round2($subtotalServicios + $subtotalProductos);
+
+                if ($totalBase <= 0) {
+                    throw new \Exception('El total de la venta debe ser mayor a $0.');
+                }
 
                 $baseComisionProductos = 0.0;
 
@@ -563,42 +643,36 @@ class VentaController extends Controller
                     $comisionMonto = $this->round2($baseComisionProductos * ($pct / 100));
                 }
 
-                if ($esPendiente) {
-                    $venta->update([
-                        'metodo_pago' => null,
-                        'subtotal_servicios' => $subtotalServicios,
-                        'subtotal_productos' => $subtotalProductos,
-                        'total_base' => $totalBase,
-                        'recargo_tarjeta' => 0,
-                        'comision_monto' => $comisionMonto,
-                        'total' => $totalBase,
-                        'pendiente_pago' => true,
-                        'fecha_pago' => null,
-                    ]);
+                $venta->update([
+                    'subtotal_servicios' => $subtotalServicios,
+                    'subtotal_productos' => $subtotalProductos,
+                    'total_base' => $totalBase,
+                    'recargo_tarjeta' => 0,
+                    'comision_monto' => $comisionMonto,
+                    'total' => $totalBase,
+                    'pendiente_pago' => true,
+                    'fecha_pago' => null,
+                ]);
 
+                if ($condicionPago === 'pendiente') {
                     return;
                 }
+
+                $esPagoCompleto = $condicionPago === 'completo';
+                $montoSimple = $esPagoCompleto
+                    ? $totalBase
+                    : (float) ($data['monto_pago'] ?? 0);
 
                 $planPago = $this->resolverPagos(
                     $totalBase,
                     (string) $data['tipo_pago'],
-                    $data['pagos'] ?? []
+                    $data['pagos'] ?? [],
+                    $montoSimple,
+                    $esPagoCompleto
                 );
 
-                $fechaPago = now();
-                $this->guardarPagos($venta, $planPago, $fechaPago);
-
-                $venta->update([
-                    'metodo_pago' => $planPago['metodo_resumen'],
-                    'subtotal_servicios' => $subtotalServicios,
-                    'subtotal_productos' => $subtotalProductos,
-                    'total_base' => $totalBase,
-                    'recargo_tarjeta' => $planPago['recargo_tarjeta'],
-                    'comision_monto' => $comisionMonto,
-                    'total' => $planPago['total_final'],
-                    'pendiente_pago' => false,
-                    'fecha_pago' => $fechaPago,
-                ]);
+                $this->guardarPagos($venta, $planPago, now());
+                $this->actualizarResumenPagos($venta);
             });
         } catch (ValidationException $e) {
             throw $e;
@@ -613,56 +687,57 @@ class VentaController extends Controller
 
     public function marcarPagado(Request $request, Venta $venta)
     {
-        if (!$venta->pendiente_pago) {
-            return redirect()
-                ->route('ventas.index')
-                ->with('ok', 'La venta ya estaba pagada.');
-        }
-
         $data = $request->validate([
             'tipo_pago' => ['required', 'in:efectivo,transferencia,tarjeta,combinado'],
+            'monto_pago' => ['nullable', 'numeric', 'min:0'],
             'pagos' => ['nullable', 'array'],
             'pagos.efectivo' => ['nullable', 'numeric', 'min:0'],
             'pagos.transferencia' => ['nullable', 'numeric', 'min:0'],
             'pagos.tarjeta' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        DB::transaction(function () use ($venta, $data) {
-            $venta = Venta::lockForUpdate()->findOrFail($venta->id);
+        $mensaje = DB::transaction(function () use ($venta, $data) {
+            $venta = Venta::query()
+                ->lockForUpdate()
+                ->findOrFail($venta->id);
 
-            if (!$venta->pendiente_pago) {
-                return;
+            $venta->load('pagos');
+            $saldoBase = $venta->saldoPendienteBase();
+
+            if ($saldoBase <= 0.01) {
+                $venta->update([
+                    'pendiente_pago' => false,
+                    'fecha_pago' => $venta->pagos->max('fecha_pago'),
+                ]);
+
+                return 'La venta ya estaba pagada.';
             }
 
-            $totalBase = (float) ($venta->total_base ?: (
-                (float) $venta->subtotal_servicios + (float) $venta->subtotal_productos
-            ));
-
-            if ($totalBase <= 0) {
-                $totalBase = (float) $venta->total;
-            }
+            $montoSimple = isset($data['monto_pago']) && (float) $data['monto_pago'] > 0
+                ? (float) $data['monto_pago']
+                : $saldoBase;
 
             $planPago = $this->resolverPagos(
-                $totalBase,
+                $saldoBase,
                 (string) $data['tipo_pago'],
-                $data['pagos'] ?? []
+                $data['pagos'] ?? [],
+                $montoSimple,
+                false
             );
 
-            $fechaPago = now();
+            $this->guardarPagos($venta, $planPago, now());
+            $this->actualizarResumenPagos($venta);
 
-            $venta->pagos()->delete();
-            $this->guardarPagos($venta, $planPago, $fechaPago);
+            $venta->refresh()->load('pagos');
+            $saldoRestante = $venta->saldoPendienteBase();
 
-            $venta->update([
-                'metodo_pago' => $planPago['metodo_resumen'],
-                'total_base' => $this->round2($totalBase),
-                'recargo_tarjeta' => $planPago['recargo_tarjeta'],
-                'total' => $planPago['total_final'],
-                'pendiente_pago' => false,
-                'fecha_pago' => $fechaPago,
-            ]);
+            if ($saldoRestante <= 0.01) {
+                return 'Pago registrado. La venta quedó cancelada completamente.';
+            }
+
+            return 'Pago registrado. Saldo pendiente: $' . number_format($saldoRestante, 2, ',', '.');
         });
 
-        return redirect()->route('ventas.index')->with('ok', 'Pago registrado correctamente.');
+        return redirect()->route('ventas.index')->with('ok', $mensaje);
     }
 }
