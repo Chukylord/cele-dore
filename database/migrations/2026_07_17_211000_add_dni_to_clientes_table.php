@@ -12,14 +12,14 @@ return new class extends Migration
             $table->string('dni', 20)
                 ->nullable()
                 ->after('apellido')
-                ->index();
+                ->unique();
         });
     }
 
     public function down(): void
     {
         Schema::table('clientes', function (Blueprint $table) {
-            $table->dropIndex(['dni']);
+            $table->dropUnique(['dni']);
             $table->dropColumn('dni');
         });
     }
