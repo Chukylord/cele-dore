@@ -8,6 +8,8 @@ use App\Models\Liquidacion;
 use App\Models\ProveedorPago;
 use App\Models\Venta;
 use App\Models\VentaPago;
+use App\Models\VentaProducto;
+use App\Models\VentaServicio;
 use Illuminate\Http\Request;
 
 class InformeController extends Controller
@@ -24,12 +26,8 @@ class InformeController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | INGRESOS COBRADOS CON LA NUEVA TABLA venta_pagos
+        | INGRESOS COBRADOS
         |--------------------------------------------------------------------------
-        |
-        | Los ingresos se computan por la fecha real en que se realizó el pago.
-        | Una venta puede tener efectivo, transferencia y tarjeta combinados.
-        |
         */
 
         $pagosQuery = VentaPago::query()
@@ -47,16 +45,6 @@ class InformeController extends Controller
 
         $pagos = $pagosQuery->get();
 
-        /*
-        |--------------------------------------------------------------------------
-        | VENTAS ANTERIORES A venta_pagos
-        |--------------------------------------------------------------------------
-        |
-        | Este bloque mantiene el historial viejo. Solamente toma ventas pagadas
-        | que no tengan registros en venta_pagos, para evitar duplicarlas.
-        |
-        */
-
         $ventasAnterioresQuery = Venta::query()
             ->whereDoesntHave('pagos')
             ->where('pendiente_pago', false)
@@ -71,12 +59,6 @@ class InformeController extends Controller
         }
 
         $ventasAnteriores = $ventasAnterioresQuery->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL COBRADO POR MÉTODO
-        |--------------------------------------------------------------------------
-        */
 
         $ingresoEfectivo = $this->round2(
             (float) $pagos->where('metodo_pago', 'efectivo')->sum('monto')
@@ -97,17 +79,6 @@ class InformeController extends Controller
             (float) $pagos->where('metodo_pago', 'tarjeta')->sum('recargo')
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | DISTRIBUCIÓN ENTRE PRODUCTOS Y SERVICIOS
-        |--------------------------------------------------------------------------
-        |
-        | Cada pago guarda cuánto corresponde al importe base. Ese importe se
-        | distribuye proporcionalmente entre productos y servicios de la venta.
-        | El recargo de tarjeta se muestra aparte.
-        |
-        */
-
         $ingresoProductos = 0.0;
         $ingresoServicios = 0.0;
 
@@ -120,7 +91,6 @@ class InformeController extends Controller
 
             $subtotalProductos = (float) $venta->subtotal_productos;
             $subtotalServicios = (float) $venta->subtotal_servicios;
-
             $baseVenta = (float) $venta->total_base;
 
             if ($baseVenta <= 0) {
@@ -147,19 +117,12 @@ class InformeController extends Controller
             $ingresoServicios += $parteServicios;
         }
 
-        /*
-         * Se incorporan las ventas históricas que todavía no tenían venta_pagos.
-         */
         $ingresoProductos += (float) $ventasAnteriores->sum('subtotal_productos');
         $ingresoServicios += (float) $ventasAnteriores->sum('subtotal_servicios');
 
         $ingresoProductos = $this->round2($ingresoProductos);
         $ingresoServicios = $this->round2($ingresoServicios);
 
-        /*
-         * El total real cobrado sale del monto de los pagos.
-         * Incluye el recargo aplicado sobre la parte abonada con tarjeta.
-         */
         $totalIngresos = $this->round2(
             (float) $pagos->sum('monto')
             + (float) $ventasAnteriores->sum('total')
@@ -169,10 +132,6 @@ class InformeController extends Controller
         |--------------------------------------------------------------------------
         | PENDIENTE DE COBRAR
         |--------------------------------------------------------------------------
-        |
-        | Se calcula sobre el importe base porque todavía no sabemos qué método
-        | utilizará la clienta cuando pague. Por eso no se anticipa el recargo.
-        |
         */
 
         $pendientesQuery = Venta::query()
@@ -195,7 +154,6 @@ class InformeController extends Controller
         foreach ($ventasPendientes as $venta) {
             $subtotalProductos = (float) $venta->subtotal_productos;
             $subtotalServicios = (float) $venta->subtotal_servicios;
-
             $baseVenta = (float) $venta->total_base;
 
             if ($baseVenta <= 0) {
@@ -224,7 +182,7 @@ class InformeController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | EGRESOS REALES
+        | EGRESOS
         |--------------------------------------------------------------------------
         */
 
@@ -291,13 +249,72 @@ class InformeController extends Controller
             + $egresoConsumoPeluqueria
         );
 
+        $ganancia = $this->round2($totalIngresos - $totalEgresos);
+
         /*
         |--------------------------------------------------------------------------
-        | BALANCE
+        | ACTIVIDAD REAL DEL PERÍODO
         |--------------------------------------------------------------------------
+        |
+        | Esta sección usa la fecha en la que se hizo la venta o atención,
+        | independientemente de cuándo se haya cobrado.
+        |
         */
 
-        $ganancia = $this->round2($totalIngresos - $totalEgresos);
+        $ventasActividadQuery = Venta::query();
+
+        if ($desde !== '') {
+            $ventasActividadQuery->whereDate('fecha', '>=', $desde);
+        }
+
+        if ($hasta !== '') {
+            $ventasActividadQuery->whereDate('fecha', '<=', $hasta);
+        }
+
+        $cantidadAtenciones = (clone $ventasActividadQuery)->count();
+
+        $clientasUnicas = (clone $ventasActividadQuery)
+            ->whereNotNull('cliente_id')
+            ->distinct('cliente_id')
+            ->count('cliente_id');
+
+        $serviciosDetalleQuery = VentaServicio::query()
+            ->select('servicio_id')
+            ->selectRaw('COUNT(*) as cantidad')
+            ->with('servicio')
+            ->whereHas('venta', function ($query) use ($desde, $hasta) {
+                if ($desde !== '') {
+                    $query->whereDate('fecha', '>=', $desde);
+                }
+
+                if ($hasta !== '') {
+                    $query->whereDate('fecha', '<=', $hasta);
+                }
+            })
+            ->groupBy('servicio_id')
+            ->orderByDesc('cantidad');
+
+        $serviciosDetalle = $serviciosDetalleQuery->get();
+        $totalServiciosRealizados = (int) $serviciosDetalle->sum('cantidad');
+
+        $productosDetalleQuery = VentaProducto::query()
+            ->select('producto_id')
+            ->selectRaw('SUM(cantidad) as cantidad')
+            ->with('producto')
+            ->whereHas('venta', function ($query) use ($desde, $hasta) {
+                if ($desde !== '') {
+                    $query->whereDate('fecha', '>=', $desde);
+                }
+
+                if ($hasta !== '') {
+                    $query->whereDate('fecha', '<=', $hasta);
+                }
+            })
+            ->groupBy('producto_id')
+            ->orderByDesc('cantidad');
+
+        $productosDetalle = $productosDetalleQuery->get();
+        $totalProductosVendidos = (int) $productosDetalle->sum('cantidad');
 
         return view('informes.index', compact(
             'desde',
@@ -317,7 +334,13 @@ class InformeController extends Controller
             'ganancia',
             'pendienteProductos',
             'pendienteServicios',
-            'pendienteTotal'
+            'pendienteTotal',
+            'cantidadAtenciones',
+            'clientasUnicas',
+            'totalServiciosRealizados',
+            'totalProductosVendidos',
+            'serviciosDetalle',
+            'productosDetalle'
         ));
     }
 }
