@@ -13,9 +13,17 @@ class Gasto extends Model
         'categoria',
         'descripcion',
         'monto',
+        'medio_pago',
+        'user_id',
     ];
 
     protected $casts = [
         'fecha' => 'date',
+        'monto' => 'decimal:2',
     ];
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }
