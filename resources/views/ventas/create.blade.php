@@ -241,144 +241,370 @@
         </div>
     </div>
 
-    <div class="mt-6 rounded-2xl border bg-slate-900 text-white p-5">
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
-            <div class="xl:col-span-3">
-                <div class="text-sm text-slate-300">TOTAL A COBRAR</div>
-                <div class="text-4xl font-extrabold mt-1" id="totalFinal">$0,00</div>
+    <section class="mt-8 overflow-hidden rounded-3xl border border-slate-700/80 bg-slate-950 text-white shadow-2xl shadow-slate-900/30 ring-1 ring-white/5">
+        <div class="flex flex-col gap-4 border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+            <div class="flex items-center gap-3">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-500/10 text-blue-300 shadow-lg shadow-blue-950/40">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor"
+                         stroke-width="2">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                </span>
 
-                <div class="mt-3 space-y-1 text-sm">
-                    <div class="flex justify-between gap-3 text-slate-300">
-                        <span>Total base:</span>
-                        <strong id="totalBaseResumen" class="text-white">$0,00</strong>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-blue-400">
+                        Finalizar venta
                     </div>
-
-                    <div class="flex justify-between gap-3 text-slate-300">
-                        <span>Recargo tarjeta:</span>
-                        <strong id="recargoTarjetaResumen" class="text-white">$0,00</strong>
-                    </div>
+                    <h2 class="mt-1 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+                        Resumen y forma de pago
+                    </h2>
                 </div>
             </div>
 
-            <div class="xl:col-span-3">
-                <label class="text-sm font-semibold text-slate-200">Forma de pago *</label>
-
-                <select id="tipo_pago"
-                        name="tipo_pago"
-                        class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white focus:border-white focus:ring-white">
-                    <option value="efectivo" {{ old('tipo_pago', 'efectivo') === 'efectivo' ? 'selected' : '' }}>
-                        Efectivo
-                    </option>
-                    <option value="transferencia" {{ old('tipo_pago') === 'transferencia' ? 'selected' : '' }}>
-                        Transferencia
-                    </option>
-                    <option value="tarjeta" {{ old('tipo_pago') === 'tarjeta' ? 'selected' : '' }}>
-                        Tarjeta
-                    </option>
-                    <option value="combinado" {{ old('tipo_pago') === 'combinado' ? 'selected' : '' }}>
-                        Pago combinado
-                    </option>
-                </select>
-
-                <div class="text-xs text-slate-400 mt-2">
-                    Solo la parte pagada con tarjeta lleva 20% de recargo.
-                </div>
-            </div>
-
-            <div class="xl:col-span-3">
-                <label class="flex items-start gap-3 rounded-xl border border-slate-700 bg-slate-800 p-3">
-                    <input type="checkbox"
-                           name="pendiente_pago"
-                           id="pendiente_pago"
-                           value="1"
-                           class="mt-1 rounded border-slate-500 text-slate-900 focus:ring-slate-500"
-                        {{ old('pendiente_pago') ? 'checked' : '' }}>
-
-                    <span>
-                        <span class="block text-sm font-semibold">Pendiente de pago</span>
-                        <span class="block text-xs text-slate-400 mt-1">
-                            No se guarda ninguna forma de pago hasta que la clienta abone.
-                        </span>
-                    </span>
-                </label>
-            </div>
-
-            <div class="xl:col-span-3 flex flex-wrap gap-2 xl:justify-end">
-                <button type="button"
-                        id="btnDescuento"
-                        class="rounded-xl border border-slate-500 px-4 py-2 hover:bg-slate-800">
-                    Aplicar descuento
-                </button>
-
-                <a href="{{ route('ventas.index') }}"
-                   class="rounded-xl border border-slate-500 px-4 py-2 hover:bg-slate-800">
-                    Cancelar
-                </a>
-
-                <a href="https://www.afip.gob.ar/"
-                   target="_blank"
-                   class="rounded-xl border border-slate-500 px-4 py-2 hover:bg-slate-800">
-                    Facturar
-                </a>
-
-                <button class="rounded-xl bg-white text-slate-900 px-4 py-2 hover:bg-slate-100 font-semibold">
-                    Registrar venta
-                </button>
+            <div class="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-300 shadow-inner shadow-emerald-950/20">
+                <span class="relative flex h-2 w-2">
+                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                </span>
+                Totales actualizados automáticamente
             </div>
         </div>
 
-        <div id="boxPagoCombinado"
-             class="hidden mt-5 rounded-2xl border border-slate-700 bg-slate-800 p-4">
-            <div class="font-bold">Distribución del total base</div>
-            <div class="text-xs text-slate-400 mt-1">
-                Estos importes deben sumar el total base. El sistema agrega 20% únicamente a la parte de tarjeta.
-            </div>
+        <div class="p-5 sm:p-7">
+            <div class="grid max-w-full grid-cols-1 gap-5 overflow-hidden xl:grid-cols-3">
+                <div class="min-w-0">
+                    <div class="relative h-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-950 to-black p-5 text-white shadow-2xl shadow-black/30 sm:p-6">
+                        <div class="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-blue-500/25 blur-2xl"></div>
+                        <div class="pointer-events-none absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-violet-500/10 blur-3xl"></div>
+                        <div class="relative text-xs font-semibold uppercase tracking-wider text-blue-300">
+                            Total a cobrar
+                        </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div>
-                    <label class="text-sm font-semibold text-slate-200">Parte en efectivo</label>
-                    <input type="number"
-                           step="0.01"
-                           min="0"
-                           name="pagos[efectivo]"
-                           id="pago_efectivo"
-                           value="{{ old('pagos.efectivo', 0) }}"
-                           class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-900 text-white">
+                        <div class="relative mt-2 break-words text-4xl font-extrabold tracking-tight text-white sm:text-5xl"
+                             id="totalFinal">
+                            $0,00
+                        </div>
+
+                        <div class="relative mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm">
+                            <div class="flex items-center justify-between gap-4 border-b border-slate-800 px-4 py-3.5">
+                                <span class="text-sm text-slate-400">Total base</span>
+                                <strong id="totalBaseResumen" class="text-base font-bold text-white">$0,00</strong>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-4 px-4 py-3.5">
+                                <span class="flex items-center gap-2 text-sm text-slate-400">
+                                    <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+                                    Recargo tarjeta
+                                </span>
+                                <strong id="recargoTarjetaResumen" class="text-base font-bold text-white">$0,00</strong>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="text-sm font-semibold text-slate-200">Parte en transferencia</label>
-                    <input type="number"
-                           step="0.01"
-                           min="0"
-                           name="pagos[transferencia]"
-                           id="pago_transferencia"
-                           value="{{ old('pagos.transferencia', 0) }}"
-                           class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-900 text-white">
-                </div>
+                <div class="contents">
+                    <div class="contents">
+                        <div class="min-w-0 overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/80 p-5 shadow-lg shadow-black/10 transition hover:border-slate-600 hover:bg-slate-900">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-500/10 text-blue-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         class="h-5 w-5"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke="currentColor"
+                                         stroke-width="2">
+                                        <path stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              d="M12 6v12m3-9.75C15 7.007 13.657 6 12 6S9 7.007 9 8.25s1.343 2.25 3 2.25 3 1.007 3 2.25S13.657 15 12 15s-3-1.007-3-2.25M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                    </svg>
+                                </span>
 
-                <div>
-                    <label class="text-sm font-semibold text-slate-200">Parte en tarjeta</label>
-                    <input type="number"
-                           step="0.01"
-                           min="0"
-                           name="pagos[tarjeta]"
-                           id="pago_tarjeta"
-                           value="{{ old('pagos.tarjeta', 0) }}"
-                           class="pago-combinado mt-1 w-full rounded-xl border-slate-600 bg-slate-900 text-white">
+                                <div>
+                                    <label for="tipo_pago" class="block text-sm font-bold text-white">
+                                        Forma de pago <span class="text-blue-400">*</span>
+                                    </label>
+                                    <p class="mt-0.5 text-xs text-slate-400">
+                                        Elegí cómo abona la clienta.
+                                    </p>
+                                </div>
+                            </div>
 
-                    <div class="text-xs text-blue-300 mt-1">
-                        La tarjeta cobrará: <strong id="tarjetaFinalPreview">$0,00</strong>
+                            <div class="relative mt-4">
+                                <select id="tipo_pago"
+                                        name="tipo_pago"
+                                        class="w-full appearance-none rounded-xl border-slate-700 bg-slate-950/80 py-3 pl-4 pr-10 text-sm font-semibold text-white shadow-inner shadow-black/20 transition hover:border-slate-500 focus:border-blue-500 focus:bg-slate-950 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
+                                    <option value="efectivo" {{ old('tipo_pago', 'efectivo') === 'efectivo' ? 'selected' : '' }}>
+                                        Efectivo
+                                    </option>
+                                    <option value="transferencia" {{ old('tipo_pago') === 'transferencia' ? 'selected' : '' }}>
+                                        Transferencia
+                                    </option>
+                                    <option value="tarjeta" {{ old('tipo_pago') === 'tarjeta' ? 'selected' : '' }}>
+                                        Tarjeta
+                                    </option>
+                                    <option value="combinado" {{ old('tipo_pago') === 'combinado' ? 'selected' : '' }}>
+                                        Pago combinado
+                                    </option>
+                                </select>
+
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+                                     fill="none"
+                                     viewBox="0 0 24 24"
+                                     stroke="currentColor"
+                                     stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 9-7.5 7.5L4.5 9"/>
+                                </svg>
+                            </div>
+
+                            <div class="mt-3 flex items-start gap-2 text-xs leading-5 text-slate-400">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     class="mt-0.5 h-4 w-4 shrink-0 text-blue-400"
+                                     fill="none"
+                                     viewBox="0 0 24 24"
+                                     stroke="currentColor"
+                                     stroke-width="2">
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          d="M11.25 11.25 12 10.5m0 0 .75-.75M12 10.5v4.125m9-2.625a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                </svg>
+                                Solo el importe abonado con tarjeta lleva un 20% de recargo.
+                            </div>
+                        </div>
+
+                        <div class="min-w-0 overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/80 p-5 shadow-lg shadow-black/10 transition hover:border-slate-600 hover:bg-slate-900">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-400/20 bg-violet-500/10 text-violet-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         class="h-5 w-5"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke="currentColor"
+                                         stroke-width="2">
+                                        <path stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                    </svg>
+                                </span>
+
+                                <div>
+                                    <div class="text-sm font-bold text-white">
+                                        Condición de pago <span class="text-blue-400">*</span>
+                                    </div>
+                                    <p class="mt-0.5 text-xs text-slate-400">
+                                        Indicá si el cobro queda pendiente.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 min-w-0">
+                                <label for="condicion_pago_ui" class="block text-sm font-semibold text-slate-200">Condición de pago</label>
+                                <div class="relative mt-1">
+                                    <select id="condicion_pago_ui" class="w-full min-w-0 appearance-none rounded-xl border-slate-700 bg-slate-950/80 py-3 pl-4 pr-12 text-sm font-semibold text-white shadow-inner shadow-black/20 focus:border-violet-400 focus:ring-violet-400">
+                                        <option value="completo">Paga el total ahora</option>
+                                        <option value="parcial">Paga una parte</option>
+                                        <option value="pendiente">Todo queda pendiente</option>
+                                    </select>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 9-7.5 7.5L4.5 9"/>
+                                    </svg>
+                                </div>
+                                <input type="hidden" name="condicion_pago" id="condicion_pago" value="completo">
+                                <input type="checkbox" name="pendiente_pago" id="pendiente_pago" value="1" class="hidden" aria-hidden="true" {{ old('pendiente_pago') ? 'checked' : '' }}>
+                            </div>
+
+                            <div id="monto_pago_parcial_box" class="hidden mt-4 min-w-0">
+                                <label for="monto_pago" class="block text-sm font-semibold text-slate-200">Importe base que abona ahora <span class="text-blue-400">*</span></label>
+                                <input type="number" step="0.01" min="0.01" name="monto_pago" id="monto_pago" class="mt-1 w-full min-w-0 rounded-xl border-slate-700 bg-slate-950/80 text-white focus:border-violet-400 focus:ring-violet-400" placeholder="Ej: 30000">
+                                <p class="mt-2 text-xs leading-5 text-slate-400">En pago combinado, distribuí el importe en los campos de abajo.</p>
+                            </div>
+
+                            <div id="resumen_pago_parcial" class="hidden mt-4 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div class="min-w-0 rounded-xl border border-blue-400/30 bg-blue-400/10 p-3">
+                                    <span class="block text-xs text-slate-400">Base abonada hoy</span>
+                                    <strong id="base_abonada_hoy" class="mt-1 block break-words text-base text-white">$0,00</strong>
+                                </div>
+                                <div class="min-w-0 rounded-xl border border-violet-400/30 bg-violet-400/10 p-3">
+                                    <span class="block text-xs text-slate-400">Saldo base pendiente</span>
+                                    <strong id="saldo_base_pendiente" class="mt-1 block break-words text-base text-white">$0,00</strong>
+                                </div>
+                            </div>                            <div class="mt-3 flex items-start gap-2 text-xs leading-5 text-slate-400">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     class="mt-0.5 h-4 w-4 shrink-0 text-violet-400"
+                                     fill="none"
+                                     viewBox="0 0 24 24"
+                                     stroke="currentColor"
+                                     stroke-width="2">
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                </svg>
+                                Si queda pendiente, no se guarda ninguna forma de pago hasta que la clienta abone.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="boxPagoCombinado"
+                         class="col-span-full hidden min-w-0 max-w-full overflow-hidden rounded-2xl border border-blue-400/20 bg-blue-500/[0.06] p-5 shadow-inner shadow-blue-950/20">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <div class="flex items-center gap-2 font-bold text-white">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500 text-xs text-white shadow-lg shadow-blue-950/40">
+                                        %
+                                    </span>
+                                    Distribución del total base
+                                </div>
+                                <div class="mt-1.5 text-xs leading-5 text-slate-400">
+                                    Los importes deben sumar el total base. El 20% se agrega únicamente a la parte de tarjeta.
+                                </div>
+                            </div>
+
+                            <span class="inline-flex w-fit rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1 text-xs font-semibold text-blue-300">
+                                Pago combinado
+                            </span>
+                        </div>
+
+                        <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div class="rounded-xl border border-slate-700 bg-slate-900/80 p-3 shadow-lg shadow-black/10">
+                                <label for="pago_efectivo" class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    Parte en efectivo
+                                </label>
+                                <input type="number"
+                                       step="0.01"
+                                       min="0"
+                                       name="pagos[efectivo]"
+                                       id="pago_efectivo"
+                                       value="{{ old('pagos.efectivo', 0) }}"
+                                       class="pago-combinado mt-2 w-full rounded-xl border-slate-700 bg-slate-950/80 text-white focus:border-blue-500 focus:bg-slate-950 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
+                            </div>
+
+                            <div class="rounded-xl border border-slate-700 bg-slate-900/80 p-3 shadow-lg shadow-black/10">
+                                <label for="pago_transferencia" class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    Parte en transferencia
+                                </label>
+                                <input type="number"
+                                       step="0.01"
+                                       min="0"
+                                       name="pagos[transferencia]"
+                                       id="pago_transferencia"
+                                       value="{{ old('pagos.transferencia', 0) }}"
+                                       class="pago-combinado mt-2 w-full rounded-xl border-slate-700 bg-slate-950/80 text-white focus:border-blue-500 focus:bg-slate-950 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
+                            </div>
+
+                            <div class="rounded-xl border border-slate-700 bg-slate-900/80 p-3 shadow-lg shadow-black/10">
+                                <label for="pago_tarjeta" class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    Parte en tarjeta
+                                </label>
+                                <input type="number"
+                                       step="0.01"
+                                       min="0"
+                                       name="pagos[tarjeta]"
+                                       id="pago_tarjeta"
+                                       value="{{ old('pagos.tarjeta', 0) }}"
+                                       class="pago-combinado mt-2 w-full rounded-xl border-slate-700 bg-slate-950/80 text-white focus:border-blue-500 focus:bg-slate-950 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
+
+                                <div class="mt-2 text-xs text-blue-300">
+                                    Total con recargo: <strong id="tarjetaFinalPreview">$0,00</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="estadoDistribucionPago"
+                             class="mt-4 flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm font-medium text-slate-300">
+                            Falta asignar: $0,00
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div id="estadoDistribucionPago"
-                 class="mt-4 rounded-xl border border-slate-600 px-4 py-3 text-sm text-slate-300">
-                Falta asignar: $0,00
+        <div class="border-t border-slate-800 bg-slate-950/80 px-5 py-5 sm:px-7">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <button type="button"
+                            id="btnDescuento"
+                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-semibold text-slate-200 shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400 sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-4 w-4"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor"
+                             stroke-width="2">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M9 14.25 15 8.25m4.5 3.75a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0ZM9.75 9h.008v.008H9.75V9Zm4.5 6h.008v.008h-.008V15Z"/>
+                        </svg>
+                        Aplicar descuento
+                    </button>
+
+                    <a href="{{ route('ventas.index') }}"
+                       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-semibold text-slate-300 shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-slate-400 sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-4 w-4"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor"
+                             stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                        Cancelar
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <a href="https://www.afip.gob.ar/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-400/30 bg-blue-500/10 px-5 py-3 text-sm font-semibold text-blue-200 shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-blue-300/60 hover:bg-blue-500/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-4 w-4"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor"
+                             stroke-width="2">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M6.75 3h10.5A1.75 1.75 0 0 1 19 4.75v14.5A1.75 1.75 0 0 1 17.25 21H6.75A1.75 1.75 0 0 1 5 19.25V4.75A1.75 1.75 0 0 1 6.75 3ZM8 7h8M8 11h2m2 0h2m2 0h0M8 15h2m2 0h2m2 0h0"/>
+                        </svg>
+                        Facturar
+                    </a>
+
+                    <button type="submit"
+                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-950/50 transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-950 sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor"
+                             stroke-width="2.25">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                        </svg>
+                        Registrar venta
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500 xl:justify-end">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="mt-0.5 h-4 w-4 shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor"
+                     stroke-width="2">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M16.5 10.5V6.75a4.5 4.5 0 0 0-9 0v3.75m-.75 0h10.5A1.75 1.75 0 0 1 19 12.25v7A1.75 1.75 0 0 1 17.25 21H6.75A1.75 1.75 0 0 1 5 19.25v-7a1.75 1.75 0 0 1 1.75-1.75Z"/>
+                </svg>
+                Revisá el total y la forma de pago antes de registrar la venta.
             </div>
         </div>
-    </div>
+    </section>
 
     <div id="modalDescuento" class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
         <div class="w-full max-w-3xl bg-white rounded-2xl shadow p-5">
@@ -672,23 +898,26 @@ function recalcularPago(totalBase){
     tarjetaPreview.textContent = money(tarjetaFinal);
 
     estado.classList.remove(
-        'border-slate-600',
+        'border-slate-700',
         'text-slate-300',
-        'border-green-500',
-        'text-green-300',
-        'border-red-500',
-        'text-red-300'
+        'bg-slate-950/70',
+        'border-emerald-400/40',
+        'text-emerald-300',
+        'bg-emerald-400/10',
+        'border-rose-400/40',
+        'text-rose-300',
+        'bg-rose-400/10'
     );
 
     if(Math.abs(diferencia) < 0.01){
         estado.textContent = 'Distribución correcta.';
-        estado.classList.add('border-green-500', 'text-green-300');
+        estado.classList.add('border-emerald-400/40', 'text-emerald-300', 'bg-emerald-400/10');
     } else if(diferencia > 0){
         estado.textContent = 'Falta asignar: ' + money(diferencia);
-        estado.classList.add('border-slate-600', 'text-slate-300');
+        estado.classList.add('border-slate-700', 'text-slate-300', 'bg-slate-950/70');
     } else {
         estado.textContent = 'Se excede por: ' + money(Math.abs(diferencia));
-        estado.classList.add('border-red-500', 'text-red-300');
+        estado.classList.add('border-rose-400/40', 'text-rose-300', 'bg-rose-400/10');
     }
 }
 

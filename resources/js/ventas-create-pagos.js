@@ -32,42 +32,6 @@ export function initNuevaVentaPagosParciales() {
 
     form.dataset.pagosParcialesReady = '1';
 
-    const columnaCondicion = pendienteOriginal.parentElement?.parentElement;
-
-    if (!columnaCondicion) return;
-
-    pendienteOriginal.remove();
-    pendienteOriginal.classList.add('hidden');
-    pendienteOriginal.setAttribute('aria-hidden', 'true');
-
-    columnaCondicion.innerHTML = `
-        <label class="text-sm font-semibold text-slate-200">Condición de pago *</label>
-        <select id="condicion_pago_ui"
-                class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white focus:border-white focus:ring-white">
-            <option value="completo">Paga el total ahora</option>
-            <option value="parcial">Paga una parte</option>
-            <option value="pendiente">Todo queda pendiente</option>
-        </select>
-
-        <input type="hidden" name="condicion_pago" id="condicion_pago" value="completo">
-
-        <div id="monto_pago_parcial_box" class="hidden mt-3">
-            <label class="text-sm font-semibold text-slate-200">Importe base que abona ahora *</label>
-            <input type="number"
-                   step="0.01"
-                   min="0.01"
-                   name="monto_pago"
-                   id="monto_pago"
-                   class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white focus:border-white focus:ring-white"
-                   placeholder="Ej: 30000">
-            <div class="text-xs text-slate-400 mt-1">
-                En pago combinado, distribuí el importe en los campos de abajo.
-            </div>
-        </div>
-    `;
-
-    columnaCondicion.appendChild(pendienteOriginal);
-
     const condicionUi = document.getElementById('condicion_pago_ui');
     const condicionHidden = document.getElementById('condicion_pago');
     const montoBox = document.getElementById('monto_pago_parcial_box');
@@ -78,21 +42,11 @@ export function initNuevaVentaPagosParciales() {
     const tituloTotal = totalFinalEl?.previousElementSibling;
     const estadoCombinado = document.getElementById('estadoDistribucionPago');
 
-    const resumenParcial = document.createElement('div');
-    resumenParcial.id = 'resumen_pago_parcial';
-    resumenParcial.className = 'hidden mt-4 rounded-xl border border-blue-400/40 bg-blue-400/10 px-4 py-3 text-sm';
-    resumenParcial.innerHTML = `
-        <div class="flex justify-between gap-3">
-            <span class="text-slate-300">Base abonada hoy:</span>
-            <strong id="base_abonada_hoy">$0,00</strong>
-        </div>
-        <div class="mt-2 flex justify-between gap-3">
-            <span class="text-slate-300">Saldo base pendiente:</span>
-            <strong id="saldo_base_pendiente">$0,00</strong>
-        </div>
-    `;
+    const resumenParcial = document.getElementById('resumen_pago_parcial');
 
-    columnaCondicion.appendChild(resumenParcial);
+    if (!condicionUi || !condicionHidden || !montoBox || !montoInput || !resumenParcial) {
+        return;
+    }
 
     condicionUi.value = pendienteOriginal.checked ? 'pendiente' : 'completo';
     condicionHidden.value = condicionUi.value;

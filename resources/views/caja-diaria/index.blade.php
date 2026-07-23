@@ -414,11 +414,10 @@
     </div>
 </div>
 
-@if($esAdmin)
     <div class="rounded-2xl border bg-white overflow-hidden">
         <div class="px-4 py-3 border-b bg-slate-50">
             <div class="font-bold">Gastos registrados en la caja</div>
-            <div class="text-sm text-slate-600">Esta información solo es visible para administradoras.</div>
+            <div class="text-sm text-slate-600">Gastos registrados durante esta jornada de caja.</div>
         </div>
 
         <div class="overflow-x-auto">
@@ -428,7 +427,7 @@
                     <th class="text-left px-4 py-3 text-sm font-semibold">Hora</th>
                     <th class="text-left px-4 py-3 text-sm font-semibold">Concepto</th>
                     <th class="text-left px-4 py-3 text-sm font-semibold">Detalle</th>
-                    <th class="text-left px-4 py-3 text-sm font-semibold">Medio</th>
+                    <th class="text-left px-4 py-3 text-sm font-semibold">Medio de pago</th>
                     <th class="text-left px-4 py-3 text-sm font-semibold">Registró</th>
                     <th class="text-left px-4 py-3 text-sm font-semibold">Importe</th>
                 </tr>
@@ -459,8 +458,6 @@
             </table>
         </div>
     </div>
-@endif
-
 @if($caja && $caja->estaAbierta())
 <script>
 document.addEventListener('DOMContentLoaded', function () {
