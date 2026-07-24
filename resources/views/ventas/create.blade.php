@@ -1148,6 +1148,13 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
 
     tr.querySelector('.btn-remove-producto').addEventListener('click', () => {
         tr.remove();
+        reindexarFilasProductos();
+
+        if(!tbody.children.length){
+            addProductoRow();
+            return;
+        }
+
         recalcular();
     });
 
@@ -1159,6 +1166,47 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
     }
 
     recalcular();
+}
+
+function filaProductoRealmenteVacia(tr){
+    const productoId = (tr.querySelector('.prod-id')?.value || '').trim();
+    const productoTexto = (tr.querySelector('.prod-text')?.value || '').trim();
+    const descuento = Number(tr.querySelector('.desc-pct')?.value || 0);
+
+    return productoId === '' && productoTexto === '' && descuento === 0;
+}
+
+function cargarProductoEnFila(tr, productoId, cantidad = 1){
+    const producto = PRODUCTOS_DATA[productoId];
+
+    if(!producto) return;
+
+    tr.querySelector('.prod-text').value = producto.label;
+    tr.querySelector('.prod-id').value = String(productoId);
+    tr.querySelector('.cant').value = String(cantidad);
+}
+
+function reindexarFilasProductos(){
+    document.querySelectorAll('#tablaProductos tbody tr').forEach((tr, idx) => {
+        const texto = tr.querySelector('.prod-text');
+        const datalist = tr.querySelector('datalist');
+
+        texto.setAttribute('list', `dl_productos_${idx}`);
+        datalist.id = `dl_productos_${idx}`;
+        tr.querySelector('.prod-id').name = `productos[${idx}][producto_id]`;
+        tr.querySelector('.desc-pct').name = `productos[${idx}][descuento_pct]`;
+        tr.querySelector('.cant').name = `productos[${idx}][cantidad]`;
+    });
+}
+
+function limpiarFilasProductoVacias(){
+    document.querySelectorAll('#tablaProductos tbody tr').forEach(tr => {
+        if(filaProductoRealmenteVacia(tr)){
+            tr.remove();
+        }
+    });
+
+    reindexarFilasProductos();
 }
 
 function agregarProductoPorCodigo(codigo){
@@ -1180,16 +1228,39 @@ function agregarProductoPorCodigo(codigo){
     ).find(tr => Number(tr.querySelector('.prod-id')?.value || 0) === pid);
 
     const nombre = PRODUCTOS_DATA[pid]?.label || 'Producto';
+    const stock = Number(PRODUCTOS_DATA[pid]?.stock_venta || 0);
+
+    if(stock <= 0){
+        alert('No hay stock disponible para agregar este producto.');
+        return;
+    }
 
     if(filaExistente){
         const qty = filaExistente.querySelector('.cant');
-        qty.value = String(Number(qty.value || 0) + 1);
+        const cantidadActual = Number(qty.value || 0);
+        if(cantidadActual >= stock){
+            alert('No hay más stock disponible para agregar este producto.');
+            return;
+        }
+
+        qty.value = String(cantidadActual + 1);
         recalcular();
         mostrarToastProductoAgregado(nombre + ' agregado');
         return;
     }
 
-    addProductoRow(pid, 1);
+    const filaVacia = Array.from(
+        document.querySelectorAll('#tablaProductos tbody tr')
+    ).find(filaProductoRealmenteVacia);
+
+    if(filaVacia){
+        cargarProductoEnFila(filaVacia, pid, 1);
+    } else {
+        addProductoRow(pid, 1);
+    }
+
+    limpiarFilasProductoVacias();
+    recalcular();
     mostrarToastProductoAgregado(nombre + ' agregado');
 }
 

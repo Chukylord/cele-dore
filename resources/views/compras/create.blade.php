@@ -292,6 +292,13 @@ function addRow(prefillProductoId = null, prefillCantidad = 1){
 
     tr.querySelector('button').addEventListener('click', () => {
         tr.remove();
+        reindexarFilasCompra();
+
+        if(!tbody.children.length){
+            addRow();
+            return;
+        }
+
         recalcular();
     });
 
@@ -306,6 +313,68 @@ function addRow(prefillProductoId = null, prefillCantidad = 1){
     }
 
     recalcular();
+}
+
+function filaCompraRealmenteVacia(tr){
+    const proveedorId = (tr.querySelector('.prov-id')?.value || '').trim();
+    const proveedorTexto = (tr.querySelector('.prov-text')?.value || '').trim();
+    const productoId = (tr.querySelector('.prod-id')?.value || '').trim();
+    const productoTexto = (tr.querySelector('.prod-text')?.value || '').trim();
+    const precio = Number(tr.querySelector('.precio')?.value || 0);
+    const descuento = Number(tr.querySelector('.desc')?.value || 0);
+
+    return proveedorId === ''
+        && proveedorTexto === ''
+        && productoId === ''
+        && productoTexto === ''
+        && precio === 0
+        && descuento === 0;
+}
+
+function cargarProductoCompraEnFila(tr, producto, cantidad = 1){
+    const proveedorId = Number(producto.proveedor_id || 0);
+    const productosProveedor = PRODS_BY_PROV[proveedorId] || [];
+
+    tr.querySelector('.prov-text').value = producto.proveedor_nombre || '';
+    tr.querySelector('.prov-id').value = proveedorId ? String(proveedorId) : '';
+    tr.querySelector('.prod-text').value = producto.label;
+    tr.querySelector('.prod-id').value = String(producto.id);
+    tr.querySelector('.cant').value = String(cantidad);
+    tr.querySelector('.precio').value = String(producto.ultimo_costo || 0);
+    tr.querySelector('datalist[id^="dl_productos_"]').innerHTML = productosProveedor
+        .map(item => `<option value="${item.label}"></option>`)
+        .join('');
+    tr.dataset.prodMap = JSON.stringify(
+        Object.fromEntries(productosProveedor.map(item => [item.label, item.id]))
+    );
+}
+
+function reindexarFilasCompra(){
+    document.querySelectorAll('#tablaItems tbody tr').forEach((tr, idx) => {
+        const proveedorTexto = tr.querySelector('.prov-text');
+        const productoTexto = tr.querySelector('.prod-text');
+        const datalists = tr.querySelectorAll('datalist');
+
+        proveedorTexto.setAttribute('list', `dl_proveedores_${idx}`);
+        productoTexto.setAttribute('list', `dl_productos_${idx}`);
+        datalists[0].id = `dl_proveedores_${idx}`;
+        datalists[1].id = `dl_productos_${idx}`;
+        tr.querySelector('.prov-id').name = `items[${idx}][proveedor_id]`;
+        tr.querySelector('.prod-id').name = `items[${idx}][producto_id]`;
+        tr.querySelector('.cant').name = `items[${idx}][cantidad]`;
+        tr.querySelector('.precio').name = `items[${idx}][precio_unitario]`;
+        tr.querySelector('.desc').name = `items[${idx}][descuento_pct]`;
+    });
+}
+
+function limpiarFilasCompraVacias(){
+    document.querySelectorAll('#tablaItems tbody tr').forEach(tr => {
+        if(filaCompraRealmenteVacia(tr)){
+            tr.remove();
+        }
+    });
+
+    reindexarFilasCompra();
 }
 
 function agregarProductoPorCodigo(codigo){
@@ -339,7 +408,16 @@ function agregarProductoPorCodigo(codigo){
         return;
     }
 
-    addRow(productoId, 1);
+    const filaVacia = filas.find(filaCompraRealmenteVacia);
+
+    if(filaVacia){
+        cargarProductoCompraEnFila(filaVacia, producto, 1);
+    } else {
+        addRow(productoId, 1);
+    }
+
+    limpiarFilasCompraVacias();
+    recalcular();
     mostrarToastProductoAgregado(producto.label + ' agregado');
 }
 
