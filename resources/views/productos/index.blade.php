@@ -42,6 +42,7 @@
 
     $stock_estado = $stock_estado ?? request('stock_estado', '');
     $scanUrl = route('productos.scan', ['codigo' => '__CODIGO__']);
+    $returnTo = request()->getRequestUri();
 @endphp
 
 <div class="rounded-2xl border bg-slate-900 text-white p-5 mb-6">
@@ -232,6 +233,7 @@
                             <form method="POST" action="{{ route('productos.usarPeluqueria', $producto) }}">
                                 @csrf
                                 @method('PATCH')
+                                <input type="hidden" name="return_to" value="{{ $returnTo }}">
                                 <button class="rounded-lg border px-2 py-1 hover:bg-slate-50"
                                         title="Descontar 1 del stock de peluquería">
                                     ⬇️
@@ -247,13 +249,14 @@
                               onsubmit="return confirm('¿Registrar una unidad para uso de la peluquería?');">
                             @csrf
                             @method('PATCH')
+                            <input type="hidden" name="return_to" value="{{ $returnTo }}">
                             <button class="rounded-lg border px-3 py-1 hover:bg-slate-50"
                                     title="Pasar 1 unidad a stock peluquería">
                                 💇🏻‍♀️
                             </button>
                         </form>
 
-                        <a href="{{ route('productos.edit', $producto) }}"
+                        <a href="{{ route('productos.edit', ['producto' => $producto, 'return_to' => $returnTo]) }}"
                            class="rounded-lg border px-3 py-1 hover:bg-white"
                            title="Editar">
                             ✏️
@@ -264,6 +267,7 @@
                               onsubmit="return confirm('¿Eliminar este producto?');">
                             @csrf
                             @method('DELETE')
+                            <input type="hidden" name="return_to" value="{{ $returnTo }}">
                             <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar">
                                 🗑️
                             </button>
@@ -303,6 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const scanner = document.getElementById('scanner_consumo_producto');
     const activarScanner = document.getElementById('activar_scanner_consumo');
     const resultado = document.getElementById('resultado_scanner_consumo');
+    const returnTo = @json($returnTo);
 
     const escapeHtml = texto => String(texto ?? '')
         .replaceAll('&', '&amp;')
@@ -365,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
                               onsubmit="return confirm('¿Confirmar el consumo de una unidad para la peluquería?');">
                             <input type="hidden" name="_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="_method" value="PATCH">
+                            <input type="hidden" name="return_to" value="${escapeHtml(returnTo)}">
                             <button class="w-full rounded-xl bg-white text-slate-900 px-4 py-3 font-bold hover:bg-slate-100">
                                 Confirmar consumo de 1 unidad
                             </button>

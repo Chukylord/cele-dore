@@ -7,6 +7,7 @@ use App\Models\ConsumoPeluqueria;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\VentaProducto;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ class ProductoController extends Controller
             'stock_peluqueria',
         ];
 
-        if (!in_array($sort, $sortPermitidos, true)) {
+        if (! in_array($sort, $sortPermitidos, true)) {
             $sort = 'created_at';
         }
 
@@ -118,7 +119,7 @@ class ProductoController extends Controller
             ->where('contenido', $data['contenido'])
             ->exists();
 
-        if ($exists && !$request->has('force_create')) {
+        if ($exists && ! $request->has('force_create')) {
             return back()
                 ->withInput()
                 ->with('dup_producto', true);
@@ -131,11 +132,12 @@ class ProductoController extends Controller
         return redirect()->route('productos.index')->with('ok', 'Producto creado correctamente.');
     }
 
-    public function edit(Producto $producto)
+    public function edit(Request $request, Producto $producto)
     {
         $proveedores = Proveedor::orderBy('nombre')->get();
+        $returnTo = $this->urlRetornoSegura($request);
 
-        return view('productos.edit', compact('producto', 'proveedores'));
+        return view('productos.edit', compact('producto', 'proveedores', 'returnTo'));
     }
 
     public function update(Request $request, Producto $producto)
@@ -170,24 +172,25 @@ class ProductoController extends Controller
 
         $producto->update($data);
 
-        return redirect()->route('productos.index')->with('ok', 'Producto actualizado correctamente.');
+        return $this->redirectToListado($request, 'Producto actualizado correctamente.');
     }
 
-    public function destroy(Producto $producto)
+    public function destroy(Request $request, Producto $producto)
     {
         $tieneVentas = VentaProducto::where('producto_id', $producto->id)->exists();
         $tieneCompras = Compra::where('producto_id', $producto->id)->exists();
         $tieneConsumos = ConsumoPeluqueria::where('producto_id', $producto->id)->exists();
 
         if ($tieneVentas || $tieneCompras || $tieneConsumos) {
-            return redirect()
-                ->route('productos.index')
-                ->with('ok', 'No se puede eliminar el producto porque tiene ventas, compras o consumos asociados.');
+            return $this->redirectToListado(
+                $request,
+                'No se puede eliminar el producto porque tiene ventas, compras o consumos asociados.'
+            );
         }
 
         $producto->delete();
 
-        return redirect()->route('productos.index')->with('ok', 'Producto eliminado.');
+        return $this->redirectToListado($request, 'Producto eliminado.');
     }
 
     private function costoVigente(Producto $producto): float
@@ -198,9 +201,9 @@ class ProductoController extends Controller
             ->first();
 
         $manualMasNuevo = $producto->precio_efectivo_manual !== null
-            && !empty($producto->precio_manual_updated_at)
+            && ! empty($producto->precio_manual_updated_at)
             && (
-                !$ultimaCompra
+                ! $ultimaCompra
                 || Carbon::parse($producto->precio_manual_updated_at)
                     ->greaterThanOrEqualTo($ultimaCompra->created_at)
             );
@@ -220,7 +223,7 @@ class ProductoController extends Controller
         return round((float) $producto->precio_venta / 1.40, 2);
     }
 
-    public function consumo(Producto $producto)
+    public function consumo(Request $request, Producto $producto)
     {
         try {
             DB::transaction(function () use ($producto) {
@@ -251,13 +254,13 @@ class ProductoController extends Controller
                 ]);
             });
         } catch (\Exception $e) {
-            return redirect()->route('productos.index')->with('ok', $e->getMessage());
+            return $this->redirectToListado($request, $e->getMessage());
         }
 
-        return redirect()->route('productos.index')->with('ok', 'Consumo registrado: 1 unidad pasó a stock peluquería.');
+        return $this->redirectToListado($request, 'Consumo registrado: 1 unidad pas? a stock peluquer?a.');
     }
 
-    public function usarPeluqueria(Producto $producto)
+    public function usarPeluqueria(Request $request, Producto $producto)
     {
         try {
             DB::transaction(function () use ($producto) {
@@ -271,9 +274,35 @@ class ProductoController extends Controller
                 $p->save();
             });
         } catch (\Exception $e) {
-            return redirect()->route('productos.index')->with('ok', $e->getMessage());
+            return $this->redirectToListado($request, $e->getMessage());
         }
 
-        return redirect()->route('productos.index')->with('ok', 'Se descontó 1 unidad del stock de peluquería.');
+        return $this->redirectToListado($request, 'Se descont? 1 unidad del stock de peluquer?a.');
+    }
+
+    private function redirectToListado(Request $request, string $mensaje): RedirectResponse
+    {
+        $returnTo = $this->urlRetornoSegura($request);
+
+        return ($returnTo ? redirect()->to($returnTo) : redirect()->route('productos.index'))
+            ->with('ok', $mensaje);
+    }
+
+    private function urlRetornoSegura(Request $request): ?string
+    {
+        $returnTo = trim((string) $request->input('return_to', $request->query('return_to', '')));
+
+        if ($returnTo === '' || ! str_starts_with($returnTo, '/') || str_starts_with($returnTo, '//') || str_contains($returnTo, '\\') || preg_match('/[\x00-\x1F\x7F]/', $returnTo)) {
+            return null;
+        }
+
+        $partes = parse_url($returnTo);
+        $rutaProductos = parse_url(route('productos.index', absolute: false), PHP_URL_PATH);
+
+        if ($partes === false || isset($partes['scheme'], $partes['host'], $partes['user'], $partes['pass']) || isset($partes['fragment']) || ($partes['path'] ?? null) !== $rutaProductos) {
+            return null;
+        }
+
+        return $returnTo;
     }
 }

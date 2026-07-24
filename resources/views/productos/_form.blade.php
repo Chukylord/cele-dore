@@ -1,5 +1,9 @@
 @csrf
 
+@isset($producto)
+    <input type="hidden" name="return_to" value="{{ old('return_to', $returnTo ?? request('return_to')) }}">
+@endisset
+
 @php
     // mapa proveedor -> id para datalist
     $proveedoresMap = $proveedores->pluck('id','nombre');
@@ -109,7 +113,7 @@
         Guardar
     </button>
 
-    <a href="{{ route('productos.index') }}" class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+    <a href="{{ $returnTo ?? route('productos.index') }}" class="rounded-xl border px-4 py-2 hover:bg-slate-50">
         Cancelar
     </a>
 </div>
