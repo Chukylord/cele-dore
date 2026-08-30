@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Venta - Vir Tisone Studio')
+@section('title', 'Nueva Venta - fn peluqueria')
 @section('h1', 'Nueva Venta')
 @section('sub', 'Ingresar venta de servicios y/o productos.')
 

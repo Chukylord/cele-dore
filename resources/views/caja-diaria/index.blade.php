@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Caja diaria - Vir Tisone Studio')
+@section('title', 'Caja diaria - fn peluqueria')
 @section('h1', 'Caja diaria')
 @section('sub', 'Cobros del día, gastos rápidos y cierre de efectivo.')
 

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Compra - Peluquería TOP')
+@section('title', 'Nueva Compra - fn peluqueria')
 @section('h1', 'Nueva Compra')
 @section('sub', 'Cargar varias líneas en una sola compra (lote).')
 

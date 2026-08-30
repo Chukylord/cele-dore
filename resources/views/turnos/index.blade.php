@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Turnos - Vir Tisone Studio')
+@section('title', 'Turnos - fn peluqueria')
 @section('h1', 'Turnos')
 @section('sub', 'Calendario, estados y gestión rápida de turnos.')
 

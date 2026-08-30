@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ventas - Vir Tisone Studio')
+@section('title', 'Ventas - fn peluqueria')
 @section('h1', 'Ventas')
 @section('sub', 'Ventas, cobros parciales y saldos pendientes.')
 

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Proveedores - Peluquería TOP')
+@section('title', 'Proveedores - fn peluqueria')
 @section('h1', 'Proveedores')
 @section('sub', 'Listado de proveedores y cuenta corriente.')
 

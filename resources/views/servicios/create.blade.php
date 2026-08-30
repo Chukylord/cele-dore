@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Servicio Nuevo - Peluquería TOP')
+@section('title', 'Servicio Nuevo - fn peluqueria')
 @section('h1', 'Servicio Nuevo')
 @section('sub', 'Cargá nombre y precio del servicio.')
 

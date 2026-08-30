@@ -38,7 +38,7 @@ if (-not $targetPath -or -not (Test-Path $targetPath)) {
 $protocolRoot = 'HKCU:\Software\Classes\virfacturador'
 
 New-Item -Path $protocolRoot -Force | Out-Null
-Set-Item -Path $protocolRoot -Value 'URL:Vir Tisone Facturador' -Force
+Set-Item -Path $protocolRoot -Value 'URL:FN Peluquería Facturador' -Force
 New-ItemProperty -Path $protocolRoot -Name 'URL Protocol' -Value '' -PropertyType String -Force | Out-Null
 
 $iconKey = Join-Path $protocolRoot 'DefaultIcon'

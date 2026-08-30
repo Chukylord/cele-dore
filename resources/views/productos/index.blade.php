@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Productos - Vir Tisone Studio')
+@section('title', 'Productos - fn peluqueria')
 @section('h1', 'Productos')
 @section('sub', 'Gestión de stock y consumo interno de peluquería.')
 

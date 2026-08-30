@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Informes - Vir Tisone Studio')
+@section('title', 'Informes - fn peluqueria')
 @section('h1', 'Informes')
 @section('sub', 'Balance económico y actividad realizada en el período.')
 

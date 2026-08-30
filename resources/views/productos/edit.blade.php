@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar Producto - Peluquería TOP')
+@section('title', 'Editar Producto - fn peluqueria')
 @section('h1', 'Editar Producto')
 @section('sub', 'Modificá los datos del producto.')
 

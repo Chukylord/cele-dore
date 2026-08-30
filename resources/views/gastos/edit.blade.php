@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar Gasto - VIR TISONE STUDIO')
+@section('title', 'Editar Gasto - fn peluqueria')
 @section('h1', 'Editar Gasto')
 @section('sub', 'Modificá la información del gasto seleccionado.')
 
