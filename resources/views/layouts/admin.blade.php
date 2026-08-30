@@ -8,7 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-[#f8f6fb] text-slate-900">
+<body class="fn-admin bg-[#f8f6fb] text-slate-900">
 
 <div class="min-h-screen flex">
 

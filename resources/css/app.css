@@ -1,3 +1,345 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* =========================================================
+   FN PELUQUERÍA — SISTEMA VISUAL
+   ========================================================= */
+
+:root {
+    --fn-primary: #8f57a6;
+    --fn-primary-dark: #6f3e86;
+    --fn-primary-darker: #5c3272;
+
+    --fn-soft: #efe6f4;
+    --fn-background: #f8f6fb;
+
+    --fn-border: #e7e1ec;
+    --fn-text: #241a2c;
+}
+
+
+/* =========================================================
+   CAMPOS
+   ========================================================= */
+
+.fn-admin main input:not([type="checkbox"]):not([type="radio"]),
+.fn-admin main select,
+.fn-admin main textarea {
+    border-color: var(--fn-border);
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    transition:
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.fn-admin main input:not([type="checkbox"]):not([type="radio"]):focus,
+.fn-admin main select:focus,
+.fn-admin main textarea:focus {
+    border-color: var(--fn-primary) !important;
+    box-shadow: 0 0 0 3px rgba(143, 87, 166, 0.14) !important;
+    outline: none;
+}
+
+
+/* CHECKBOX / RADIO */
+
+.fn-admin main input[type="checkbox"],
+.fn-admin main input[type="radio"] {
+    color: var(--fn-primary);
+}
+
+.fn-admin main input[type="checkbox"]:focus,
+.fn-admin main input[type="radio"]:focus {
+    --tw-ring-color: rgba(143, 87, 166, 0.35);
+}
+
+
+/* =========================================================
+   TABLAS
+   ========================================================= */
+
+.fn-admin main table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.fn-admin main table thead {
+    background-color: #f8f4fa;
+    color: var(--fn-primary-dark);
+}
+
+.fn-admin main table thead th {
+    font-weight: 700;
+}
+
+.fn-admin main table tbody tr {
+    transition: background-color 120ms ease;
+}
+
+.fn-admin main table tbody tr:hover {
+    background-color: #fcf9fd;
+}
+
+.fn-admin main table tbody tr + tr td {
+    border-top-color: #eee9f1;
+}
+
+
+/* =========================================================
+   BOTONES OSCUROS HEREDADOS
+   ========================================================= */
+
+/*
+ Muchos módulos originales usan bg-slate-900 para el
+ botón principal. Dentro del sistema FN pasa a violeta.
+*/
+
+.fn-admin main .bg-slate-900 {
+    background-color: var(--fn-primary) !important;
+}
+
+.fn-admin main .hover\:bg-slate-800:hover {
+    background-color: var(--fn-primary-dark) !important;
+}
+
+
+/* FOCUS GRIS HEREDADO */
+
+.fn-admin main .focus\:border-slate-500:focus {
+    border-color: var(--fn-primary) !important;
+}
+
+.fn-admin main .focus\:ring-slate-500:focus {
+    --tw-ring-color: rgba(143, 87, 166, 0.28) !important;
+}
+
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+.fn-admin main a {
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease,
+        color 150ms ease,
+        transform 150ms ease;
+}
+
+
+/* =========================================================
+   TARJETAS Y CONTENEDORES
+   ========================================================= */
+
+.fn-admin main .border {
+    border-color: var(--fn-border);
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+.fn-admin {
+    scrollbar-color: var(--fn-primary) #f3eef6;
+}
+
+.fn-admin ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+.fn-admin ::-webkit-scrollbar-track {
+    background: #f3eef6;
+}
+
+.fn-admin ::-webkit-scrollbar-thumb {
+    background: #b68ac6;
+    border-radius: 999px;
+}
+
+.fn-admin ::-webkit-scrollbar-thumb:hover {
+    background: var(--fn-primary);
+}
+
+
+/* =========================================================
+   FN — COMPONENTES REUTILIZABLES DEL PANEL
+   ========================================================= */
+
+.fn-admin .fn-toolbar {
+    border: 1px solid var(--fn-border);
+    border-radius: 1.5rem;
+    background:
+        radial-gradient(circle at top right, rgba(143, 87, 166, 0.08), transparent 30%),
+        #ffffff;
+    padding: 1.25rem;
+    box-shadow: 0 10px 28px rgba(111, 62, 134, 0.06);
+}
+
+.fn-admin .fn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    border: 1px solid transparent;
+    border-radius: 0.85rem;
+
+    background: linear-gradient(
+        135deg,
+        var(--fn-primary),
+        var(--fn-primary-dark)
+    );
+
+    padding: 0.65rem 1rem;
+
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+
+    box-shadow: 0 8px 20px rgba(111, 62, 134, 0.17);
+
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease,
+        background 150ms ease;
+}
+
+.fn-admin .fn-primary-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 25px rgba(111, 62, 134, 0.24);
+}
+
+.fn-admin .fn-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+
+    border: 1px solid var(--fn-border);
+    border-radius: 0.85rem;
+
+    background: #ffffff;
+    padding: 0.65rem 1rem;
+
+    color: var(--fn-primary-dark);
+    font-size: 0.875rem;
+    font-weight: 700;
+
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease;
+}
+
+.fn-admin .fn-secondary-action:hover {
+    border-color: var(--fn-primary);
+    background: #f8f4fa;
+}
+
+
+/* TABLAS */
+
+.fn-admin .fn-table-shell {
+    overflow: hidden;
+    border: 1px solid var(--fn-border);
+    border-radius: 1.5rem;
+    background: #ffffff;
+
+    box-shadow: 0 10px 28px rgba(111, 62, 134, 0.06);
+}
+
+.fn-admin .fn-table-shell table {
+    width: 100%;
+}
+
+.fn-admin .fn-table-shell thead {
+    background: #f8f4fa;
+    color: var(--fn-primary-dark);
+}
+
+.fn-admin .fn-table-shell thead th {
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+}
+
+.fn-admin .fn-table-shell tbody tr {
+    transition: background-color 140ms ease;
+}
+
+.fn-admin .fn-table-shell tbody tr:hover {
+    background: #fcf9fd;
+}
+
+
+/* BOTONES PEQUEÑOS DE TABLAS */
+
+.fn-admin .fn-icon-action {
+    display: inline-flex;
+    min-width: 2.3rem;
+    height: 2.3rem;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--fn-border);
+    border-radius: 0.75rem;
+
+    background: #ffffff;
+
+    transition:
+        transform 120ms ease,
+        border-color 120ms ease,
+        background-color 120ms ease;
+}
+
+.fn-admin .fn-icon-action:hover {
+    transform: translateY(-1px);
+    border-color: #c9aacd;
+    background: #f8f4fa;
+}
+
+.fn-admin .fn-icon-action-danger:hover {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.fn-admin .fn-mini-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--fn-border);
+    border-radius: 0.65rem;
+
+    background: #ffffff;
+    padding: 0.3rem 0.55rem;
+
+    color: var(--fn-primary-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.fn-admin .fn-mini-action:hover {
+    border-color: var(--fn-primary);
+    background: #f8f4fa;
+}
+
+
+/* MODALES */
+
+.fn-admin .fn-modal-card {
+    width: 100%;
+    max-width: 42rem;
+
+    border: 1px solid var(--fn-border);
+    border-radius: 1.5rem;
+
+    background: #ffffff;
+    padding: 1.5rem;
+
+    box-shadow: 0 30px 80px rgba(36, 26, 44, 0.25);
+}

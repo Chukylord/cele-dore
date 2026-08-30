@@ -23,54 +23,98 @@
     }
 @endphp
 
-<div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
-    <form class="grid grid-cols-1 md:grid-cols-4 gap-3 w-full"
-          method="GET"
-          action="{{ route('clientes.index') }}">
+<div class="fn-toolbar mb-6">
+
+    <div class="mb-4 flex items-center justify-between gap-3">
         <div>
-            <label class="text-sm font-semibold text-slate-700">Nombre</label>
-            <input name="nombre"
-                   value="{{ $nombre }}"
-                   class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+            <div class="text-xs font-bold uppercase tracking-[0.18em] text-[#8f57a6]">
+                Clientes
+            </div>
+
+            <div class="mt-1 text-lg font-black text-[#241a2c]">
+                Buscar clienta
+            </div>
         </div>
 
-        <div>
-            <label class="text-sm font-semibold text-slate-700">Apellido</label>
-            <input name="apellido"
-                   value="{{ $apellido }}"
-                   class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
-        </div>
+        <a href="{{ route('clientes.create') }}"
+           class="fn-primary-action whitespace-nowrap">
+            <span class="text-lg leading-none">+</span>
+            Nueva clienta
+        </a>
+    </div>
+
+
+    <form
+        class="grid grid-cols-1 gap-3 md:grid-cols-4"
+        method="GET"
+        action="{{ route('clientes.index') }}"
+    >
 
         <div>
-            <label class="text-sm font-semibold text-slate-700">DNI</label>
-            <input name="dni"
-                   inputmode="numeric"
-                   value="{{ $dni }}"
-                   placeholder="Ej: 34025037"
-                   class="mt-1 w-full rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+            <label class="text-sm font-bold text-slate-600">
+                Nombre
+            </label>
+
+            <input
+                name="nombre"
+                value="{{ $nombre }}"
+                placeholder="Ej: Florencia"
+                class="mt-1.5 w-full"
+            >
         </div>
 
-        <div class="flex gap-2">
-            <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
-                Filtrar
+
+        <div>
+            <label class="text-sm font-bold text-slate-600">
+                Apellido
+            </label>
+
+            <input
+                name="apellido"
+                value="{{ $apellido }}"
+                placeholder="Ej: González"
+                class="mt-1.5 w-full"
+            >
+        </div>
+
+
+        <div>
+            <label class="text-sm font-bold text-slate-600">
+                DNI
+            </label>
+
+            <input
+                name="dni"
+                inputmode="numeric"
+                value="{{ $dni }}"
+                placeholder="Ej: 34025037"
+                class="mt-1.5 w-full"
+            >
+        </div>
+
+
+        <div class="flex items-end gap-2">
+
+            <button class="fn-primary-action w-full">
+                🔎 Filtrar
             </button>
 
-            <a href="{{ route('clientes.index') }}"
-               class="mt-6 w-full text-center rounded-xl border px-4 py-2 hover:bg-slate-50">
+            <a
+                href="{{ route('clientes.index') }}"
+                class="fn-secondary-action w-full"
+            >
                 Limpiar
             </a>
+
         </div>
+
     </form>
 
-    <a href="{{ route('clientes.create') }}"
-       class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 text-center whitespace-nowrap">
-        + Cliente nueva
-    </a>
 </div>
 
-<div class="overflow-x-auto rounded-2xl border">
+<div class="fn-table-shell overflow-x-auto">
     <table class="min-w-full bg-white">
-        <thead class="bg-slate-50 text-slate-700">
+        <thead>
         <tr>
             <th class="text-left px-4 py-3 text-sm font-semibold">
                 {!! sort_link_clientes('Apellido', 'apellido', $sort, $dir) !!}
@@ -99,7 +143,7 @@
                 $tieneObs = count($lineasObs) > 0;
             @endphp
 
-            <tr class="border-t hover:bg-slate-50">
+            <tr class="border-t">
                 <td class="px-4 py-3 font-semibold">{{ $cliente->apellido }}</td>
                 <td class="px-4 py-3">{{ $cliente->nombre }}</td>
                 <td class="px-4 py-3">
@@ -107,7 +151,7 @@
                         <div class="flex items-center gap-2">
                             <span class="font-mono">{{ $cliente->dni }}</span>
                             <button type="button"
-                                    class="rounded-lg border px-2 py-1 text-xs hover:bg-white"
+                                    class="fn-mini-action"
                                     data-copy-dni="{{ $cliente->dni }}"
                                     title="Copiar DNI">
                                 Copiar
@@ -130,7 +174,7 @@
                     <div class="flex items-center justify-end gap-2">
                         @if($tieneObs)
                             <button type="button"
-                                    class="rounded-lg border px-3 py-1 hover:bg-white"
+                                    class="fn-icon-action"
                                     data-open-obs="{{ $cliente->id }}"
                                     title="Ver observación">
                                 👁️
@@ -138,13 +182,13 @@
                         @endif
 
                         <a href="{{ route('clientes.show', $cliente) }}"
-                           class="rounded-lg border px-3 py-1 hover:bg-white"
+                           class="fn-icon-action"
                            title="Ver cliente">
                             🔎
                         </a>
 
                         <a href="{{ route('clientes.edit', $cliente) }}"
-                           class="rounded-lg border px-3 py-1 hover:bg-white"
+                           class="fn-icon-action"
                            title="Editar">
                             ✏️
                         </a>
@@ -154,7 +198,7 @@
                               onsubmit="return confirm('¿Eliminar esta clienta?');">
                             @csrf
                             @method('DELETE')
-                            <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar">
+                            <button class="fn-icon-action fn-icon-action-danger" title="Eliminar">
                                 🗑️
                             </button>
                         </form>
@@ -163,7 +207,7 @@
                     @if($tieneObs)
                         <div id="obs-{{ $cliente->id }}"
                              class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
-                            <div class="w-full max-w-2xl bg-white rounded-2xl shadow p-5">
+                            <div class="fn-modal-card">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
                                         <div class="text-lg font-bold">Observación</div>
@@ -179,7 +223,7 @@
                                     </button>
                                 </div>
 
-                                <div class="mt-4 rounded-xl border bg-slate-50 overflow-hidden">
+                                <div class="mt-4 overflow-hidden rounded-2xl border border-[#e7e1ec] bg-[#f8f4fa]">
                                     @foreach($lineasObs as $linea)
                                         <div class="px-4 py-3 text-slate-800 leading-relaxed break-words border-b last:border-b-0">
                                             {{ $linea }}
