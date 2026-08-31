@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Servicio Nuevo - fn peluqueria')
+@section('title', 'Servicio nuevo - FN Peluquería')
 @section('h1', 'Servicio Nuevo')
 @section('sub', 'Cargá nombre y precio del servicio.')
 
 @section('content')
-    <form method="POST" action="{{ route('servicios.store') }}">
+    <form method="POST" action="{{ route('servicios.store') }}" class="fn-form-card">
         @include('servicios._form')
     </form>
 @endsection

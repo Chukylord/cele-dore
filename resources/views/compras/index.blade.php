@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Compras - fn peluqueria')
+@section('title', 'Compras - FN Peluquería')
 @section('h1', 'Compras')
 @section('sub', 'Compras agrupadas por lote.')
 
@@ -36,7 +36,7 @@
         }
     @endphp
 
-    <div class="flex flex-col gap-3 mb-6">
+    <div class="fn-toolbar flex flex-col gap-3 mb-6">
         <form class="grid grid-cols-1 md:grid-cols-6 gap-3 w-full" method="GET" action="{{ route('compras.index') }}">
 
             <div class="md:col-span-2">
@@ -88,26 +88,26 @@
             </div>
 
             <div class="flex gap-2 md:col-span-6">
-                <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 w-full md:w-auto">
+                <button class="fn-primary-action w-full md:w-auto">
                     Filtrar
                 </button>
 
                 <a href="{{ route('compras.index') }}"
-                   class="rounded-xl border px-4 py-2 hover:bg-slate-50 w-full md:w-auto text-center">
+                   class="fn-secondary-action w-full md:w-auto text-center">
                     Limpiar
                 </a>
 
                 <div class="flex-1"></div>
 
                 <a href="{{ route('compras.create') }}"
-                   class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 text-center w-full md:w-auto">
+                   class="fn-primary-action text-center w-full md:w-auto">
                     + Nueva Compra
                 </a>
             </div>
         </form>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border">
+    <div class="fn-table-shell overflow-x-auto">
         <table class="min-w-full bg-white">
             <thead class="bg-slate-50 text-slate-700">
             <tr>
@@ -139,12 +139,12 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center justify-end gap-2">
                             <a href="{{ route('compras.lotes.show', $lote) }}"
-                               class="rounded-lg border px-3 py-1 hover:bg-white" title="Ver detalle">
+                               class="fn-icon-action" title="Ver detalle">
                                 🔎
                             </a>
 
                             <a href="{{ route('compras.lotes.edit', $lote) }}"
-                               class="rounded-lg border px-3 py-1 hover:bg-white" title="Editar lote">
+                               class="fn-icon-action" title="Editar lote">
                                 ✏️
                             </a>
 
@@ -152,7 +152,7 @@
                                   onsubmit="return confirm('¿Eliminar este lote? Se revertirá el stock.');">
                                 @csrf
                                 @method('DELETE')
-                                <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar lote">
+                                <button class="fn-icon-action fn-icon-action-danger" title="Eliminar lote">
                                     🗑️
                                 </button>
                             </form>

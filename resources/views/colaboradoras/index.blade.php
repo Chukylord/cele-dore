@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Colaboradoras - fn peluqueria')
+@section('title', 'Colaboradoras - FN Peluquería')
 @section('h1', 'Colaboradoras')
 @section('sub', 'Alta, filtros y listado de colaboradoras.')
 
@@ -22,7 +22,7 @@
         }
     @endphp
 
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
+    <div class="fn-toolbar flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
         <form class="grid grid-cols-1 md:grid-cols-4 gap-3 w-full" method="GET" action="{{ route('colaboradoras.index') }}">
             <div>
                 <label class="text-sm font-semibold text-slate-700">Nombre</label>
@@ -46,23 +46,23 @@
             </div>
 
             <div class="flex gap-2">
-                <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action mt-6 w-full">
                     Filtrar
                 </button>
 
-                <a href="{{ route('colaboradoras.index') }}" class="mt-6 w-full text-center rounded-xl border px-4 py-2 hover:bg-slate-50">
+                <a href="{{ route('colaboradoras.index') }}" class="fn-secondary-action mt-6 w-full text-center">
                     Limpiar
                 </a>
             </div>
         </form>
 
         <a href="{{ route('colaboradoras.create') }}"
-           class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 text-center">
+           class="fn-primary-action text-center">
             + Colaboradora Nueva
         </a>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border">
+    <div class="fn-table-shell overflow-x-auto">
         <table class="min-w-full bg-white">
             <thead class="bg-slate-50 text-slate-700">
             <tr>
@@ -95,7 +95,7 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center justify-end gap-2">
                             <a href="{{ route('colaboradoras.edit', $c) }}"
-                               class="rounded-lg border px-3 py-1 hover:bg-white"
+                               class="fn-icon-action"
                                title="Editar">
                                 ✏️
                             </a>
@@ -104,7 +104,7 @@
                                   onsubmit="return confirm('¿Eliminar esta colaboradora?');">
                                 @csrf
                                 @method('DELETE')
-                                <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar">
+                                <button class="fn-icon-action fn-icon-action-danger" title="Eliminar">
                                     🗑️
                                 </button>
                             </form>

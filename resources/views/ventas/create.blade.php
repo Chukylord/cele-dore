@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Venta - fn peluqueria')
+@section('title', 'Nueva venta - FN Peluquería')
 @section('h1', 'Nueva Venta')
 @section('sub', 'Ingresar venta de servicios y/o productos.')
 
@@ -20,7 +20,7 @@
 <form method="POST" action="{{ route('ventas.store') }}" id="formVenta">
     @csrf
 
-    <div class="rounded-2xl border bg-slate-900 text-white p-4">
+    <div class="fn-feature-panel rounded-2xl p-4">
         <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div class="md:col-span-3">
                 <label class="text-sm font-semibold text-slate-200">Fecha *</label>
@@ -126,18 +126,18 @@
     <div class="mt-6 flex gap-2">
         <button type="button"
                 id="tabServicios"
-                class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
+                class="fn-primary-action">
             Servicios
         </button>
 
         <button type="button"
                 id="tabProductos"
-                class="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">
+                class="fn-secondary-action">
             Productos
         </button>
     </div>
 
-    <div id="panelServicios" class="mt-4 rounded-2xl border bg-white">
+    <div id="panelServicios" class="fn-table-shell mt-4">
         <div class="p-4 border-b flex items-center justify-between">
             <div>
                 <div class="text-lg font-bold text-slate-900">Servicios</div>
@@ -148,7 +148,7 @@
 
             <button type="button"
                     id="addServicio"
-                    class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                    class="fn-primary-action">
                 + Agregar servicio
             </button>
         </div>
@@ -173,7 +173,7 @@
         </div>
     </div>
 
-    <div id="panelProductos" class="mt-4 rounded-2xl border bg-white hidden">
+    <div id="panelProductos" class="fn-table-shell mt-4 hidden">
         <div class="p-4 border-b flex items-center justify-between">
             <div>
                 <div class="text-lg font-bold text-slate-900">Productos</div>
@@ -184,13 +184,13 @@
 
             <button type="button"
                     id="addProducto"
-                    class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                    class="fn-primary-action">
                 + Agregar producto
             </button>
         </div>
 
         <div class="p-4">
-            <div class="mb-4 rounded-2xl border bg-slate-50 p-4">
+            <div class="fn-soft-panel mb-4 p-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                     <div class="md:col-span-2">
                         <label class="text-sm font-semibold text-slate-700">Escanear producto</label>
@@ -241,7 +241,7 @@
         </div>
     </div>
 
-    <section class="mt-8 overflow-hidden rounded-3xl border border-slate-700/80 bg-slate-950 text-white shadow-2xl shadow-slate-900/30 ring-1 ring-white/5">
+    <section class="fn-checkout mt-8 overflow-hidden rounded-3xl border">
         <div class="flex flex-col gap-4 border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
             <div class="flex items-center gap-3">
                 <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-500/10 text-blue-300 shadow-lg shadow-blue-950/40">
@@ -529,7 +529,7 @@
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button type="button"
                             id="btnDescuento"
-                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-semibold text-slate-200 shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400 sm:w-auto">
+                            class="fn-secondary-action w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg"
                              class="h-4 w-4"
                              fill="none"
@@ -544,7 +544,7 @@
                     </button>
 
                     <a href="{{ route('ventas.index') }}"
-                       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-semibold text-slate-300 shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-slate-400 sm:w-auto">
+                       class="fn-secondary-action w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg"
                              class="h-4 w-4"
                              fill="none"
@@ -561,7 +561,7 @@
                     <a href="https://www.afip.gob.ar/"
                        target="_blank"
                        rel="noopener noreferrer"
-                       class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-400/30 bg-blue-500/10 px-5 py-3 text-sm font-semibold text-blue-200 shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-blue-300/60 hover:bg-blue-500/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 sm:w-auto">
+                       class="fn-secondary-action w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg"
                              class="h-4 w-4"
                              fill="none"
@@ -576,7 +576,7 @@
                     </a>
 
                     <button type="submit"
-                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-950/50 transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-950 sm:w-auto">
+                            class="fn-primary-action w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg"
                              class="h-5 w-5"
                              fill="none"
@@ -607,13 +607,13 @@
     </section>
 
     <div id="modalDescuento" class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
-        <div class="w-full max-w-3xl bg-white rounded-2xl shadow p-5">
+        <div class="fn-modal-card w-full max-w-3xl p-6">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <div class="text-lg font-bold">Aplicar descuento</div>
                     <div class="text-sm text-slate-600">Seleccioná ítems y porcentaje.</div>
                 </div>
-                <button type="button" id="closeDescuento" class="text-slate-500 hover:text-slate-900">✖</button>
+            <button type="button" id="closeDescuento" class="fn-icon-action text-slate-500">✖</button>
             </div>
 
             <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
@@ -651,7 +651,7 @@
             <div class="mt-4 flex justify-end">
                 <button type="button"
                         id="aplicarDescuento"
-                        class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                        class="fn-primary-action">
                     Aplicar
                 </button>
             </div>
@@ -1050,7 +1050,7 @@ function addServicioRow(){
 
         <td class="px-3 py-2 text-right">
             <button type="button"
-                    class="btn-remove-servicio rounded-xl border px-3 py-1 hover:bg-slate-50">
+                    class="btn-remove-servicio fn-icon-action fn-icon-action-danger">
                 🗑️
             </button>
         </td>
@@ -1125,7 +1125,7 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
 
         <td class="px-3 py-2 text-right">
             <button type="button"
-                    class="btn-remove-producto rounded-xl border px-3 py-1 hover:bg-slate-50">
+                    class="btn-remove-producto fn-icon-action fn-icon-action-danger">
                 🗑️
             </button>
         </td>
@@ -1277,12 +1277,12 @@ function activarTab(tab){
     const servicios = tab === 'servicios';
 
     document.getElementById('tabServicios').className = servicios
-        ? 'px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800'
-        : 'px-4 py-2 rounded-xl border bg-white hover:bg-slate-50';
+        ? 'fn-primary-action'
+        : 'fn-secondary-action';
 
     document.getElementById('tabProductos').className = servicios
-        ? 'px-4 py-2 rounded-xl border bg-white hover:bg-slate-50'
-        : 'px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800';
+        ? 'fn-secondary-action'
+        : 'fn-primary-action';
 
     document.getElementById('panelServicios').classList.toggle('hidden', !servicios);
     document.getElementById('panelProductos').classList.toggle('hidden', servicios);

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Liquidaciones - fn peluqueria')
+@section('title', 'Liquidaciones - FN Peluquería')
 @section('h1', 'Liquidaciones')
 @section('sub', 'Pagos registrados a colaboradoras y cálculo de mejor mes para aguinaldo.')
 
@@ -13,7 +13,7 @@
     @endif
 
     {{-- FILTROS --}}
-    <div class="flex flex-col gap-3 mb-6">
+    <div class="fn-toolbar flex flex-col gap-3 mb-6">
         <form class="grid grid-cols-1 md:grid-cols-5 gap-3 w-full" method="GET" action="{{ route('liquidaciones.index') }}">
             <input type="hidden" name="sac_anio" value="{{ $sacAnio }}">
             <input type="hidden" name="sac_semestre" value="{{ $sacSemestre }}">
@@ -45,12 +45,12 @@
             </div>
 
             <div class="flex gap-2">
-                <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action mt-6 w-full">
                     Filtrar
                 </button>
 
                 <a href="{{ route('liquidaciones.index') }}"
-                   class="mt-6 w-full text-center rounded-xl border px-4 py-2 hover:bg-slate-50">
+                   class="fn-secondary-action mt-6 w-full text-center">
                     Limpiar
                 </a>
             </div>
@@ -58,14 +58,14 @@
 
         <div class="flex justify-end">
             <a href="{{ route('liquidaciones.create') }}"
-               class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 text-center">
+               class="fn-primary-action text-center">
                 + Nueva Liquidación
             </a>
         </div>
     </div>
 
     {{-- MEJOR MES / AGUINALDO --}}
-    <div class="rounded-2xl border bg-white p-5 mb-6">
+    <div class="fn-section-card mb-6">
         <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
             <div>
                 <div class="text-xl font-bold text-slate-900">Mejor mes / Aguinaldo</div>
@@ -113,13 +113,13 @@
             </div>
 
             <div>
-                <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action mt-6 w-full">
                     Calcular
                 </button>
             </div>
         </form>
 
-        <div class="overflow-x-auto rounded-2xl border">
+        <div class="fn-table-shell overflow-x-auto">
             <table class="min-w-full bg-white">
                 <thead class="bg-slate-50 text-slate-700">
                 <tr>
@@ -187,7 +187,7 @@
     </div>
 
     {{-- LISTADO DE LIQUIDACIONES --}}
-    <div class="overflow-x-auto rounded-2xl border">
+    <div class="fn-table-shell overflow-x-auto">
         <table class="min-w-full bg-white">
             <thead class="bg-slate-50 text-slate-700">
             <tr>
@@ -252,7 +252,7 @@
                     <td class="px-4 py-3">
                         <div class="flex justify-end gap-2">
                             <a href="{{ route('liquidaciones.show', $l) }}"
-                               class="rounded-lg border px-3 py-1 hover:bg-white"
+                               class="fn-icon-action"
                                title="Ver">
                                 🔎
                             </a>
@@ -270,7 +270,7 @@
         </table>
     </div>
 
-    <div class="mt-4 rounded-2xl border bg-white p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="fn-stat-card mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
             <div class="text-sm text-slate-600">Total pagado del filtro</div>
             <div class="text-2xl font-extrabold text-slate-900">

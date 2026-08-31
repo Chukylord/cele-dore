@@ -207,7 +207,7 @@
                     @if($tieneObs)
                         <div id="obs-{{ $cliente->id }}"
                              class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
-                            <div class="fn-modal-card">
+                            <div class="fn-modal-card w-full max-w-2xl p-6">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
                                         <div class="text-lg font-bold">Observación</div>

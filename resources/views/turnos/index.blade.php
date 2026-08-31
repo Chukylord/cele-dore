@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Turnos - fn peluqueria')
+@section('title', 'Turnos - FN Peluquería')
 @section('h1', 'Turnos')
 @section('sub', 'Calendario, estados y gestión rápida de turnos.')
 
@@ -25,34 +25,34 @@
 
 {{-- Resumen de hoy --}}
 <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-    <div class="rounded-2xl border bg-slate-900 p-4 text-white">
+    <div class="fn-stat-card fn-stat-card-primary">
         <div class="text-xs uppercase tracking-wider text-slate-300">Turnos de hoy</div>
         <div class="mt-1 text-3xl font-black">{{ $estadisticas['total'] }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-yellow-50 p-4">
+    <div class="fn-stat-card bg-yellow-50">
         <div class="text-xs uppercase tracking-wider text-yellow-700">Pendientes</div>
         <div class="mt-1 text-3xl font-black text-yellow-800">{{ $estadisticas['pendiente'] }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-green-50 p-4">
+    <div class="fn-stat-card bg-green-50">
         <div class="text-xs uppercase tracking-wider text-green-700">Confirmados</div>
         <div class="mt-1 text-3xl font-black text-green-800">{{ $estadisticas['confirmado'] }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-blue-50 p-4">
+    <div class="fn-stat-card bg-blue-50">
         <div class="text-xs uppercase tracking-wider text-blue-700">Atendidos</div>
         <div class="mt-1 text-3xl font-black text-blue-800">{{ $estadisticas['atendido'] }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-red-50 p-4">
+    <div class="fn-stat-card bg-red-50">
         <div class="text-xs uppercase tracking-wider text-red-700">Cancelados</div>
         <div class="mt-1 text-3xl font-black text-red-800">{{ $estadisticas['cancelado'] }}</div>
     </div>
 </div>
 
 {{-- Filtros y acciones --}}
-<div class="rounded-2xl border bg-white p-4 mb-5">
+<div class="fn-toolbar mb-5">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
         <div class="lg:col-span-3">
             <label class="text-sm font-semibold text-slate-700">Filtrar por estado</label>
@@ -82,7 +82,7 @@
         <div class="lg:col-span-2">
             <button type="button"
                     id="btnLimpiarFiltros"
-                    class="w-full rounded-xl border px-4 py-2 hover:bg-slate-50">
+                    class="fn-secondary-action w-full">
                 Limpiar filtros
             </button>
         </div>
@@ -90,7 +90,7 @@
         <div class="lg:col-span-3 lg:text-right">
             <button type="button"
                     id="btnNuevoTurno"
-                    class="w-full lg:w-auto rounded-xl bg-slate-900 text-white px-5 py-2.5 font-semibold hover:bg-slate-800">
+                    class="fn-primary-action w-full lg:w-auto">
                 + Nuevo turno
             </button>
         </div>
@@ -106,7 +106,7 @@
 </div>
 
 {{-- Calendario --}}
-<div class="rounded-2xl border bg-white p-3 sm:p-5 shadow-sm">
+<div class="fn-section-card p-3 sm:p-5">
     <div id="calendar"></div>
 </div>
 
@@ -114,7 +114,7 @@
 <div id="modalTurno"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-3 sm:p-5">
 
-    <div class="max-h-[94vh] w-full max-w-3xl overflow-y-auto rounded-[28px] bg-white shadow-2xl">
+    <div class="fn-modal-card w-full max-h-[94vh] max-w-3xl overflow-y-auto p-0">
         <div class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b bg-white px-5 py-4 sm:px-6">
             <div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -131,7 +131,7 @@
 
             <button type="button"
                     id="cerrarModalTurno"
-                    class="rounded-xl border px-3 py-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                    class="fn-icon-action text-slate-500"
                     aria-label="Cerrar">
                 ✕
             </button>
@@ -229,7 +229,7 @@
             </div>
 
             {{-- Acciones rápidas solo al editar --}}
-            <div id="accionesRapidasTurno" class="mt-5 hidden rounded-2xl border bg-slate-50 p-4">
+            <div id="accionesRapidasTurno" class="fn-soft-panel mt-5 hidden p-4">
                 <div class="mb-3 text-sm font-semibold text-slate-700">Cambiar estado rápidamente</div>
 
                 <div class="flex flex-wrap gap-2">
@@ -253,7 +253,7 @@
 
                     <button type="button"
                             data-estado-rapido="pendiente"
-                            class="rounded-xl border bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                            class="fn-secondary-action">
                         Volver a pendiente
                     </button>
                 </div>
@@ -262,20 +262,20 @@
             <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button type="button"
                         id="btnEliminarTurno"
-                        class="hidden rounded-xl border border-red-300 px-4 py-2 font-semibold text-red-700 hover:bg-red-50">
+                        class="fn-danger-action hidden">
                     Eliminar turno
                 </button>
 
                 <div class="flex flex-col-reverse gap-2 sm:ml-auto sm:flex-row">
                     <button type="button"
                             id="cancelarModalTurno"
-                            class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+                            class="fn-secondary-action">
                         Volver
                     </button>
 
                     <button type="submit"
                             id="btnGuardarTurno"
-                            class="rounded-xl bg-slate-900 px-5 py-2 font-semibold text-white hover:bg-slate-800">
+                            class="fn-primary-action">
                         Guardar turno
                     </button>
                 </div>
@@ -319,23 +319,23 @@
     #calendar .fc-toolbar-title {
         font-size: 1.25rem;
         font-weight: 800;
-        color: #0f172a;
+        color: #241a2c;
     }
 
     #calendar .fc-button {
         border-radius: .75rem !important;
-        border: 1px solid #cbd5e1 !important;
+        border: 1px solid #e7e1ec !important;
         background: #ffffff !important;
-        color: #0f172a !important;
+        color: #6f3e86 !important;
         box-shadow: none !important;
         text-transform: capitalize !important;
     }
 
     #calendar .fc-button:hover,
     #calendar .fc-button-active {
-        background: #0f172a !important;
+        background: #8f57a6 !important;
         color: #ffffff !important;
-        border-color: #0f172a !important;
+        border-color: #8f57a6 !important;
     }
 
     #calendar .fc-event {
@@ -343,17 +343,17 @@
         border-radius: .55rem;
         padding: 2px 4px;
         font-weight: 700;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
+        box-shadow: 0 4px 12px rgba(111, 62, 134, .10);
     }
 
     #calendar .fc-daygrid-day-number,
     #calendar .fc-col-header-cell-cushion {
-        color: #334155;
+        color: #5c3272;
         font-weight: 700;
     }
 
     #calendar .fc-day-today {
-        background: #f8fafc !important;
+        background: #f8f4fa !important;
     }
 
     @media (max-width: 767px) {

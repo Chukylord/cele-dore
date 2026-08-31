@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Servicios - fn peluqueria')
+@section('title', 'Servicios - FN Peluquería')
 @section('h1', 'Servicios')
 @section('sub', 'Listado de servicios y precios.')
 
@@ -22,7 +22,7 @@
         }
     @endphp
 
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
+    <div class="fn-toolbar flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
         <form class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full md:max-w-xl" method="GET" action="{{ route('servicios.index') }}">
             <div>
                 <label class="text-sm font-semibold text-slate-700">Nombre</label>
@@ -31,23 +31,23 @@
             </div>
 
             <div class="flex gap-2">
-                <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action mt-6 w-full">
                     Filtrar
                 </button>
 
-                <a href="{{ route('servicios.index') }}" class="mt-6 w-full text-center rounded-xl border px-4 py-2 hover:bg-slate-50">
+                <a href="{{ route('servicios.index') }}" class="fn-secondary-action mt-6 w-full text-center">
                     Limpiar
                 </a>
             </div>
         </form>
 
         <a href="{{ route('servicios.create') }}"
-           class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 text-center">
+           class="fn-primary-action text-center">
             + Servicio Nuevo
         </a>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border">
+    <div class="fn-table-shell overflow-x-auto">
         <table class="min-w-full bg-white">
             <thead class="bg-slate-50 text-slate-700">
             <tr>
@@ -69,7 +69,7 @@
                         <div class="flex items-center justify-end gap-2">
 
                             <a href="{{ route('servicios.edit', $s) }}"
-                               class="rounded-lg border px-3 py-1 hover:bg-white"
+                               class="fn-icon-action"
                                title="Editar">
                                 ✏️
                             </a>
@@ -78,7 +78,7 @@
                                   onsubmit="return confirm('¿Eliminar este servicio?');">
                                 @csrf
                                 @method('DELETE')
-                                <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar">
+                                <button class="fn-icon-action fn-icon-action-danger" title="Eliminar">
                                     🗑️
                                 </button>
                             </form>

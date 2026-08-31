@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar Gasto - fn peluqueria')
+@section('title', 'Editar gasto - FN Peluquería')
 @section('h1', 'Editar Gasto')
 @section('sub', 'Modificá la información del gasto seleccionado.')
 
@@ -16,7 +16,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('gastos.update', $gasto) }}">
+    <form method="POST" action="{{ route('gastos.update', $gasto) }}" class="fn-form-card">
         @method('PUT')
         @include('gastos._form', ['gasto' => $gasto])
     </form>

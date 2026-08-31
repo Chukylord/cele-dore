@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Detalle de Lote - Compras')
+@section('title', 'Detalle de lote - FN Peluquería')
 @section('h1', 'Detalle de Lote')
 @section('sub', 'Productos incluidos y pagos del proveedor.')
 
@@ -19,7 +19,7 @@
     $saldo = max($totalLote - $entregado, 0);
 @endphp
 
-<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+<div class="fn-toolbar flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
     <div>
         <div class="text-2xl font-bold">Lote #{{ $lote->id }}</div>
         <div class="text-slate-600 mt-1">Fecha: {{ \Carbon\Carbon::parse($lote->fecha)->format('d/m/Y') }}</div>
@@ -30,7 +30,7 @@
 
     <div class="flex flex-wrap gap-2">
         <a href="{{ route('compras.lotes.edit', $lote) }}"
-           class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+           class="fn-secondary-action">
             ✏️ Editar lote
         </a>
 
@@ -38,30 +38,30 @@
               onsubmit="return confirm('¿Eliminar este lote? Se revertirá el stock.');">
             @csrf
             @method('DELETE')
-            <button class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+            <button class="fn-danger-action">
                 🗑️ Eliminar lote
             </button>
         </form>
 
         <a href="{{ route('compras.index') }}"
-           class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+           class="fn-primary-action">
             Volver
         </a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-stat-card">
         <div class="text-sm text-slate-600">Total lote</div>
         <div class="text-2xl font-bold mt-1">${{ number_format($totalLote, 2, ',', '.') }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-stat-card">
         <div class="text-sm text-slate-600">Entregado</div>
         <div class="text-2xl font-bold mt-1">${{ number_format($entregado, 2, ',', '.') }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-stat-card">
         <div class="text-sm text-slate-600">Saldo</div>
         <div class="text-2xl font-bold mt-1">${{ number_format($saldo, 2, ',', '.') }}</div>
     </div>
@@ -76,7 +76,7 @@
 </div>
 
 @if($saldo > 0)
-    <div class="rounded-2xl border bg-white p-4 mb-6">
+    <div class="fn-section-card mb-6">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <div class="text-lg font-bold">Registrar pago</div>
@@ -114,7 +114,7 @@
             </div>
 
             <div>
-                <button class="w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action w-full">
                     Registrar pago
                 </button>
             </div>
@@ -125,7 +125,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div>
         <div class="text-lg font-bold mb-3">Productos del lote</div>
-        <div class="overflow-x-auto rounded-2xl border">
+        <div class="fn-table-shell overflow-x-auto">
             <table class="min-w-full bg-white">
                 <thead class="bg-slate-50 text-slate-700">
                 <tr>
@@ -160,7 +160,7 @@
 
     <div>
         <div class="text-lg font-bold mb-3">Pagos del lote</div>
-        <div class="overflow-x-auto rounded-2xl border">
+        <div class="fn-table-shell overflow-x-auto">
             <table class="min-w-full bg-white">
                 <thead class="bg-slate-50 text-slate-700">
                 <tr>

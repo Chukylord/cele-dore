@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Caja diaria - fn peluqueria')
+@section('title', 'Caja diaria - FN Peluquería')
 @section('h1', 'Caja diaria')
 @section('sub', 'Cobros del día, gastos rápidos y cierre de efectivo.')
 
@@ -27,7 +27,7 @@
     </div>
 @endif
 
-<div class="rounded-2xl border bg-white p-4 mb-5">
+<div class="fn-toolbar mb-5">
     <form method="GET"
           action="{{ route('caja-diaria.index') }}"
           class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -40,7 +40,7 @@
         </div>
 
         <div>
-            <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+            <button class="fn-primary-action">
                 Ver caja
             </button>
         </div>
@@ -48,7 +48,7 @@
 </div>
 
 @if(!$caja)
-    <div class="rounded-2xl border bg-slate-900 text-white p-6 mb-6">
+    <div class="fn-feature-panel rounded-2xl p-6 mb-6">
         <div class="text-2xl font-bold">Iniciar caja del día</div>
         <div class="text-slate-300 mt-1">
             Ingresá con cuánto efectivo comienza la caja del
@@ -73,7 +73,7 @@
             </div>
 
             <div>
-                <button class="w-full rounded-xl bg-white text-slate-900 px-4 py-3 font-bold hover:bg-slate-100">
+                <button class="fn-primary-action w-full">
                     Iniciar caja
                 </button>
             </div>
@@ -118,21 +118,21 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="rounded-2xl border bg-white p-4">
+        <div class="fn-stat-card">
             <div class="text-sm text-slate-500">Caja inicial</div>
             <div class="text-2xl font-bold">
                 ${{ number_format((float)$caja->caja_inicial, 2, ',', '.') }}
             </div>
         </div>
 
-        <div class="rounded-2xl border bg-green-50 p-4">
+        <div class="fn-stat-card bg-green-50">
             <div class="text-sm text-green-700">Cobrado en efectivo</div>
             <div class="text-2xl font-bold text-green-700">
                 ${{ number_format((float)$cobrosEfectivo, 2, ',', '.') }}
             </div>
         </div>
 
-        <div class="rounded-2xl border bg-slate-900 p-4 text-white">
+        <div class="fn-stat-card fn-stat-card-primary">
             <div class="text-sm text-slate-300">Efectivo esperado</div>
             <div class="text-2xl font-bold">
                 ${{ number_format((float)$efectivoEsperado, 2, ',', '.') }}
@@ -142,7 +142,7 @@
             </div>
         </div>
 
-        <div class="rounded-2xl border bg-white p-4">
+        <div class="fn-stat-card">
             <div class="text-sm text-slate-500">Diferencia</div>
             @if($caja->estaCerrada())
                 @php $diferenciaCaja = (float)$caja->diferencia; @endphp
@@ -157,21 +157,21 @@
 @endif
 
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="rounded-2xl border bg-green-50 p-4">
+    <div class="fn-stat-card bg-green-50">
         <div class="text-sm text-green-700">Efectivo cobrado</div>
         <div class="text-2xl font-bold text-green-800">
             ${{ number_format((float)$cobrosEfectivo, 2, ',', '.') }}
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-blue-50 p-4">
+    <div class="fn-stat-card bg-blue-50">
         <div class="text-sm text-blue-700">Transferencia cobrada</div>
         <div class="text-2xl font-bold text-blue-800">
             ${{ number_format((float)$cobrosTransferencia, 2, ',', '.') }}
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-purple-50 p-4">
+    <div class="fn-stat-card bg-purple-50">
         <div class="text-sm text-purple-700">Tarjeta cobrada</div>
         <div class="text-2xl font-bold text-purple-800">
             ${{ number_format((float)$cobrosTarjeta, 2, ',', '.') }}
@@ -179,7 +179,7 @@
         <div class="text-xs text-purple-700 mt-1">Incluye recargos cobrados.</div>
     </div>
 
-    <div class="rounded-2xl border bg-slate-900 p-4 text-white">
+    <div class="fn-stat-card fn-stat-card-primary">
         <div class="text-sm text-slate-300">Total cobrado</div>
         <div class="text-2xl font-bold">
             ${{ number_format((float)$totalCobrado, 2, ',', '.') }}
@@ -189,7 +189,7 @@
 
 @if($caja && $caja->estaAbierta())
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-        <div class="rounded-2xl border bg-amber-50 p-5">
+        <div class="fn-section-card bg-amber-50">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <div class="text-xl font-bold text-slate-900">Registrar gasto del día</div>
@@ -249,14 +249,14 @@
                 </div>
 
                 <div class="md:col-span-2 flex justify-end">
-                    <button class="rounded-xl bg-amber-600 text-white px-5 py-3 font-bold hover:bg-amber-700">
+                    <button class="fn-primary-action">
                         Registrar gasto
                     </button>
                 </div>
             </form>
         </div>
 
-        <div class="rounded-2xl border bg-slate-50 p-5">
+        <div class="fn-section-card bg-slate-50">
             <div class="text-xl font-bold text-slate-900">Cerrar caja</div>
             <div class="text-sm text-slate-600 mt-1">
                 Puede cerrarla la administradora o cualquiera de las empleadas autorizadas.
@@ -298,7 +298,7 @@
                 </div>
 
                 <div class="mt-4 flex justify-end">
-                    <button class="rounded-xl bg-slate-900 text-white px-5 py-3 font-bold hover:bg-slate-800"
+                    <button class="fn-primary-action"
                             onclick="return confirm('¿Cerrar la caja diaria?');">
                         Cerrar caja
                     </button>
@@ -310,21 +310,21 @@
 
 @if($esAdmin)
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="rounded-2xl border bg-red-50 p-4">
+        <div class="fn-stat-card bg-red-50">
             <div class="text-sm text-red-700">Gastos en efectivo</div>
             <div class="text-2xl font-bold text-red-800">
                 ${{ number_format((float)$gastosEfectivoActual, 2, ',', '.') }}
             </div>
         </div>
 
-        <div class="rounded-2xl border bg-orange-50 p-4">
+        <div class="fn-stat-card bg-orange-50">
             <div class="text-sm text-orange-700">Gastos por transferencia</div>
             <div class="text-2xl font-bold text-orange-800">
                 ${{ number_format((float)$gastosTransferenciaActual, 2, ',', '.') }}
             </div>
         </div>
 
-        <div class="rounded-2xl border bg-slate-900 p-4 text-white">
+        <div class="fn-stat-card fn-stat-card-primary">
             <div class="text-sm text-slate-300">Gastos del día</div>
             <div class="text-2xl font-bold">
                 ${{ number_format((float)$gastosTotalActual, 2, ',', '.') }}
@@ -333,8 +333,8 @@
     </div>
 @endif
 
-<div class="rounded-2xl border bg-white overflow-hidden mb-6">
-    <div class="px-4 py-3 border-b bg-slate-50">
+<div class="fn-table-shell mb-6">
+    <div class="fn-card-heading px-4 py-3">
         <div class="font-bold">Cobros registrados</div>
         <div class="text-sm text-slate-600">
             Cada pago parcial aparece en la fecha y medio en que fue realmente cobrado.
@@ -414,8 +414,8 @@
     </div>
 </div>
 
-    <div class="rounded-2xl border bg-white overflow-hidden">
-        <div class="px-4 py-3 border-b bg-slate-50">
+    <div class="fn-table-shell">
+        <div class="fn-card-heading px-4 py-3">
             <div class="font-bold">Gastos registrados en la caja</div>
             <div class="text-sm text-slate-600">Gastos registrados durante esta jornada de caja.</div>
         </div>

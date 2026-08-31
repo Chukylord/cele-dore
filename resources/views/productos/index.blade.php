@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Productos - fn peluqueria')
+@section('title', 'Productos - FN Peluquería')
 @section('h1', 'Productos')
 @section('sub', 'Gestión de stock y consumo interno de peluquería.')
 
@@ -45,7 +45,7 @@
     $returnTo = request()->getRequestUri();
 @endphp
 
-<div class="rounded-2xl border bg-slate-900 text-white p-5 mb-6">
+<div class="fn-feature-panel rounded-2xl p-5 mb-6">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         <div class="lg:col-span-5">
             <div class="text-xl font-bold">Uso interno con código de barras</div>
@@ -65,7 +65,7 @@
 
             <button type="button"
                     id="activar_scanner_consumo"
-                    class="mt-3 w-full rounded-xl border border-slate-600 px-4 py-3 font-semibold hover:bg-slate-800">
+                    class="fn-secondary-action mt-3 w-full">
                 Activar scanner
             </button>
         </div>
@@ -85,7 +85,7 @@
     </div>
 </div>
 
-<div class="flex flex-col gap-3 mb-6">
+<div class="fn-toolbar flex flex-col gap-3 mb-6">
     <form class="grid grid-cols-1 md:grid-cols-6 gap-3 w-full"
           method="GET"
           action="{{ route('productos.index') }}">
@@ -148,26 +148,26 @@
         </div>
 
         <div class="flex gap-2 md:col-span-6">
-            <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 w-full md:w-auto">
+            <button class="fn-primary-action w-full md:w-auto">
                 Filtrar
             </button>
 
             <a href="{{ route('productos.index') }}"
-               class="rounded-xl border px-4 py-2 hover:bg-slate-50 w-full md:w-auto text-center">
+               class="fn-secondary-action w-full md:w-auto text-center">
                 Limpiar
             </a>
 
             <div class="flex-1"></div>
 
             <a href="{{ route('productos.create') }}"
-               class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 w-full md:w-auto text-center">
+               class="fn-primary-action w-full md:w-auto text-center">
                 + Nuevo producto
             </a>
         </div>
     </form>
 </div>
 
-<div class="overflow-x-auto rounded-2xl border">
+<div class="fn-table-shell overflow-x-auto">
     <table class="min-w-full bg-white">
         <thead class="bg-slate-50 text-slate-700">
         <tr>
@@ -234,7 +234,7 @@
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="return_to" value="{{ $returnTo }}">
-                                <button class="rounded-lg border px-2 py-1 hover:bg-slate-50"
+                                <button class="fn-icon-action"
                                         title="Descontar 1 del stock de peluquería">
                                     ⬇️
                                 </button>
@@ -250,14 +250,14 @@
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="return_to" value="{{ $returnTo }}">
-                            <button class="rounded-lg border px-3 py-1 hover:bg-slate-50"
+                            <button class="fn-icon-action"
                                     title="Pasar 1 unidad a stock peluquería">
                                 💇🏻‍♀️
                             </button>
                         </form>
 
                         <a href="{{ route('productos.edit', ['producto' => $producto, 'return_to' => $returnTo]) }}"
-                           class="rounded-lg border px-3 py-1 hover:bg-white"
+                           class="fn-icon-action"
                            title="Editar">
                             ✏️
                         </a>
@@ -268,7 +268,7 @@
                             @csrf
                             @method('DELETE')
                             <input type="hidden" name="return_to" value="{{ $returnTo }}">
-                            <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar">
+                            <button class="fn-icon-action fn-icon-action-danger" title="Eliminar">
                                 🗑️
                             </button>
                         </form>

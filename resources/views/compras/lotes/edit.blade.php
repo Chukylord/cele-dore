@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar Lote - Compras')
+@section('title', 'Editar lote - FN Peluquería')
 @section('h1', 'Editar Lote')
 @section('sub', 'Editar compra múltiple y actualizar stock.')
 
@@ -54,7 +54,7 @@
     @csrf
     @method('PUT')
 
-    <div class="rounded-2xl border bg-white p-4 mb-6">
+    <div class="fn-section-card mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
                 <label class="text-sm font-semibold text-slate-700">Fecha *</label>
@@ -86,19 +86,19 @@
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-section-card">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <div class="text-lg font-bold">Items del lote #{{ $lote->id }}</div>
                 <div class="text-sm text-slate-600">Podés cambiar cantidades, precios, productos y proveedores.</div>
             </div>
             <button type="button" id="addRow"
-                    class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                    class="fn-primary-action">
                 + Agregar línea
             </button>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border">
+        <div class="fn-table-shell overflow-x-auto">
             <table class="min-w-full bg-white" id="tablaItems">
                 <thead class="bg-slate-50 text-slate-700">
                 <tr>
@@ -122,8 +122,8 @@
         </div>
 
         <div class="mt-6 flex gap-2 justify-end">
-            <a href="{{ route('compras.index') }}" class="rounded-xl border px-4 py-2 hover:bg-slate-50">Cancelar</a>
-            <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+            <a href="{{ route('compras.index') }}" class="fn-secondary-action">Cancelar</a>
+            <button class="fn-primary-action">
                 Guardar cambios
             </button>
         </div>
@@ -207,7 +207,7 @@ function addRow(prefill = null){
         <td class="px-4 py-3 font-semibold sub">$0,00</td>
 
         <td class="px-4 py-3 text-right">
-            <button type="button" class="rounded-lg border px-3 py-1 hover:bg-white">🗑️</button>
+            <button type="button" class="fn-icon-action fn-icon-action-danger">🗑️</button>
         </td>
     `;
 

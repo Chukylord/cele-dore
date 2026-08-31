@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Lista de precios')
+@section('title', 'Lista de precios - FN Peluquería')
 @section('h1', 'Lista de precios')
 @section('sub', 'Consultar, escanear y actualizar únicamente los precios que cambien.')
 
@@ -52,7 +52,7 @@
     $cantidadSinPrecio = $productos->filter(fn ($p) => (float) $p->precio_efectivo_calculado <= 0)->count();
 @endphp
 
-<div class="rounded-2xl border bg-white p-4 mb-5">
+<div class="fn-toolbar mb-5">
     <form method="GET"
           action="{{ route('lista-precios.index') }}"
           class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
@@ -81,12 +81,12 @@
         </div>
 
         <div class="flex gap-2">
-            <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+            <button class="fn-primary-action">
                 Filtrar
             </button>
 
             <a href="{{ route('lista-precios.index') }}"
-               class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+               class="fn-secondary-action">
                 Limpiar
             </a>
         </div>
@@ -94,17 +94,17 @@
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-stat-card">
         <div class="text-sm text-slate-500">Productos mostrados</div>
         <div class="text-2xl font-bold text-slate-900">{{ $productos->count() }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-green-50 p-4">
+    <div class="fn-stat-card bg-green-50">
         <div class="text-sm text-green-700">Precio automático</div>
         <div class="text-2xl font-bold text-green-800">{{ $cantidadAutomatico }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-amber-50 p-4">
+    <div class="fn-stat-card bg-amber-50">
         <div class="text-sm text-amber-700">Precio manual</div>
         <div class="text-2xl font-bold text-amber-800">{{ $cantidadManual }}</div>
     </div>
@@ -117,7 +117,7 @@
     </div>
 </div>
 
-<div class="rounded-2xl border bg-slate-950 text-white p-5 mb-6">
+<div class="fn-feature-panel rounded-2xl p-5 mb-6">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         <div class="lg:col-span-4">
             <label class="text-sm font-semibold text-slate-200">
@@ -136,7 +136,7 @@
 
             <button type="button"
                     id="activarScanner"
-                    class="mt-4 w-full rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold hover:bg-slate-900">
+                    class="fn-secondary-action mt-4 w-full">
                 Activar scanner
             </button>
         </div>
@@ -164,7 +164,7 @@
     <input type="hidden" name="buscar_actual" value="{{ $buscar }}">
     <input type="hidden" name="proveedor_actual" value="{{ $proveedor_id }}">
 
-    <div class="rounded-2xl border bg-white p-4 mb-5">
+    <div class="fn-section-card mb-5">
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-end">
             <div class="xl:col-span-4">
                 <div class="text-lg font-bold text-slate-800">Aumento masivo</div>
@@ -194,13 +194,13 @@
             <div class="xl:col-span-3 flex flex-wrap gap-2 xl:justify-end">
                 <button type="button"
                         id="btnAumentar"
-                        class="rounded-xl bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700">
+                        class="fn-secondary-action">
                     Aumentar seleccionados
                 </button>
 
                 <button type="button"
                         id="btnGuardar"
-                        class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                        class="fn-primary-action">
                     Guardar cambios
                 </button>
             </div>
@@ -214,7 +214,7 @@
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-white overflow-hidden">
+    <div class="fn-table-shell">
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white">
                 <thead class="bg-slate-50 text-slate-700">
@@ -333,7 +333,7 @@
                         <td class="px-4 py-3 align-top text-right">
                             @if($producto->precio_efectivo_manual !== null)
                                 <button type="button"
-                                        class="btn-restablecer rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold hover:bg-slate-50"
+                                        class="btn-restablecer fn-mini-action"
                                         data-producto-id="{{ $producto->id }}"
                                         data-producto-nombre="{{ $nombre }}">
                                     Volver a automático

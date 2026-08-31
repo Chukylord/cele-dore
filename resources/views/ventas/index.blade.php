@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ventas - fn peluqueria')
+@section('title', 'Ventas - FN Peluquería')
 @section('h1', 'Ventas')
 @section('sub', 'Ventas, cobros parciales y saldos pendientes.')
 
@@ -23,7 +23,7 @@
     </div>
 @endif
 
-<div class="flex flex-col gap-3 mb-6">
+<div class="fn-toolbar flex flex-col gap-3 mb-6">
     <form class="grid grid-cols-1 md:grid-cols-6 gap-3 w-full"
           method="GET"
           action="{{ route('ventas.index') }}">
@@ -79,11 +79,11 @@
         </div>
 
         <div class="flex gap-2">
-            <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+            <button class="fn-primary-action mt-6 w-full">
                 Filtrar
             </button>
             <a href="{{ route('ventas.index') }}"
-               class="mt-6 w-full text-center rounded-xl border px-4 py-2 hover:bg-slate-50">
+               class="fn-secondary-action mt-6 w-full text-center">
                 Limpiar
             </a>
         </div>
@@ -91,13 +91,13 @@
 
     <div class="flex justify-end">
         <a href="{{ route('ventas.create') }}"
-           class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+           class="fn-primary-action">
             + Nueva venta
         </a>
     </div>
 </div>
 
-<div class="overflow-x-auto rounded-2xl border">
+<div class="fn-table-shell overflow-x-auto">
     <table class="min-w-full bg-white">
         <thead class="bg-slate-50 text-slate-700">
         <tr>
@@ -207,14 +207,14 @@
                 <td class="px-4 py-3">
                     <div class="flex justify-end gap-2 flex-wrap">
                         <a href="{{ route('ventas.show', $v) }}"
-                           class="rounded-lg border px-3 py-1 hover:bg-white"
+                           class="fn-icon-action"
                            title="Ver detalle">
                             🔎
                         </a>
 
                         @if($saldoBaseVenta > 0.01)
                             <button type="button"
-                                    class="rounded-lg border px-3 py-1 hover:bg-green-50"
+                                    class="fn-icon-action"
                                     data-open-cobro="{{ $v->id }}"
                                     title="Registrar cobro">
                                 💵
@@ -226,7 +226,7 @@
                               onsubmit="return confirm('¿Eliminar venta?');">
                             @csrf
                             @method('DELETE')
-                            <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar">
+                            <button class="fn-icon-action fn-icon-action-danger" title="Eliminar">
                                 🗑️
                             </button>
                         </form>
@@ -239,7 +239,7 @@
                     <td colspan="7" class="p-0 border-0">
                         <div id="modal-cobro-{{ $v->id }}"
                              class="fixed inset-0 hidden items-center justify-center bg-black/50 p-4 z-50">
-                            <div class="w-full max-w-2xl rounded-2xl bg-white shadow-2xl p-5">
+                            <div class="fn-modal-card w-full max-w-2xl p-6">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
                                         <div class="text-xl font-bold">Registrar cobro</div>
@@ -274,7 +274,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="resumen-cobro mt-4 rounded-xl border bg-slate-50 p-4">
+                                    <div class="fn-soft-panel resumen-cobro mt-4 p-4">
                                         <div class="flex justify-between gap-3">
                                             <span class="text-slate-600">Base que se abona</span>
                                             <strong>${{ number_format($saldoBaseVenta, 2, ',', '.') }}</strong>
@@ -334,11 +334,11 @@
 
                                     <div class="mt-5 flex justify-end gap-2">
                                         <button type="button"
-                                                class="rounded-xl border px-4 py-2 hover:bg-slate-50"
+                                                class="fn-secondary-action"
                                                 data-close-cobro="{{ $v->id }}">
                                             Cancelar
                                         </button>
-                                        <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                                        <button class="fn-primary-action">
                                             Registrar cobro
                                         </button>
                                     </div>
@@ -365,25 +365,25 @@
 
 @if(auth()->user()->esAdmin())
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <div class="rounded-2xl border bg-white p-4">
+        <div class="fn-stat-card">
             <div class="text-sm text-slate-500">Efectivo cobrado</div>
             <div class="text-2xl font-bold text-green-700">
                 ${{ number_format((float)$totalEfectivo, 2, ',', '.') }}
             </div>
         </div>
-        <div class="rounded-2xl border bg-white p-4">
+        <div class="fn-stat-card">
             <div class="text-sm text-slate-500">Transferencia cobrada</div>
             <div class="text-2xl font-bold text-blue-700">
                 ${{ number_format((float)$totalTransferencia, 2, ',', '.') }}
             </div>
         </div>
-        <div class="rounded-2xl border bg-white p-4">
+        <div class="fn-stat-card">
             <div class="text-sm text-slate-500">Tarjeta cobrada</div>
             <div class="text-2xl font-bold text-purple-700">
                 ${{ number_format((float)$totalTarjeta, 2, ',', '.') }}
             </div>
         </div>
-        <div class="rounded-2xl border bg-slate-900 p-4 text-white">
+        <div class="fn-stat-card fn-stat-card-primary">
             <div class="text-sm text-slate-300">Total cobrado</div>
             <div class="text-2xl font-bold">
                 ${{ number_format((float)$totalGeneral, 2, ',', '.') }}

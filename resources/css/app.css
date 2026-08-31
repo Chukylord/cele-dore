@@ -244,7 +244,7 @@
 /* TABLAS */
 
 .fn-admin .fn-table-shell {
-    overflow: hidden;
+    overflow-x: auto;
     border: 1px solid var(--fn-border);
     border-radius: 1.5rem;
     background: #ffffff;
@@ -307,6 +307,12 @@
     background: #fef2f2;
 }
 
+.fn-admin .fn-icon-action-danger {
+    border-color: #fecaca;
+    background: #fffafa;
+    color: #b91c1c;
+}
+
 .fn-admin .fn-mini-action {
     display: inline-flex;
     align-items: center;
@@ -332,14 +338,209 @@
 /* MODALES */
 
 .fn-admin .fn-modal-card {
-    width: 100%;
-    max-width: 42rem;
-
     border: 1px solid var(--fn-border);
     border-radius: 1.5rem;
 
     background: #ffffff;
-    padding: 1.5rem;
 
     box-shadow: 0 30px 80px rgba(36, 26, 44, 0.25);
+}
+
+
+/* =========================================================
+   FN — SUPERFICIES, FORMULARIOS Y RESÚMENES
+   ========================================================= */
+
+.fn-admin .fn-form-card,
+.fn-admin .fn-section-card {
+    border: 1px solid var(--fn-border);
+    border-radius: 1.5rem;
+    background:
+        radial-gradient(circle at top right, rgba(143, 87, 166, 0.06), transparent 28%),
+        #ffffff;
+    padding: 1.5rem;
+    box-shadow: 0 10px 28px rgba(111, 62, 134, 0.06);
+}
+
+.fn-admin .fn-form-card {
+    max-width: 64rem;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.fn-admin .fn-soft-panel {
+    border: 1px solid var(--fn-border);
+    border-radius: 1rem;
+    background: #faf7fc;
+}
+
+.fn-admin .fn-stat-card {
+    border: 1px solid var(--fn-border);
+    border-radius: 1.25rem;
+    padding: 1rem;
+    box-shadow: 0 8px 22px rgba(111, 62, 134, 0.055);
+}
+
+:where(.fn-admin .fn-stat-card) {
+    background: #ffffff;
+}
+
+.fn-admin .fn-stat-card-primary {
+    border-color: rgba(143, 87, 166, 0.28);
+    background: linear-gradient(135deg, #f5eef8, #ffffff) !important;
+    color: var(--fn-text) !important;
+}
+
+.fn-admin .fn-stat-card-primary .text-white,
+.fn-admin .fn-stat-card-primary .text-slate-200,
+.fn-admin .fn-stat-card-primary .text-slate-300,
+.fn-admin .fn-stat-card-primary .text-slate-400 {
+    color: var(--fn-primary-dark) !important;
+}
+
+.fn-admin .fn-danger-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1px solid #fecaca;
+    border-radius: 0.85rem;
+    background: #ffffff;
+    padding: 0.65rem 1rem;
+    color: #b91c1c;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.fn-admin .fn-danger-action:hover {
+    border-color: #fca5a5;
+    background: #fef2f2;
+}
+
+.fn-admin .fn-danger-action.hidden,
+.fn-admin .fn-primary-action.hidden,
+.fn-admin .fn-secondary-action.hidden {
+    display: none !important;
+}
+
+.fn-admin .fn-feature-panel {
+    border: 1px solid var(--fn-border) !important;
+    background:
+        radial-gradient(circle at top right, rgba(143, 87, 166, 0.12), transparent 32%),
+        linear-gradient(135deg, #f5eef8, #ffffff) !important;
+    color: var(--fn-text) !important;
+    box-shadow: 0 12px 30px rgba(111, 62, 134, 0.08);
+}
+
+.fn-admin .fn-feature-panel .text-white,
+.fn-admin .fn-feature-panel .text-slate-200,
+.fn-admin .fn-feature-panel .text-slate-300,
+.fn-admin .fn-feature-panel .text-slate-400 {
+    color: var(--fn-primary-dark) !important;
+}
+
+.fn-admin .fn-feature-panel input,
+.fn-admin .fn-feature-panel select,
+.fn-admin .fn-feature-panel textarea,
+.fn-admin .fn-feature-panel [class*="bg-slate-8"],
+.fn-admin .fn-feature-panel [class*="bg-slate-9"] {
+    border-color: var(--fn-border) !important;
+    background: #ffffff !important;
+    color: var(--fn-text) !important;
+}
+
+.fn-admin .fn-feature-panel [class*="border-slate-"] {
+    border-color: var(--fn-border) !important;
+}
+
+.fn-admin .fn-checkout {
+    border-color: var(--fn-border) !important;
+    background:
+        radial-gradient(circle at top right, rgba(143, 87, 166, 0.11), transparent 28%),
+        #ffffff !important;
+    color: var(--fn-text) !important;
+    box-shadow: 0 18px 45px rgba(111, 62, 134, 0.11) !important;
+}
+
+.fn-admin .fn-checkout [class*="bg-slate-9"],
+.fn-admin .fn-checkout [class*="from-slate-9"],
+.fn-admin .fn-checkout [class*="via-slate-9"],
+.fn-admin .fn-checkout [class*="to-slate-9"] {
+    background-color: #faf7fc !important;
+    background-image: none !important;
+}
+
+.fn-admin .fn-checkout [class*="border-slate-"],
+.fn-admin .fn-checkout [class*="border-white"] {
+    border-color: var(--fn-border) !important;
+}
+
+.fn-admin .fn-checkout [class*="bg-blue-"],
+.fn-admin .fn-checkout [class*="bg-violet-"] {
+    background-color: rgba(143, 87, 166, 0.10) !important;
+}
+
+.fn-admin .fn-checkout [class*="border-blue-"],
+.fn-admin .fn-checkout [class*="border-violet-"] {
+    border-color: rgba(143, 87, 166, 0.30) !important;
+}
+
+.fn-admin .fn-checkout .text-white,
+.fn-admin .fn-checkout .text-slate-200,
+.fn-admin .fn-checkout .text-slate-300,
+.fn-admin .fn-checkout .text-slate-400,
+.fn-admin .fn-checkout .text-slate-500,
+.fn-admin .fn-checkout .text-blue-200,
+.fn-admin .fn-checkout .text-blue-300,
+.fn-admin .fn-checkout .text-blue-400,
+.fn-admin .fn-checkout .text-violet-400 {
+    color: var(--fn-primary-dark) !important;
+}
+
+.fn-admin .fn-checkout input,
+.fn-admin .fn-checkout select,
+.fn-admin .fn-checkout textarea {
+    border-color: var(--fn-border) !important;
+    background: #ffffff !important;
+    color: var(--fn-text) !important;
+}
+
+.fn-admin .fn-checkout .fn-primary-action,
+.fn-admin .fn-checkout button[type="submit"] {
+    border-color: transparent !important;
+    background: linear-gradient(135deg, var(--fn-primary), var(--fn-primary-dark)) !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 24px rgba(111, 62, 134, 0.22) !important;
+}
+
+.fn-admin .fn-checkout button[type="submit"]:hover {
+    background: linear-gradient(135deg, var(--fn-primary-dark), var(--fn-primary-darker)) !important;
+}
+
+.fn-admin .fn-card-heading {
+    border-bottom: 1px solid var(--fn-border);
+    background: #faf7fc;
+    color: var(--fn-text);
+}
+
+.fn-admin .fn-empty-state {
+    padding: 2rem 1rem;
+    color: #64748b;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .fn-admin .fn-form-card,
+    .fn-admin .fn-section-card,
+    .fn-admin .fn-toolbar {
+        border-radius: 1.1rem;
+        padding: 1rem;
+    }
+
+    .fn-admin .fn-primary-action,
+    .fn-admin .fn-secondary-action,
+    .fn-admin .fn-danger-action {
+        min-height: 2.75rem;
+    }
 }

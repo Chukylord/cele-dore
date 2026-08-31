@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nuevo Producto - fn peluqueria')
+@section('title', 'Nuevo producto - FN Peluquería')
 @section('h1', 'Nuevo Producto')
 @section('sub', 'Registrar un producto para ventas y stock.')
 
@@ -24,11 +24,11 @@
                 <input type="hidden" name="stock_minimo" value="{{ old('stock_minimo') }}">
                 <input type="hidden" name="force_create" value="1">
 
-                <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action">
                     Sí, crear igual
                 </button>
 
-                <a href="{{ route('productos.create') }}" class="ml-2 rounded-xl border px-4 py-2 hover:bg-slate-50">
+                <a href="{{ route('productos.create') }}" class="fn-secondary-action ml-2">
                     No, volver a editar
                 </a>
             </form>
@@ -46,7 +46,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('productos.store') }}">
+    <form method="POST" action="{{ route('productos.store') }}" class="fn-form-card">
         @include('productos._form')
     </form>
 

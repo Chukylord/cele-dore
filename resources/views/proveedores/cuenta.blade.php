@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Cuenta corriente - Proveedor')
+@section('title', 'Cuenta corriente - FN Peluquería')
 @section('h1', 'Cuenta corriente')
 @section('sub', 'Compras, entregas y saldo del proveedor.')
 
@@ -23,27 +23,27 @@
     </div>
 @endif
 
-<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+<div class="fn-toolbar flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
     <div>
         <div class="text-2xl font-bold">{{ $proveedor->nombre }}</div>
         <div class="text-slate-600 mt-1">Detalle de cuenta corriente del proveedor.</div>
     </div>
 
     <a href="{{ route('proveedores.index') }}"
-       class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 text-center">
+       class="fn-primary-action text-center">
         Volver
     </a>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-stat-card">
         <div class="text-sm text-slate-600">Total comprado</div>
         <div class="text-2xl font-bold mt-1">
             ${{ number_format((float)$totalCompras, 2, ',', '.') }}
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-stat-card">
         <div class="text-sm text-slate-600">Total entregado</div>
         <div class="text-2xl font-bold mt-1 text-green-700">
             ${{ number_format((float)$totalPagos, 2, ',', '.') }}
@@ -60,7 +60,7 @@
     </div>
 </div>
 
-<div class="rounded-2xl border bg-white p-4 mb-6">
+<div class="fn-section-card mb-6">
     <div class="text-lg font-bold mb-4">Registrar entrega</div>
 
     <form method="POST" action="{{ route('proveedores.pagos.store', $proveedor) }}"
@@ -95,14 +95,14 @@
         </div>
 
         <div>
-            <button class="w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+            <button class="fn-primary-action w-full">
                 Guardar entrega
             </button>
         </div>
     </form>
 </div>
 
-<div class="overflow-x-auto rounded-2xl border">
+<div class="fn-table-shell overflow-x-auto">
     <table class="min-w-full bg-white">
         <thead class="bg-slate-50 text-slate-700">
         <tr>
@@ -163,7 +163,7 @@
                     <div class="flex justify-end gap-2">
                         @if($mov['tipo'] === 'pago' && !empty($mov['pago_id']))
                             <button type="button"
-                                    class="rounded-lg border px-3 py-1 hover:bg-white"
+                                    class="fn-icon-action"
                                     title="Editar entrega"
                                     data-open-pago="{{ $mov['pago_id'] }}">
                                 ✏️
@@ -174,7 +174,7 @@
                                   onsubmit="return confirm('¿Eliminar esta entrega?');">
                                 @csrf
                                 @method('DELETE')
-                                <button class="rounded-lg border px-3 py-1 hover:bg-white"
+                                <button class="fn-icon-action fn-icon-action-danger"
                                         title="Eliminar entrega">
                                     🗑️
                                 </button>
@@ -189,7 +189,7 @@
             @if($mov['tipo'] === 'pago' && !empty($mov['pago_id']))
                 <div id="modal-pago-{{ $mov['pago_id'] }}"
                      class="fixed inset-0 hidden items-center justify-center bg-black/40 p-4 z-50">
-                    <div class="w-full max-w-xl bg-white rounded-2xl shadow p-5">
+                    <div class="fn-modal-card w-full max-w-xl p-6">
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <div class="text-lg font-bold">Editar entrega</div>
@@ -236,12 +236,12 @@
 
                             <div class="flex justify-end gap-2">
                                 <button type="button"
-                                        class="rounded-xl border px-4 py-2 hover:bg-slate-50"
+                                        class="fn-secondary-action"
                                         data-close-pago="{{ $mov['pago_id'] }}">
                                     Cancelar
                                 </button>
 
-                                <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                                <button class="fn-primary-action">
                                     Guardar cambios
                                 </button>
                             </div>

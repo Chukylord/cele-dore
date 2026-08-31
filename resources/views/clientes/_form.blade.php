@@ -60,7 +60,7 @@ COLOR CRECIMIENTOS 5(20) 6.33(20) 6.12(20) 10VOL
 COLOR LARGOS 6.33(50) 6.12(50) 10VOL
 S.O.S COLOR 5(2) 6(2) 6.33(2) 6.12(2) 10VOL">{{ old('observacion', $cliente->observacion ?? '') }}</textarea>
 
-        <div class="mt-2 rounded-xl border bg-slate-50 px-3 py-2 text-xs text-slate-600">
+        <div class="fn-soft-panel mt-2 px-3 py-2 text-xs text-slate-600">
             Usá <strong>Enter</strong> para separar cada fórmula o nota en un renglón distinto.
         </div>
 
@@ -71,12 +71,12 @@ S.O.S COLOR 5(2) 6(2) 6.33(2) 6.12(2) 10VOL">{{ old('observacion', $cliente->obs
 </div>
 
 <div class="mt-6 flex gap-2">
-    <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+    <button class="fn-primary-action">
         Guardar
     </button>
 
     <a href="{{ route('clientes.index') }}"
-       class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+       class="fn-secondary-action">
         Cancelar
     </a>
 </div>

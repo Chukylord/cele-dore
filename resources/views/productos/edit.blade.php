@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar Producto - fn peluqueria')
+@section('title', 'Editar producto - FN Peluquería')
 @section('h1', 'Editar Producto')
 @section('sub', 'Modificá los datos del producto.')
 
@@ -22,7 +22,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('productos.update', $producto) }}">
+    <form method="POST" action="{{ route('productos.update', $producto) }}" class="fn-form-card">
         @method('PUT')
         @include('productos._form', ['producto' => $producto])
     </form>

@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Informes - fn peluqueria')
+@section('title', 'Informes - FN Peluquería')
 @section('h1', 'Informes')
 @section('sub', 'Balance económico y actividad realizada en el período.')
 
 @section('content')
 
-<form class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6"
+<form class="fn-toolbar grid grid-cols-1 md:grid-cols-4 gap-3 mb-6"
       method="GET"
       action="{{ route('informes.index') }}">
     <div>
@@ -26,12 +26,12 @@
     </div>
 
     <div class="flex gap-2">
-        <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+        <button class="fn-primary-action mt-6 w-full">
             Filtrar
         </button>
 
         <a href="{{ route('informes.index') }}"
-           class="mt-6 w-full text-center rounded-xl border px-4 py-2 hover:bg-slate-50">
+           class="fn-secondary-action mt-6 w-full text-center">
             Limpiar
         </a>
     </div>
@@ -61,26 +61,26 @@
 </div>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="rounded-2xl border bg-slate-900 p-4 text-white">
+    <div class="fn-stat-card fn-stat-card-primary">
         <div class="text-sm text-slate-300">Atenciones / ventas</div>
         <div class="text-3xl font-extrabold mt-1">{{ number_format((int)$cantidadAtenciones, 0, ',', '.') }}</div>
     </div>
 
-    <div class="rounded-2xl border bg-pink-50 p-4">
+    <div class="fn-stat-card bg-pink-50">
         <div class="text-sm text-pink-700">Clientas diferentes</div>
         <div class="text-3xl font-extrabold text-pink-800 mt-1">
             {{ number_format((int)$clientasUnicas, 0, ',', '.') }}
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-indigo-50 p-4">
+    <div class="fn-stat-card bg-indigo-50">
         <div class="text-sm text-indigo-700">Servicios realizados</div>
         <div class="text-3xl font-extrabold text-indigo-800 mt-1">
             {{ number_format((int)$totalServiciosRealizados, 0, ',', '.') }}
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-cyan-50 p-4">
+    <div class="fn-stat-card bg-cyan-50">
         <div class="text-sm text-cyan-700">Productos vendidos</div>
         <div class="text-3xl font-extrabold text-cyan-800 mt-1">
             {{ number_format((int)$totalProductosVendidos, 0, ',', '.') }}
@@ -89,8 +89,8 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <div class="rounded-2xl border bg-white overflow-hidden">
-        <div class="px-4 py-3 bg-slate-50 border-b">
+    <div class="fn-table-shell">
+        <div class="fn-card-heading px-4 py-3">
             <div class="text-lg font-bold">Servicios realizados</div>
             <div class="text-sm text-slate-600">Cantidad de veces que se registró cada servicio.</div>
         </div>
@@ -135,8 +135,8 @@
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-white overflow-hidden">
-        <div class="px-4 py-3 bg-slate-50 border-b">
+    <div class="fn-table-shell">
+        <div class="fn-card-heading px-4 py-3">
             <div class="text-lg font-bold">Productos vendidos</div>
             <div class="text-sm text-slate-600">Unidades vendidas de cada producto.</div>
         </div>
@@ -194,7 +194,7 @@
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-stat-card">
         <div class="text-sm text-slate-600">Total ingresos cobrados</div>
         <div class="text-3xl font-bold mt-1">
             ${{ number_format((float)$totalIngresos, 2, ',', '.') }}
@@ -213,7 +213,7 @@
         <div class="text-xs text-yellow-800 mt-1">No anticipa un futuro recargo de tarjeta.</div>
     </div>
 
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-stat-card">
         <div class="text-sm text-slate-600">Total egresos</div>
         <div class="text-3xl font-bold mt-1">
             ${{ number_format((float)$totalEgresos, 2, ',', '.') }}
@@ -257,7 +257,7 @@
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-section-card">
         <div class="text-lg font-bold mb-1">Ingresos cobrados</div>
         <div class="text-sm text-slate-500 mb-4">
             Distribuidos proporcionalmente entre productos y servicios de cada pago.
@@ -278,14 +278,14 @@
                     ${{ number_format((float)$ingresoRecargoTarjeta, 2, ',', '.') }}
                 </strong>
             </div>
-            <div class="flex items-center justify-between rounded-xl bg-slate-900 text-white p-3">
+            <div class="flex items-center justify-between rounded-xl bg-[#efe6f4] text-[#5c3272] p-3">
                 <span>Total ingresos cobrados</span>
                 <strong>${{ number_format((float)$totalIngresos, 2, ',', '.') }}</strong>
             </div>
         </div>
     </div>
 
-    <div class="rounded-2xl border bg-white p-4">
+    <div class="fn-section-card">
         <div class="text-lg font-bold mb-4">Egresos</div>
 
         <div class="space-y-3">
@@ -305,7 +305,7 @@
                 <span>Gastos</span>
                 <strong>${{ number_format((float)$egresoGastos, 2, ',', '.') }}</strong>
             </div>
-            <div class="flex items-center justify-between rounded-xl bg-slate-900 text-white p-3">
+            <div class="flex items-center justify-between rounded-xl bg-[#efe6f4] text-[#5c3272] p-3">
                 <span>Total egresos</span>
                 <strong>${{ number_format((float)$totalEgresos, 2, ',', '.') }}</strong>
             </div>

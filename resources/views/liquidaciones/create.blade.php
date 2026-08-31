@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva Liquidación - fn peluqueria')
+@section('title', 'Nueva liquidación - FN Peluquería')
 @section('h1', 'Nueva Liquidación')
 @section('sub', 'Calcular y registrar pago de colaboradora.')
 
@@ -18,7 +18,7 @@
     @endif
 
     {{-- Selección de colaboradora para ver resumen --}}
-    <form method="GET" action="{{ route('liquidaciones.create') }}" class="rounded-2xl border bg-white p-4 mb-6">
+    <form method="GET" action="{{ route('liquidaciones.create') }}" class="fn-toolbar mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div class="md:col-span-2">
                 <label class="text-sm font-semibold text-slate-700">Colaboradora</label>
@@ -34,7 +34,7 @@
             </div>
 
             <div>
-                <button class="w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action w-full">
                     Ver resumen
                 </button>
             </div>
@@ -47,28 +47,28 @@
             <input type="hidden" name="colaboradora_id" value="{{ $colaboradoraId }}">
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-                <div class="rounded-2xl border bg-white p-4">
+                <div class="fn-stat-card">
                     <div class="text-sm text-slate-600">Horas normales</div>
                     <div class="text-2xl font-bold mt-1">{{ number_format($resumen['horas_normales'], 2, ',', '.') }} hs</div>
                 </div>
 
-                <div class="rounded-2xl border bg-white p-4">
+                <div class="fn-stat-card">
                     <div class="text-sm text-slate-600">Horas extras</div>
                     <div class="text-2xl font-bold mt-1">{{ number_format($resumen['horas_extras'], 2, ',', '.') }} hs</div>
                 </div>
 
-                <div class="rounded-2xl border bg-white p-4">
+                <div class="fn-stat-card">
                     <div class="text-sm text-slate-600">Comisión</div>
                     <div class="text-2xl font-bold mt-1">${{ number_format($resumen['monto_comision'], 2, ',', '.') }}</div>
                 </div>
 
-                <div class="rounded-2xl border bg-white p-4">
+                <div class="fn-stat-card">
                     <div class="text-sm text-slate-600">Productos a costo</div>
                     <div class="text-2xl font-bold mt-1">${{ number_format($resumen['monto_productos_costo'], 2, ',', '.') }}</div>
                 </div>
             </div>
 
-            <div class="rounded-2xl border bg-white p-4">
+            <div class="fn-section-card">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="text-sm font-semibold text-slate-700">Fecha pago *</label>
@@ -94,17 +94,17 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-6">
-                    <div class="rounded-2xl border bg-slate-50 p-4">
+                    <div class="fn-stat-card bg-slate-50">
                         <div class="text-sm text-slate-600">Pago horas normales</div>
                         <div class="text-2xl font-bold mt-1" id="monto_normales">$0,00</div>
                     </div>
 
-                    <div class="rounded-2xl border bg-slate-50 p-4">
+                    <div class="fn-stat-card bg-slate-50">
                         <div class="text-sm text-slate-600">Pago horas extras</div>
                         <div class="text-2xl font-bold mt-1" id="monto_extras">$0,00</div>
                     </div>
 
-                    <div class="rounded-2xl border bg-slate-50 p-4">
+                    <div class="fn-stat-card bg-slate-50">
                         <div class="text-sm text-slate-600">+ Comisión / - Productos</div>
                         <div class="text-lg font-bold mt-1">
                             + ${{ number_format($resumen['monto_comision'], 2, ',', '.') }}
@@ -113,24 +113,24 @@
                         </div>
                     </div>
 
-                    <div class="rounded-2xl border bg-slate-900 text-white p-4">
+                    <div class="fn-stat-card fn-stat-card-primary">
                         <div class="text-sm text-slate-200">Total a pagar</div>
                         <div class="text-3xl font-extrabold mt-1" id="monto_total">$0,00</div>
                     </div>
                 </div>
 
                 <div class="mt-6 flex gap-2 flex-wrap">
-                    <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                    <button class="fn-primary-action">
                         Registrar liquidación
                     </button>
 
                     <a href="{{ route('liquidaciones.index') }}"
-                       class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+                       class="fn-secondary-action">
                         Cancelar
                     </a>
 
                     <a href="https://www.arca.gob.ar/" target="_blank"
-                       class="rounded-xl bg-slate-700 text-white px-4 py-2 hover:bg-slate-600">
+                       class="fn-secondary-action">
                         Facturar
                     </a>
                 </div>

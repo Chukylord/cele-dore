@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ver cliente - fn peluqueria')
+@section('title', 'Ver cliente - FN Peluquería')
 @section('h1', 'Ver cliente')
 @section('sub', 'Ficha e historial de compras.')
 
@@ -13,7 +13,7 @@
         : [];
 @endphp
 
-<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+<div class="fn-toolbar flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
     <div>
         <div class="text-2xl font-bold">{{ $cliente->apellido }} {{ $cliente->nombre }}</div>
         <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -25,7 +25,7 @@
                         <button type="button"
                                 id="copiarDniCliente"
                                 data-dni="{{ $cliente->dni }}"
-                                class="rounded-lg border bg-white px-3 py-1 text-sm hover:bg-slate-50">
+                                class="fn-mini-action">
                             Copiar
                         </button>
                     </div>
@@ -43,18 +43,18 @@
 
     <div class="flex gap-2">
         <a href="{{ route('clientes.edit', $cliente) }}"
-           class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+           class="fn-secondary-action">
             ✏️ Editar
         </a>
 
         <a href="{{ route('clientes.index') }}"
-           class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+           class="fn-primary-action">
             Volver
         </a>
     </div>
 </div>
 
-<div class="rounded-2xl border bg-slate-50 p-4 mb-6">
+<div class="fn-section-card mb-6">
     <div class="text-sm font-semibold text-slate-700 mb-3">Observación</div>
 
     @if(count($lineasObs))
@@ -79,7 +79,7 @@
     </div>
 </div>
 
-<div class="rounded-2xl border overflow-x-auto">
+<div class="fn-table-shell overflow-x-auto">
     <table class="min-w-full bg-white">
         <thead class="bg-slate-50 text-slate-700">
         <tr>

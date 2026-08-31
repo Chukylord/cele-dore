@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Proveedores - fn peluqueria')
+@section('title', 'Proveedores - FN Peluquería')
 @section('h1', 'Proveedores')
 @section('sub', 'Listado de proveedores y cuenta corriente.')
 
@@ -22,7 +22,7 @@
         }
     @endphp
 
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
+    <div class="fn-toolbar flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
         <form class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full md:max-w-xl" method="GET" action="{{ route('proveedores.index') }}">
             <div>
                 <label class="text-sm font-semibold text-slate-700">Nombre</label>
@@ -31,23 +31,23 @@
             </div>
 
             <div class="flex gap-2">
-                <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action mt-6 w-full">
                     Filtrar
                 </button>
 
-                <a href="{{ route('proveedores.index') }}" class="mt-6 w-full text-center rounded-xl border px-4 py-2 hover:bg-slate-50">
+                <a href="{{ route('proveedores.index') }}" class="fn-secondary-action mt-6 w-full text-center">
                     Limpiar
                 </a>
             </div>
         </form>
 
         <a href="{{ route('proveedores.create') }}"
-           class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800 text-center">
+           class="fn-primary-action text-center">
             + Proveedor Nuevo
         </a>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border">
+    <div class="fn-table-shell overflow-x-auto">
         <table class="min-w-full bg-white">
             <thead class="bg-slate-50 text-slate-700">
             <tr>
@@ -82,13 +82,13 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center justify-end gap-2">
                             <a href="{{ route('proveedores.cuenta', $p) }}"
-                               class="rounded-lg border px-3 py-1 hover:bg-white"
+                               class="fn-icon-action"
                                title="Cuenta corriente">
                                 🔎
                             </a>
 
                             <a href="{{ route('proveedores.edit', $p) }}"
-                               class="rounded-lg border px-3 py-1 hover:bg-white"
+                               class="fn-icon-action"
                                title="Editar">
                                 ✏️
                             </a>
@@ -97,7 +97,7 @@
                                   onsubmit="return confirm('¿Eliminar este proveedor?');">
                                 @csrf
                                 @method('DELETE')
-                                <button class="rounded-lg border px-3 py-1 hover:bg-white" title="Eliminar">
+                                <button class="fn-icon-action fn-icon-action-danger" title="Eliminar">
                                     🗑️
                                 </button>
                             </form>

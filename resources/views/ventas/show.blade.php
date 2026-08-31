@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Detalle de venta - fn peluqueria')
+@section('title', 'Detalle de venta - FN Peluquería')
 @section('h1', 'Detalle de venta')
 @section('sub', 'Servicios, productos, pagos realizados y saldo pendiente.')
 
@@ -14,7 +14,7 @@
     $saldoBaseVenta = $venta->saldoPendienteBase();
 @endphp
 
-<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-6">
+<div class="fn-toolbar flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-6">
     <div>
         <div class="text-sm text-slate-600">Fecha de venta</div>
         <div class="text-xl font-bold">{{ $venta->fecha?->format('d/m/Y H:i') }}</div>
@@ -54,14 +54,14 @@
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 w-full lg:max-w-sm">
-        <div class="rounded-2xl border bg-slate-50 p-4">
+        <div class="fn-stat-card">
             <div class="text-sm text-slate-500">Total base de la venta</div>
             <div class="text-2xl font-bold">
                 ${{ number_format($totalBaseVenta, 2, ',', '.') }}
             </div>
         </div>
 
-        <div class="rounded-2xl border bg-green-50 p-4">
+        <div class="fn-stat-card bg-green-50">
             <div class="text-sm text-green-700">Total cobrado hasta ahora</div>
             <div class="text-2xl font-bold text-green-800">
                 ${{ number_format($totalCobradoVenta, 2, ',', '.') }}
@@ -73,7 +73,7 @@
             @endif
         </div>
 
-        <div class="rounded-2xl border {{ $saldoBaseVenta > 0.01 ? 'bg-amber-50' : 'bg-slate-900 text-white' }} p-4">
+        <div class="fn-stat-card {{ $saldoBaseVenta > 0.01 ? 'bg-amber-50' : 'fn-stat-card-primary' }}">
             <div class="text-sm {{ $saldoBaseVenta > 0.01 ? 'text-amber-700' : 'text-slate-300' }}">
                 Saldo base pendiente
             </div>
@@ -83,21 +83,21 @@
         </div>
 
         <a href="{{ route('ventas.index') }}"
-           class="text-center rounded-xl bg-slate-900 text-white px-4 py-3 hover:bg-slate-800">
+           class="fn-primary-action text-center">
             Volver a ventas
         </a>
     </div>
 </div>
 
 @if($venta->notas)
-    <div class="mb-6 rounded-2xl border bg-slate-50 p-4">
+    <div class="fn-section-card mb-6">
         <div class="text-sm font-semibold text-slate-700 mb-1">Notas</div>
         <div class="whitespace-pre-wrap">{{ $venta->notas }}</div>
     </div>
 @endif
 
-<div class="rounded-2xl border overflow-hidden mb-6">
-    <div class="px-4 py-3 bg-slate-50 border-b">
+<div class="fn-table-shell mb-6">
+    <div class="fn-card-heading px-4 py-3">
         <div class="font-semibold">Historial de pagos</div>
         <div class="text-sm text-slate-600">
             Cada pago figura en la fecha y medio en que fue realmente cobrado.
@@ -179,8 +179,8 @@
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="rounded-2xl border overflow-x-auto">
-        <div class="px-4 py-3 bg-slate-50 font-semibold">Servicios</div>
+    <div class="fn-table-shell overflow-x-auto">
+        <div class="fn-card-heading px-4 py-3 font-semibold">Servicios</div>
         <table class="min-w-full bg-white">
             <thead class="bg-white text-slate-700">
             <tr class="border-t">
@@ -210,8 +210,8 @@
         </div>
     </div>
 
-    <div class="rounded-2xl border overflow-x-auto">
-        <div class="px-4 py-3 bg-slate-50 font-semibold">Productos</div>
+    <div class="fn-table-shell overflow-x-auto">
+        <div class="fn-card-heading px-4 py-3 font-semibold">Productos</div>
         <table class="min-w-full bg-white">
             <thead class="bg-white text-slate-700">
             <tr class="border-t">

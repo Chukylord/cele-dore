@@ -39,11 +39,11 @@
 </div>
 
 <div class="mt-6 flex gap-2">
-    <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+    <button class="fn-primary-action">
         Guardar
     </button>
 
-    <a href="{{ route('gastos.index') }}" class="rounded-xl border px-4 py-2 hover:bg-slate-50">
+    <a href="{{ route('gastos.index') }}" class="fn-secondary-action">
         Cancelar
     </a>
 </div>

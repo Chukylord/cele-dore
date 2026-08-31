@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Gastos - fn peluqueria')
+@section('title', 'Gastos - FN Peluquería')
 @section('h1', 'Gastos')
 @section('sub', 'Registro de egresos manuales.')
 
@@ -13,13 +13,13 @@
     @endif
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-        <div class="rounded-2xl border bg-white p-4 md:col-span-1">
+        <div class="fn-stat-card md:col-span-1">
             <div class="text-sm text-slate-600">Total del filtro</div>
             <div class="text-2xl font-bold mt-1">${{ number_format((float)$totalFiltro, 2, ',', '.') }}</div>
         </div>
     </div>
 
-    <div class="flex flex-col gap-3 mb-6">
+    <div class="fn-toolbar flex flex-col gap-3 mb-6">
         <form class="grid grid-cols-1 md:grid-cols-4 gap-3 w-full" method="GET" action="{{ route('gastos.index') }}">
             <div>
                 <label class="text-sm font-semibold text-slate-700">Desde</label>
@@ -41,11 +41,11 @@
             </div>
 
             <div class="flex gap-2">
-                <button class="mt-6 w-full rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+                <button class="fn-primary-action mt-6 w-full">
                     Filtrar
                 </button>
                 <a href="{{ route('gastos.index') }}"
-                   class="mt-6 w-full text-center rounded-xl border px-4 py-2 hover:bg-slate-50">
+                   class="fn-secondary-action mt-6 w-full text-center">
                     Limpiar
                 </a>
             </div>
@@ -53,13 +53,13 @@
 
         <div class="flex justify-end">
             <a href="{{ route('gastos.create') }}"
-               class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:bg-slate-800">
+               class="fn-primary-action">
                 + Ingresar gasto
             </a>
         </div>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border">
+    <div class="fn-table-shell overflow-x-auto">
         <table class="min-w-full bg-white">
             <thead class="bg-slate-50 text-slate-700">
                 <tr>
@@ -80,13 +80,13 @@
                         <td class="px-4 py-3">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ route('gastos.edit', $g) }}"
-                                   class="rounded-lg border px-3 py-1 hover:bg-white">✏️</a>
+                                   class="fn-icon-action">✏️</a>
 
                                 <form method="POST" action="{{ route('gastos.destroy', $g) }}"
                                       onsubmit="return confirm('¿Eliminar este gasto?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="rounded-lg border px-3 py-1 hover:bg-white">🗑️</button>
+                                    <button class="fn-icon-action fn-icon-action-danger">🗑️</button>
                                 </form>
                             </div>
                         </td>
