@@ -259,6 +259,12 @@
                 </div>
             </div>
 
+            <div id="accionVentaTurno" class="hidden mt-5 rounded-xl border border-purple-200 bg-purple-50 p-4">
+                <div class="mb-2 text-sm font-semibold text-[#6f3e86]">Venta del turno</div>
+                <a id="btnVentaTurno" class="inline-flex rounded-xl bg-[#8f57a6] px-4 py-2 font-semibold text-white hover:bg-[#6f3e86]"></a>
+                <p class="mt-2 text-xs text-[#6f3e86]">Se usan los datos guardados del turno. Guardá primero cualquier cambio.</p>
+            </div>
+
             <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button type="button"
                         id="btnEliminarTurno"
@@ -302,6 +308,7 @@
     $oldTurno = [
         'tiene_errores' => $errors->any(),
         'turno_id' => old('turno_id'),
+        'venta_id' => $ventaAnteriorId,
         'cliente_id' => old('cliente_id'),
         'colaboradora_id' => old('colaboradora_id'),
         'titulo' => old('titulo'),
@@ -388,6 +395,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const OLD_TURNO = @json($oldTurno);
 
     const URL_STORE = @json(route('turnos.store'));
+    const URL_VENTA_CREATE = @json(route('ventas.create'));
+    const URL_VENTA_SHOW = @json(route('ventas.show', ['venta' => '__ID__']));
     const URL_EVENTOS = @json(route('turnos.eventos'));
     const URL_UPDATE_TEMPLATE = @json(route('turnos.update', ['turno' => '__ID__']));
     const URL_DELETE_TEMPLATE = @json(route('turnos.destroy', ['turno' => '__ID__']));
@@ -418,6 +427,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function urlConId(template, id) {
         return template.replace('__ID__', encodeURIComponent(String(id)));
+    }
+
+    function actualizarAccionVenta(id, ventaId = null) {
+        document.getElementById('accionVentaTurno').classList.toggle('hidden', !id);
+        const boton = document.getElementById('btnVentaTurno');
+        if (!id) {
+            boton.removeAttribute('href');
+            boton.textContent = '';
+            return;
+        }
+        boton.href = ventaId
+            ? urlConId(URL_VENTA_SHOW, ventaId)
+            : `${URL_VENTA_CREATE}?${new URLSearchParams({turno_id: id})}`;
+        boton.textContent = ventaId ? '✅ Ver venta' : '💵 Generar venta';
     }
 
     function toDateTimeLocal(date) {
@@ -478,6 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         form.action = URL_STORE;
         turnoId.value = '';
+        actualizarAccionVenta(null);
         clienteBuscar.value = '';
         clienteId.value = '';
         estado.value = 'pendiente';
@@ -504,6 +528,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.action = urlConId(URL_UPDATE_TEMPLATE, id);
         formEliminar.action = urlConId(URL_DELETE_TEMPLATE, id);
         turnoId.value = id;
+        actualizarAccionVenta(id, evento.extendedProps.venta_id);
 
         const cliId = evento.extendedProps.cliente_id || '';
         clienteId.value = cliId;
@@ -744,6 +769,7 @@ document.addEventListener('DOMContentLoaded', function () {
             prepararNuevoTurno();
             agregarMetodoPut();
             turnoId.value = OLD_TURNO.turno_id;
+            actualizarAccionVenta(OLD_TURNO.turno_id, OLD_TURNO.venta_id);
             form.action = urlConId(URL_UPDATE_TEMPLATE, OLD_TURNO.turno_id);
             formEliminar.action = urlConId(URL_DELETE_TEMPLATE, OLD_TURNO.turno_id);
             tituloModal.textContent = 'Editar turno';

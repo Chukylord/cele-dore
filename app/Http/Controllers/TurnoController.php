@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 
 class TurnoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $clientes = Cliente::query()
             ->orderBy('apellido')
@@ -33,13 +33,18 @@ class TurnoController extends Controller
             'cancelado' => Turno::query()->whereDate('inicio', $hoy)->where('estado', 'cancelado')->count(),
         ];
 
-        return view('turnos.index', compact('clientes', 'colaboradoras', 'estadisticas'));
+        $turnoAnterior = $request->old('turno_id');
+        $ventaAnteriorId = is_scalar($turnoAnterior) && ctype_digit((string) $turnoAnterior)
+            ? Turno::find($turnoAnterior)?->venta?->id
+            : null;
+
+        return view('turnos.index', compact('clientes', 'colaboradoras', 'estadisticas', 'ventaAnteriorId'));
     }
 
     public function eventos(Request $request)
     {
         $query = Turno::query()
-            ->with(['cliente', 'colaboradora']);
+            ->with(['cliente', 'colaboradora', 'venta:id,turno_id']);
 
         if ($request->filled('start')) {
             $query->where('inicio', '>=', Carbon::parse((string) $request->get('start')));
@@ -88,6 +93,7 @@ class TurnoController extends Controller
                 'borderColor' => $color,
                 'textColor' => '#ffffff',
                 'extendedProps' => [
+                    'venta_id' => $turno->venta?->id,
                     'detalle' => $turno->detalle,
                     'estado' => $turno->estado,
                     'cliente' => $cliente,

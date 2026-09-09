@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Venta extends Model
 {
     protected $fillable = [
+        'turno_id',
         'fecha',
         'vendedora_id',
         'cliente_id',
@@ -35,6 +36,11 @@ class Venta extends Model
         'comision_monto' => 'decimal:2',
         'total' => 'decimal:2',
     ];
+
+    public function turno()
+    {
+        return $this->belongsTo(Turno::class);
+    }
 
     public function vendedora()
     {

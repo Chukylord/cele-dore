@@ -17,8 +17,27 @@
     </div>
 @endif
 
+@php
+    $clienteSeleccionadoId = old('cliente_id', $turno?->cliente_id);
+    $clienteSeleccionado = $turno ? $clientes->firstWhere('id', $clienteSeleccionadoId) : null;
+    $clienteSeleccionadoTexto = $clienteSeleccionado
+        ? $clienteSeleccionado->apellido . ' ' . $clienteSeleccionado->nombre . ' - ' . $clienteSeleccionado->telefono
+        : old('cliente_buscar');
+@endphp
+
+@if($turno)
+    <div class="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-[#6f3e86]">
+        <div class="font-semibold">Venta generada desde turno</div>
+        <div class="text-sm">Clienta: {{ $turno->cliente->nombre }} {{ $turno->cliente->apellido }}</div>
+        <div class="text-sm">Turno: {{ $turno->inicio->format('d/m/Y H:i') }}</div>
+    </div>
+@endif
+
 <form method="POST" action="{{ route('ventas.store') }}" id="formVenta">
     @csrf
+    @if($turno)
+        <input type="hidden" name="turno_id" value="{{ $turno->id }}">
+    @endif
 
     <div class="fn-feature-panel rounded-2xl p-4">
         <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
@@ -36,10 +55,10 @@
                         name="vendedora_id"
                         class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white focus:border-white focus:ring-white">
                     <option value="" data-pct="0">-</option>
-                    @foreach($colaboradoras as $c)
+                    @foreach($vendedoras as $c)
                         <option value="{{ $c->id }}"
                                 data-pct="{{ (float)$c->comision_pct }}"
-                            {{ (string)old('vendedora_id') === (string)$c->id ? 'selected' : '' }}>
+                            {{ (string)old('vendedora_id', $turno?->colaboradora_id) === (string)$c->id ? 'selected' : '' }}>
                             {{ $c->nombre }} {{ $c->apellido }}
                             ({{ number_format((float)$c->comision_pct, 2, ',', '.') }}%)
                         </option>
@@ -76,7 +95,7 @@
                        list="datalist_clientes"
                        placeholder="Escribí para buscar..."
                        class="mt-1 w-full rounded-xl border-slate-700 bg-slate-800 text-white focus:border-white focus:ring-white"
-                       value="{{ old('cliente_buscar') }}">
+                       value="{{ $clienteSeleccionadoTexto }}">
 
                 <datalist id="datalist_clientes">
                     @foreach($clientes as $cl)
@@ -84,7 +103,7 @@
                     @endforeach
                 </datalist>
 
-                <input type="hidden" name="cliente_id" id="cliente_id" value="{{ old('cliente_id') }}">
+                <input type="hidden" name="cliente_id" id="cliente_id" value="{{ $clienteSeleccionadoId }}">
                 <div class="text-xs text-slate-300 mt-1">Si no existe, crearlo en “Clientes”.</div>
             </div>
 
@@ -761,8 +780,15 @@ function vendedoraPct(){
     return Number(opt?.dataset?.pct || 0);
 }
 
-function bindDatalist(inputEl, mapObj, hiddenEl){
+function bindDatalist(inputEl, mapObj, hiddenEl, preservarIdInicial = false){
+    const textoInicial = inputEl.value;
+    const idInicial = hiddenEl.value;
     const setId = () => {
+        // Preservar el ID precargado aunque dos clientas compartan el mismo texto.
+        if(preservarIdInicial && idInicial && inputEl.value === textoInicial){
+            hiddenEl.value = idInicial;
+            return;
+        }
         const v = (inputEl.value || '').trim();
         hiddenEl.value = mapObj[v] ? String(mapObj[v]) : '';
     };
@@ -1367,7 +1393,8 @@ document.addEventListener('DOMContentLoaded', function(){
     bindDatalist(
         document.getElementById('cliente_buscar'),
         CLIENTES_MAP,
-        document.getElementById('cliente_id')
+        document.getElementById('cliente_id'),
+        @json((bool) $turno)
     );
 
     bindDatalist(

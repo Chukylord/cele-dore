@@ -7,6 +7,7 @@ use App\Models\Colaboradora;
 use App\Models\Compra;
 use App\Models\Producto;
 use App\Models\Servicio;
+use App\Models\Turno;
 use App\Models\Venta;
 use App\Models\VentaPago;
 use App\Models\VentaProducto;
@@ -103,8 +104,23 @@ class VentaController extends Controller
         ));
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $data = $request->validate([
+            'turno_id' => ['nullable', 'integer', 'exists:turnos,id'],
+        ]);
+        $turno = null;
+
+        if (!empty($data['turno_id'])) {
+            $turno = Turno::with(['cliente', 'colaboradora', 'venta'])->findOrFail($data['turno_id']);
+
+            if ($turno->venta) {
+                return redirect()->route('ventas.show', $turno->venta);
+            }
+
+            $this->validarClientaDelTurno($turno);
+        }
+
         $clientes = Cliente::orderBy('apellido')->orderBy('nombre')->get();
 
         $colaboradoras = Colaboradora::where('activa', true)
@@ -137,7 +153,22 @@ class VentaController extends Controller
             ->orderBy('tipo')
             ->get();
 
-        return view('ventas.create', compact('clientes', 'colaboradoras', 'servicios', 'productos'));
+        // Incluir la asignada aunque se haya desactivado, solo en el selector de vendedora.
+        $vendedoras = $colaboradoras;
+        if ($turno?->colaboradora && !$vendedoras->contains('id', $turno->colaboradora_id)) {
+            $vendedoras = $vendedoras->concat([$turno->colaboradora]);
+        }
+
+        return view('ventas.create', compact('clientes', 'colaboradoras', 'vendedoras', 'servicios', 'productos', 'turno'));
+    }
+
+    private function validarClientaDelTurno(Turno $turno): void
+    {
+        if (!$turno->cliente) {
+            throw ValidationException::withMessages([
+                'turno_id' => 'El turno debe tener una clienta válida para generar una venta.',
+            ]);
+        }
     }
 
     public function show(Venta $venta)
@@ -404,6 +435,7 @@ class VentaController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'turno_id' => ['nullable', 'integer', 'exists:turnos,id'],
             'fecha' => ['required', 'date'],
             'condicion_pago' => ['nullable', 'in:completo,parcial,pendiente'],
             'tipo_pago' => ['nullable', 'in:efectivo,transferencia,tarjeta,combinado'],
@@ -494,7 +526,20 @@ class VentaController extends Controller
                 $aColaboradora,
                 $condicionPago
             ) {
+                $turno = null;
+                if (!empty($data['turno_id'])) {
+                    $turno = Turno::lockForUpdate()->find($data['turno_id']);
+                    if (!$turno) {
+                        throw ValidationException::withMessages(['turno_id' => 'El turno ya no existe.']);
+                    }
+                    $this->validarClientaDelTurno($turno);
+                    if ($turno->venta()->exists()) {
+                        throw ValidationException::withMessages(['turno_id' => 'El turno ya tiene una venta vinculada.']);
+                    }
+                }
+
                 $venta = Venta::create([
+                    'turno_id' => $turno?->id,
                     'fecha' => $data['fecha'],
                     'metodo_pago' => null,
                     'pendiente_pago' => true,
@@ -653,6 +698,11 @@ class VentaController extends Controller
                     'pendiente_pago' => true,
                     'fecha_pago' => null,
                 ]);
+
+                // También aplica a ventas pendientes; cualquier fallo posterior revierte ambos cambios.
+                if ($turno) {
+                    $turno->update(['estado' => 'atendido']);
+                }
 
                 if ($condicionPago === 'pendiente') {
                     return;

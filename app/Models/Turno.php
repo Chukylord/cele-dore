@@ -21,6 +21,11 @@ class Turno extends Model
         'fin' => 'datetime',
     ];
 
+    public function venta()
+    {
+        return $this->hasOne(Venta::class);
+    }
+
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
