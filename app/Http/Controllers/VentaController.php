@@ -112,7 +112,7 @@ class VentaController extends Controller
         $turno = null;
 
         if (!empty($data['turno_id'])) {
-            $turno = Turno::with(['cliente', 'colaboradora', 'venta'])->findOrFail($data['turno_id']);
+            $turno = Turno::with(['cliente', 'colaboradora', 'venta', 'servicios'])->findOrFail($data['turno_id']);
 
             if ($turno->venta) {
                 return redirect()->route('ventas.show', $turno->venta);

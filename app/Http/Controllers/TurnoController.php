@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use App\Models\Colaboradora;
 use App\Models\Turno;
+use App\Models\Servicio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TurnoController extends Controller
 {
@@ -38,13 +41,15 @@ class TurnoController extends Controller
             ? Turno::find($turnoAnterior)?->venta?->id
             : null;
 
-        return view('turnos.index', compact('clientes', 'colaboradoras', 'estadisticas', 'ventaAnteriorId'));
+        $servicios = Servicio::orderBy('nombre')->get();
+
+        return view('turnos.index', compact('clientes', 'colaboradoras', 'estadisticas', 'ventaAnteriorId', 'servicios'));
     }
 
     public function eventos(Request $request)
     {
         $query = Turno::query()
-            ->with(['cliente', 'colaboradora', 'venta:id,turno_id']);
+            ->with(['cliente', 'colaboradora', 'venta:id,turno_id', 'servicios']);
 
         if ($request->filled('start')) {
             $query->where('inicio', '>=', Carbon::parse((string) $request->get('start')));
@@ -104,6 +109,11 @@ class TurnoController extends Controller
                         : '-',
                     'colaboradora_id' => $turno->colaboradora_id,
                     'titulo' => $turno->titulo,
+                    'servicios' => $turno->servicios->map(fn (Servicio $servicio) => [
+                        'id' => $servicio->id,
+                        'nombre' => $servicio->nombre,
+                        'precio' => $servicio->precio,
+                    ])->values(),
                 ],
             ];
         });
@@ -113,7 +123,7 @@ class TurnoController extends Controller
 
     public function show(Turno $turno)
     {
-        $turno->load(['cliente', 'colaboradora']);
+        $turno->load(['cliente', 'colaboradora', 'servicios']);
 
         return response()->json($turno);
     }
@@ -123,7 +133,7 @@ class TurnoController extends Controller
         $data = $this->validarTurno($request, true);
         $data = $this->normalizarDatos($data);
 
-        Turno::create($data);
+        $this->guardarTurno(new Turno(), $data);
 
         return redirect()
             ->route('turnos.index')
@@ -135,7 +145,7 @@ class TurnoController extends Controller
         $data = $this->validarTurno($request, false);
         $data = $this->normalizarDatos($data);
 
-        $turno->update($data);
+        $this->guardarTurno($turno, $data);
 
         return redirect()
             ->route('turnos.index')
@@ -151,6 +161,23 @@ class TurnoController extends Controller
             ->with('ok', 'Turno eliminado correctamente.');
     }
 
+    private function guardarTurno(Turno $turno, array $data): void
+    {
+        DB::transaction(function () use ($turno, $data) {
+            $ids = array_values(array_unique($data['servicios'] ?? []));
+            unset($data['servicios']);
+
+            if ($ids) {
+                $titulo = Servicio::whereIn('id', $ids)->orderBy('nombre')->pluck('nombre')->implode(' + ');
+                // La columna histórica admite 255 caracteres; los vínculos conservan todos los servicios.
+                $data['titulo'] = Str::limit($titulo, 255, '');
+            }
+
+            $turno->fill($data)->save();
+            $turno->servicios()->sync($ids);
+        });
+    }
+
     private function validarTurno(Request $request, bool $esNuevo): array
     {
         $reglaInicio = ['required', 'date'];
@@ -164,6 +191,8 @@ class TurnoController extends Controller
             'cliente_id' => ['required', 'exists:clientes,id'],
             'colaboradora_id' => ['nullable', 'exists:colaboradoras,id'],
             'titulo' => ['nullable', 'string', 'max:255'],
+            'servicios' => ['nullable', 'array'],
+            'servicios.*' => ['required', 'integer', 'exists:servicios,id'],
             'detalle' => ['nullable', 'string', 'max:2000'],
             'inicio' => $reglaInicio,
             'fin' => ['nullable', 'date', 'after:inicio'],

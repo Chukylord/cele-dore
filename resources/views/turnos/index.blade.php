@@ -172,8 +172,25 @@
                     </div>
                 </div>
 
+                <fieldset class="md:col-span-2">
+                    <legend class="text-sm font-semibold text-slate-700">Servicios</legend>
+                    <div class="mt-2 grid max-h-48 grid-cols-1 gap-2 overflow-y-auto rounded-xl border border-slate-200 p-3 sm:grid-cols-2">
+                        @forelse($servicios as $servicio)
+                            <label class="flex items-center gap-2 rounded-lg bg-purple-50 p-2 text-sm text-[#6f3e86]">
+                                <input type="checkbox" name="servicios[]" value="{{ $servicio->id }}"
+                                       @checked(in_array((string) $servicio->id, array_map('strval', array_filter((array) old('servicios', []), 'is_scalar')), true))
+                                       class="turno-servicio rounded border-slate-300 text-[#8f57a6] focus:ring-purple-500">
+                                {{ $servicio->nombre }}
+                            </label>
+                        @empty
+                            <p class="text-sm text-slate-500">No hay servicios cargados. Podés usar el título libre.</p>
+                        @endforelse
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500">Podés elegir varios. El título se genera con sus nombres al guardar.</p>
+                </fieldset>
+
                 <div>
-                    <label class="text-sm font-semibold text-slate-700">Servicio / título</label>
+                    <label for="turno_titulo" class="text-sm font-semibold text-slate-700">Título libre (sin servicios)</label>
                     <input name="titulo"
                            id="turno_titulo"
                            value="{{ old('titulo') }}"
@@ -312,6 +329,7 @@
         'cliente_id' => old('cliente_id'),
         'colaboradora_id' => old('colaboradora_id'),
         'titulo' => old('titulo'),
+        'servicios' => array_values(array_filter((array) old('servicios', []), 'is_scalar')),
         'inicio' => old('inicio'),
         'estado' => old('estado', 'pendiente'),
         'detalle' => old('detalle'),
@@ -420,6 +438,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const inicio = document.getElementById('turno_inicio');
     const detalle = document.getElementById('turno_detalle');
 
+    function seleccionarServicios(ids = []) {
+        const seleccionados = new Set(ids.map(String));
+        form.querySelectorAll('.turno-servicio').forEach(input => {
+            input.checked = seleccionados.has(input.value);
+        });
+    }
+
     const btnEliminar = document.getElementById('btnEliminarTurno');
     const btnGuardar = document.getElementById('btnGuardarTurno');
     const filtroEstado = document.getElementById('filtro_estado');
@@ -497,6 +522,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function prepararNuevoTurno(fechaInicio = null) {
         form.reset();
+        seleccionarServicios();
         quitarMetodoSpoof();
 
         form.action = URL_STORE;
@@ -539,6 +565,7 @@ document.addEventListener('DOMContentLoaded', function () {
         colaboradoraId.value = evento.extendedProps.colaboradora_id || '';
         estado.value = evento.extendedProps.estado || 'pendiente';
         titulo.value = evento.extendedProps.titulo || '';
+        seleccionarServicios((evento.extendedProps.servicios || []).map(servicio => servicio.id));
         inicio.value = toDateTimeLocal(evento.start);
         detalle.value = evento.extendedProps.detalle || '';
 
@@ -789,6 +816,7 @@ document.addEventListener('DOMContentLoaded', function () {
             : '';
         colaboradoraId.value = OLD_TURNO.colaboradora_id || '';
         titulo.value = OLD_TURNO.titulo || '';
+        seleccionarServicios(OLD_TURNO.servicios);
         inicio.value = OLD_TURNO.inicio ? String(OLD_TURNO.inicio).slice(0, 16) : '';
         estado.value = OLD_TURNO.estado || 'pendiente';
         detalle.value = OLD_TURNO.detalle || '';

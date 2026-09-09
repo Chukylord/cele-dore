@@ -109,6 +109,7 @@ class TurnoVentaTest extends TestCase
     {
         $turno = $this->turno();
         $datos = $this->datos($turno);
+        $turno->servicios()->sync([$datos['servicios'][0]['servicio_id']]);
         $datos['turno_id'] = $turno->id;
         $datos['cliente_id'] = Cliente::create(['nombre' => 'Otra'])->id;
         $datos['vendedora_id'] = null;
@@ -119,6 +120,11 @@ class TurnoVentaTest extends TestCase
         $this->assertSame('atendido', $turno->fresh()->estado);
         $this->assertEquals($datos['cliente_id'], $venta->cliente_id);
         $this->assertNull($venta->vendedora_id);
+        $this->assertDatabaseHas('venta_servicios', [
+            'venta_id' => $venta->id,
+            'servicio_id' => $datos['servicios'][0]['servicio_id'],
+            'precio' => 1000,
+        ]);
     }
 
     public function test_venta_pendiente_tambien_marca_atendido(): void
@@ -236,5 +242,153 @@ class TurnoVentaTest extends TestCase
         $this->assertFalse(Schema::hasColumn('ventas', 'turno_id'));
         $migration->up();
         $this->assertTrue(Schema::hasColumn('ventas', 'turno_id'));
+    }
+
+    private function datosTurno(array $extra = []): array
+    {
+        return array_merge([
+            'cliente_id' => Cliente::create(['nombre' => 'María', 'apellido' => 'González'])->id,
+            'inicio' => now()->addDay()->format('Y-m-d H:i:s'),
+            'estado' => 'confirmado',
+            'titulo' => 'Título libre',
+            'detalle' => 'Observaciones originales',
+        ], $extra);
+    }
+
+    public function test_crear_turno_con_un_servicio_y_generar_titulo(): void
+    {
+        $servicio = Servicio::create(['nombre' => 'Corte', 'precio' => 1200]);
+        $this->post(route('turnos.store'), $this->datosTurno(['servicios' => [$servicio->id]]))
+            ->assertSessionHasNoErrors()->assertRedirect(route('turnos.index'));
+        $turno = Turno::sole();
+        $this->assertSame('Corte', $turno->titulo);
+        $this->assertSame('Observaciones originales', $turno->detalle);
+        $this->assertSame([$servicio->id], $turno->servicios->modelKeys());
+        $this->assertTrue($servicio->turnos->sole()->is($turno));
+    }
+
+    public function test_varios_servicios_sin_duplicados_y_eventos_con_ids_reales(): void
+    {
+        $corte = Servicio::create(['nombre' => 'Corte', 'precio' => 1200]);
+        $color = Servicio::create(['nombre' => 'Color', 'precio' => 2400]);
+        $this->post(route('turnos.store'), $this->datosTurno(['servicios' => [$corte->id, $color->id, $corte->id]]))
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('turno_servicio', 2);
+        $this->assertSame('Color + Corte', Turno::sole()->titulo);
+        $this->getJson(route('turnos.eventos'))->assertOk()
+            ->assertJsonPath('0.title', 'María González · Color + Corte')
+            ->assertJsonCount(2, '0.extendedProps.servicios')
+            ->assertJsonPath('0.extendedProps.servicios.0.id', $color->id)
+            ->assertJsonPath('0.extendedProps.servicios.0.nombre', 'Color')
+            ->assertJsonPath('0.extendedProps.servicios.0.precio', fn ($precio) => (float) $precio === 2400.0)
+            ->assertJsonPath('0.extendedProps.detalle', 'Observaciones originales');
+    }
+
+    public function test_turno_sin_servicios_y_titulo_antiguo_siguen_funcionando(): void
+    {
+        $datos = $this->datosTurno();
+        $this->post(route('turnos.store'), $datos)->assertSessionHasNoErrors();
+        $turno = Turno::sole();
+        $this->assertSame('Título libre', $turno->titulo);
+        $this->put(route('turnos.update', $turno), $datos + ['servicios' => []])->assertSessionHasNoErrors();
+        $this->assertSame('Título libre', $turno->fresh()->titulo);
+        $this->assertDatabaseCount('turno_servicio', 0);
+        $this->getJson(route('turnos.eventos'))->assertJsonPath('0.extendedProps.servicios', []);
+        $this->get(route('ventas.create', ['turno_id' => $turno->id]))->assertOk()
+            ->assertSee('const serviciosIniciales = [];', false);
+    }
+
+    public function test_editar_reemplaza_y_permite_quitar_todos_los_servicios(): void
+    {
+        $turno = $this->turno();
+        $corte = Servicio::create(['nombre' => 'Corte', 'precio' => 1000]);
+        $color = Servicio::create(['nombre' => 'Color', 'precio' => 2000]);
+        $turno->servicios()->attach($corte);
+        $datos = $this->datosTurno(['servicios' => [$color->id]]);
+        $this->put(route('turnos.update', $turno), $datos)->assertSessionHasNoErrors();
+        $this->assertSame([$color->id], $turno->fresh()->servicios->modelKeys());
+        $this->assertSame('Color', $turno->fresh()->titulo);
+        unset($datos['servicios']);
+        $this->put(route('turnos.update', $turno), $datos)->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('turno_servicio', 0);
+        $this->assertSame('Título libre', $turno->fresh()->titulo);
+    }
+
+    public function test_valida_servicios_en_backend_y_conserva_old_del_turno(): void
+    {
+        foreach (['incorrecto', [99999], [['id' => 1]]] as $servicios) {
+            $this->postJson(route('turnos.store'), $this->datosTurno(['servicios' => $servicios]))
+                ->assertUnprocessable();
+        }
+        $this->assertDatabaseCount('turnos', 0);
+        $servicio = Servicio::create(['nombre' => 'Corte', 'precio' => 1000]);
+        $datos = $this->datosTurno(['servicios' => [$servicio->id], 'estado' => 'incorrecto']);
+        $this->from(route('turnos.index'))->post(route('turnos.store'), $datos)
+            ->assertSessionHasErrors('estado')->assertSessionHasInput('servicios', [$servicio->id])
+            ->assertSessionHasInput('cliente_id', $datos['cliente_id'])
+            ->assertSessionHasInput('inicio', $datos['inicio']);
+        $this->get(route('turnos.index'))->assertOk()
+            ->assertSee('value="'.$servicio->id.'"'."\n".'                                       checked', false);
+    }
+
+    public function test_venta_precarga_solo_ids_asociados_y_usa_precio_actual(): void
+    {
+        $turno = $this->turno();
+        $corte = Servicio::create(['nombre' => 'Corte', 'precio' => 1000]);
+        $color = Servicio::create(['nombre' => 'Color', 'precio' => 2000]);
+        $turno->servicios()->sync([$corte->id, $color->id]);
+        $corte->update(['precio' => 1500]);
+        $this->get(route('ventas.create', ['turno_id' => $turno->id]))->assertOk()
+            ->assertViewHas('turno', fn ($t) => $t->relationLoaded('servicios') && $t->servicios->modelKeys() === [$color->id, $corte->id])
+            ->assertSee('const serviciosIniciales = '.\Illuminate\Support\Js::from([
+                ['servicio_id' => $color->id], ['servicio_id' => $corte->id],
+            ])->toHtml().';', false)
+            ->assertSee('const restaurarServicios = false;', false)
+            ->assertViewHas('servicios', fn ($s) => (float) $s->firstWhere('id', $corte->id)->precio === 1500.0);
+    }
+
+    public function test_old_venta_tiene_prioridad_incluso_si_se_quitaron_todos(): void
+    {
+        $turno = $this->turno();
+        $datos = $this->datos($turno) + ['turno_id' => $turno->id];
+        $turno->servicios()->sync([$datos['servicios'][0]['servicio_id']]);
+        $otro = Servicio::create(['nombre' => 'Color', 'precio' => 3000]);
+        $filas = [['servicio_id' => $otro->id, 'precio' => 1234, 'detalle' => 'Cambio manual', 'descuento_pct' => 10]];
+        foreach ([$filas, []] as $servicios) {
+            $url = route('ventas.create', ['turno_id' => $turno->id]);
+            $datos['fecha'] = 'fecha inválida';
+            if ($servicios) {
+                $datos['servicios'] = $servicios;
+            } else {
+                unset($datos['servicios']);
+            }
+            $this->from($url)->post(route('ventas.store'), $datos)->assertSessionHasErrors('fecha');
+            $this->get($url)->assertOk()
+                ->assertSee('const restaurarServicios = true;', false)
+                ->assertSee('const serviciosIniciales = '.\Illuminate\Support\Js::from($servicios)->toHtml().';', false);
+        }
+        $this->assertDatabaseCount('ventas', 0);
+    }
+
+    public function test_pivote_cascadas_unicidad_y_migracion_reversible(): void
+    {
+        $turno = $this->turno();
+        $servicio = Servicio::create(['nombre' => 'Corte', 'precio' => 1000]);
+        $turno->servicios()->attach($servicio);
+        $servicio->delete();
+        $this->assertDatabaseCount('turno_servicio', 0);
+        $this->getJson(route('turnos.eventos'))->assertOk()->assertJsonPath('0.extendedProps.servicios', []);
+        $otro = Servicio::create(['nombre' => 'Color', 'precio' => 1000]);
+        $turno->servicios()->attach($otro);
+        $turno->delete();
+        $this->assertDatabaseCount('turno_servicio', 0);
+        $migration = require database_path('migrations/2026_09_09_000002_create_turno_servicio_table.php');
+        $migration->down();
+        $this->assertFalse(Schema::hasTable('turno_servicio'));
+        $migration->up();
+        $turno = $this->turno();
+        $turno->servicios()->attach($otro);
+        $this->expectException(QueryException::class);
+        $turno->servicios()->attach($otro);
     }
 }

@@ -26,6 +26,11 @@ class Turno extends Model
         return $this->hasOne(Venta::class);
     }
 
+    public function servicios()
+    {
+        return $this->belongsToMany(Servicio::class, 'turno_servicio')->withTimestamps()->orderBy('nombre');
+    }
+
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);

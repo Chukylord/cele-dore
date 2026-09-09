@@ -18,6 +18,11 @@
 @endif
 
 @php
+    // La ausencia de servicios en un POST también puede significar que se quitaron todos.
+    $restaurarServicios = session()->hasOldInput();
+    $serviciosIniciales = $restaurarServicios
+        ? array_values(array_filter((array) old('servicios', []), 'is_array'))
+        : ($turno?->servicios->map(fn ($servicio) => ['servicio_id' => $servicio->id])->all() ?? []);
     $clienteSeleccionadoId = old('cliente_id', $turno?->cliente_id);
     $clienteSeleccionado = $turno ? $clientes->firstWhere('id', $clienteSeleccionadoId) : null;
     $clienteSeleccionadoTexto = $clienteSeleccionado
@@ -1034,9 +1039,10 @@ function recalcular(){
     recalcularPago(round2(subServ + subProd));
 }
 
-function addServicioRow(){
+let siguienteServicioIndice = 0;
+function addServicioRow(inicial = null, restaurar = false){
     const tbody = document.querySelector('#tablaServicios tbody');
-    const idx = tbody.children.length;
+    const idx = siguienteServicioIndice++;
     const tr = document.createElement('tr');
 
     tr.className = 'border-t';
@@ -1109,6 +1115,17 @@ function addServicioRow(){
     });
 
     tbody.appendChild(tr);
+    if (inicial) {
+        const sid = String(inicial.servicio_id ?? '');
+        inputText.value = Object.keys(SERVICIOS_MAP).find(nombre => String(SERVICIOS_MAP[nombre]) === sid) || '';
+        setServicio();
+        if (restaurar) {
+            inputId.value = sid;
+            precioInput.value = inicial.precio ?? '';
+            tr.querySelector('.desc-pct').value = inicial.descuento_pct ?? 0;
+            tr.querySelector('textarea').value = inicial.detalle ?? '';
+        }
+    }
     recalcular();
 }
 
@@ -1376,7 +1393,7 @@ function aplicarDescuento(){
 document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('tabServicios').addEventListener('click', () => activarTab('servicios'));
     document.getElementById('tabProductos').addEventListener('click', () => activarTab('productos'));
-    document.getElementById('addServicio').addEventListener('click', addServicioRow);
+    document.getElementById('addServicio').addEventListener('click', () => addServicioRow());
     document.getElementById('addProducto').addEventListener('click', () => addProductoRow());
     document.getElementById('vendedora_id').addEventListener('change', recalcular);
     document.getElementById('tipo_pago').addEventListener('change', recalcular);
@@ -1464,7 +1481,12 @@ document.addEventListener('DOMContentLoaded', function(){
 
     activarTab('servicios');
     toggleClienteBoxes();
-    addServicioRow();
+    const serviciosIniciales = {{ Illuminate\Support\Js::from($serviciosIniciales) }};
+    const restaurarServicios = @json($restaurarServicios);
+    serviciosIniciales.forEach(servicio => addServicioRow(servicio, restaurarServicios));
+    if (!restaurarServicios && serviciosIniciales.length === 0) {
+        addServicioRow();
+    }
     addProductoRow();
     recalcular();
 });

@@ -10,4 +10,9 @@ class Servicio extends Model
         'nombre',
         'precio',
     ];
+
+    public function turnos()
+    {
+        return $this->belongsToMany(Turno::class, 'turno_servicio')->withTimestamps();
+    }
 }
