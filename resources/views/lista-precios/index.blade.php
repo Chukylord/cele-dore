@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function(){
                         <div class="text-sm uppercase tracking-[0.15em] text-green-200 font-semibold">
                             Efectivo / Transferencia
                         </div>
-                        <div class="mt-3 text-4xl font-black text-green-300">
+                        <div class="mt-3 text-3xl font-black text-green-300">
                             ${money(producto.efectivo)}
                         </div>
                     </div>
@@ -456,16 +456,16 @@ document.addEventListener('DOMContentLoaded', function(){
                         <div class="text-sm uppercase tracking-[0.15em] text-purple-200 font-semibold">
                             Tarjeta
                         </div>
-                        <div class="mt-3 text-4xl font-black text-purple-300">
+                        <div class="mt-3 text-3xl font-black text-purple-300">
                             ${money(producto.tarjeta)}
                         </div>
                     </div>
 
                     <div class="rounded-2xl border border-blue-400/30 bg-blue-400/10 p-5">
                         <div class="text-sm uppercase tracking-[0.15em] text-blue-200 font-semibold">
-                            Colaboradora
+                            Costo
                         </div>
-                        <div class="mt-3 text-4xl font-black text-blue-300">
+                        <div class="mt-3 text-3xl font-black text-blue-300">
                             ${money(producto.colaboradora)}
                         </div>
                         <div class="text-xs text-blue-200 mt-2">Último costo: ${escapeHtml(costoCompra)}</div>
