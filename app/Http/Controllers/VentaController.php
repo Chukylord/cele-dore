@@ -456,6 +456,7 @@ class VentaController extends Controller
             'productos' => ['nullable', 'array'],
             'productos.*.producto_id' => ['nullable', 'exists:productos,id'],
             'productos.*.cantidad' => ['nullable', 'integer', 'min:1'],
+            'productos.*.precio_unitario' => ['nullable', 'numeric', 'min:0'],
             'productos.*.descuento_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
 
             'servicios' => ['nullable', 'array'],
@@ -615,14 +616,20 @@ class VentaController extends Controller
                     $ultimoCosto = $this->getUltimoCosto($pid);
                     $costoRef = $ultimoCosto !== null ? $this->round2($ultimoCosto) : null;
 
-                    $precioUnitBase = $aColaboradora
+                    $precioSugerido = $aColaboradora
                         ? $this->precioUnitarioCostoColab($producto, $ultimoCosto)
                         : $this->precioUnitarioBaseNormal($producto, $ultimoCosto);
 
-                    if ($aColaboradora && $precioUnitBase <= 0) {
+                    $precioUnitBase = array_key_exists('precio_unitario', $row)
+                        && $row['precio_unitario'] !== null
+                        && $row['precio_unitario'] !== ''
+                            ? $this->round2((float) $row['precio_unitario'])
+                            : $precioSugerido;
+
+                    if ($precioUnitBase <= 0) {
                         throw new \Exception(
                             "El producto {$producto->marca} - {$producto->tipo} {$producto->contenido} " .
-                            'no tiene un precio válido. Completalo primero en Lista de precios.'
+                            'no tiene un precio válido.'
                         );
                     }
 
@@ -671,7 +678,17 @@ class VentaController extends Controller
                         }
 
                         $ultimoCosto = $this->getUltimoCosto($pid);
-                        $precioUnitBase = $this->precioUnitarioBaseNormal($producto, $ultimoCosto);
+                        $precioSugerido = $this->precioUnitarioBaseNormal(
+                            $producto,
+                            $ultimoCosto
+                        );
+
+                        $precioUnitBase = array_key_exists('precio_unitario', $row)
+                            && $row['precio_unitario'] !== null
+                            && $row['precio_unitario'] !== ''
+                                ? $this->round2((float) $row['precio_unitario'])
+                                : $precioSugerido;
+
                         $descPct = (float) ($row['descuento_pct'] ?? 0);
                         $precioUnitFinalBase = $this->applyDiscount($precioUnitBase, $descPct);
 

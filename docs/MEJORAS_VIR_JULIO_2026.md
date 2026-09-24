@@ -1,4 +1,4 @@
-# Mejoras Vir Tisone — julio 2026
+# Mejoras Cele Dore — julio 2026
 
 ## Funcionalidades incluidas
 
@@ -14,17 +14,6 @@
 - Botón para copiar DNI.
 - Escáner de productos para consumo interno de peluquería.
 - Informe de cantidades de servicios, productos, atenciones y clientas diferentes.
-- Apertura del Facturador local mediante el protocolo `virfacturador://`.
-
-## Instalación local del Facturador
-
-En la computadora de Vir, ejecutar una sola vez:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\instalar-protocolo-facturador.ps1
-```
-
-El script busca en el Escritorio un acceso directo cuyo nombre contenga `Facturador` y registra el protocolo local para abrirlo desde el sistema.
 
 ## Comandos al probar la rama
 

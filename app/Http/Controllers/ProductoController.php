@@ -257,7 +257,7 @@ class ProductoController extends Controller
             return $this->redirectToListado($request, $e->getMessage());
         }
 
-        return $this->redirectToListado($request, 'Consumo registrado: 1 unidad pas? a stock peluquer?a.');
+        return $this->redirectToListado($request, 'Consumo registrado: 1 unidad pasó a stock peluquería.');
     }
 
     public function usarPeluqueria(Request $request, Producto $producto)
@@ -277,7 +277,7 @@ class ProductoController extends Controller
             return $this->redirectToListado($request, $e->getMessage());
         }
 
-        return $this->redirectToListado($request, 'Se descont? 1 unidad del stock de peluquer?a.');
+        return $this->redirectToListado($request, 'Se descontó 1 unidad del stock de peluquería.');
     }
 
     private function redirectToListado(Request $request, string $mensaje): RedirectResponse

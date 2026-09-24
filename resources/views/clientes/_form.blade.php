@@ -88,7 +88,7 @@
                placeholder="Ej: 34025037">
 
         <div class="text-xs text-slate-500 mt-1">
-            Se usa para identificar a la clienta y copiarlo al facturador.
+            Se usa para identificar a la clienta.
         </div>
 
         @error('dni')

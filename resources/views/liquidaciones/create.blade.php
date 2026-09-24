@@ -128,11 +128,6 @@
                        class="fn-secondary-action">
                         Cancelar
                     </a>
-
-                    <a href="https://www.arca.gob.ar/" target="_blank"
-                       class="fn-secondary-action">
-                        Facturar
-                    </a>
                 </div>
             </div>
         </form>

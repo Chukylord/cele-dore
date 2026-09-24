@@ -40,11 +40,3 @@
 2. Comparar cantidades de servicios con ventas cargadas.
 3. Comparar unidades de productos vendidas.
 4. Revisar total de atenciones y clientas diferentes.
-
-## Facturador
-
-1. Ejecutar `tools/instalar-protocolo-facturador.ps1` una sola vez.
-2. Abrir Nueva venta.
-3. Presionar Abrir Facturador.
-4. Aceptar el aviso de Chrome o Windows la primera vez.
-5. Confirmar que se abra la aplicación instalada.

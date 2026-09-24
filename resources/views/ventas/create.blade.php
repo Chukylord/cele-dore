@@ -242,7 +242,7 @@
                         <th class="text-left px-3 py-2 text-sm font-semibold">Producto</th>
                         <th class="text-left px-3 py-2 text-sm font-semibold">Stock</th>
                         <th class="text-left px-3 py-2 text-sm font-semibold">Cant.</th>
-                        <th class="text-left px-3 py-2 text-sm font-semibold">Unit. base</th>
+                        <th class="text-left px-3 py-2 text-sm font-semibold">Precio unit.</th>
                         <th class="text-left px-3 py-2 text-sm font-semibold">Subtotal</th>
                         <th class="text-right px-3 py-2 text-sm font-semibold">Quitar</th>
                     </tr>
@@ -582,22 +582,19 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <a href="https://www.afip.gob.ar/"
+
+                    <a href="https://www.arca.gob.ar/"
+
                        target="_blank"
+
                        rel="noopener noreferrer"
+
                        class="fn-secondary-action w-full sm:w-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             class="h-4 w-4"
-                             fill="none"
-                             viewBox="0 0 24 24"
-                             stroke="currentColor"
-                             stroke-width="2">
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  d="M6.75 3h10.5A1.75 1.75 0 0 1 19 4.75v14.5A1.75 1.75 0 0 1 17.25 21H6.75A1.75 1.75 0 0 1 5 19.25V4.75A1.75 1.75 0 0 1 6.75 3ZM8 7h8M8 11h2m2 0h2m2 0h0M8 15h2m2 0h2m2 0h0"/>
-                        </svg>
-                        Facturar
+
+                        🧾 Facturar
+
                     </a>
+
 
                     <button type="submit"
                             class="fn-primary-action w-full sm:w-auto">
@@ -976,13 +973,12 @@ function recalcular(){
         const pid = Number(tr.querySelector('input.prod-id')?.value || 0);
         const qty = Number(tr.querySelector('input.cant')?.value || 0);
         const stockCell = tr.querySelector('.stock');
-        const unitCell = tr.querySelector('.unit-main');
+        const precioInput = tr.querySelector('.precio-producto');
         const unitFinalCell = tr.querySelector('.unit-final');
         const subCell = tr.querySelector('.sub');
 
         if(!pid || qty <= 0){
             if(stockCell) stockCell.textContent = '-';
-            if(unitCell) unitCell.textContent = '-';
             if(unitFinalCell) unitFinalCell.textContent = '';
             if(subCell) subCell.textContent = '-';
             return;
@@ -990,15 +986,12 @@ function recalcular(){
 
         const p = PRODUCTOS_DATA[pid];
         const stock = Number(p.stock_venta || 0);
-        const unitOriginal = esClienteColab()
-            ? precioUnitarioCosto(pid)
-            : precioUnitarioEfectivoVenta(pid);
+        const unitOriginal = Number(precioInput?.value || 0);
 
         const unitFinal = applyDesc(unitOriginal, getDescPct(tr));
         const sub = round2(unitFinal * qty);
 
         stockCell.textContent = stock;
-        unitCell.textContent = money(unitOriginal);
         unitFinalCell.textContent = getDescPct(tr) > 0 ? 'Final: ' + money(unitFinal) : '';
         subCell.textContent = money(sub);
 
@@ -1021,8 +1014,12 @@ function recalcular(){
 
             if(!pid || qty <= 0) return;
 
+            const precioIngresado = Number(
+                tr.querySelector('.precio-producto')?.value || 0
+            );
+
             const unitFinal = applyDesc(
-                precioUnitarioEfectivoVenta(pid),
+                precioIngresado,
                 getDescPct(tr)
             );
 
@@ -1160,7 +1157,14 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
         </td>
 
         <td class="px-3 py-2">
-            <div class="unit-main">-</div>
+            <input name="productos[${idx}][precio_unitario]"
+                   type="number"
+                   step="0.01"
+                   min="0"
+                   value=""
+                   data-manual="0"
+                   class="precio-producto w-32 rounded-xl border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+
             <div class="unit-final text-xs text-slate-500 mt-1"></div>
         </td>
 
@@ -1176,18 +1180,42 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
 
     const inputText = tr.querySelector('.prod-text');
     const inputId = tr.querySelector('.prod-id');
+    const precioInput = tr.querySelector('.precio-producto');
+
+    const precioSugerido = (pid) => {
+        return esClienteColab()
+            ? precioUnitarioCosto(pid)
+            : precioUnitarioEfectivoVenta(pid);
+    };
 
     const setProducto = () => {
         const valor = (inputText.value || '').trim();
+        const pidAnterior = Number(inputId.value || 0);
         const pid = PRODUCTOS_MAP[valor] ? Number(PRODUCTOS_MAP[valor]) : 0;
 
         inputId.value = pid ? String(pid) : '';
+
+        if(pid && (pid !== pidAnterior || precioInput.value === '')){
+            precioInput.value = precioSugerido(pid).toFixed(2);
+            precioInput.dataset.manual = '0';
+        }
+
+        if(!pid){
+            precioInput.value = '';
+            precioInput.dataset.manual = '0';
+        }
+
         recalcular();
     };
 
     inputText.addEventListener('change', setProducto);
     inputText.addEventListener('blur', setProducto);
     tr.querySelector('.cant').addEventListener('input', recalcular);
+
+    precioInput.addEventListener('input', function(){
+        this.dataset.manual = '1';
+        recalcular();
+    });
 
     tr.querySelector('.btn-remove-producto').addEventListener('click', () => {
         tr.remove();
@@ -1206,6 +1234,8 @@ function addProductoRow(prefillPid = null, prefillQty = 1){
     if(prefillPid && PRODUCTOS_DATA[prefillPid]){
         inputText.value = PRODUCTOS_DATA[prefillPid].label;
         inputId.value = String(prefillPid);
+        precioInput.value = precioSugerido(prefillPid).toFixed(2);
+        precioInput.dataset.manual = '0';
     }
 
     recalcular();
@@ -1215,8 +1245,12 @@ function filaProductoRealmenteVacia(tr){
     const productoId = (tr.querySelector('.prod-id')?.value || '').trim();
     const productoTexto = (tr.querySelector('.prod-text')?.value || '').trim();
     const descuento = Number(tr.querySelector('.desc-pct')?.value || 0);
+    const precio = (tr.querySelector('.precio-producto')?.value || '').trim();
 
-    return productoId === '' && productoTexto === '' && descuento === 0;
+    return productoId === ''
+        && productoTexto === ''
+        && descuento === 0
+        && precio === '';
 }
 
 function cargarProductoEnFila(tr, productoId, cantidad = 1){
@@ -1227,6 +1261,16 @@ function cargarProductoEnFila(tr, productoId, cantidad = 1){
     tr.querySelector('.prod-text').value = producto.label;
     tr.querySelector('.prod-id').value = String(productoId);
     tr.querySelector('.cant').value = String(cantidad);
+
+    const precioInput = tr.querySelector('.precio-producto');
+    if(precioInput){
+        const sugerido = esClienteColab()
+            ? precioUnitarioCosto(productoId)
+            : precioUnitarioEfectivoVenta(productoId);
+
+        precioInput.value = sugerido.toFixed(2);
+        precioInput.dataset.manual = '0';
+    }
 }
 
 function reindexarFilasProductos(){
@@ -1239,6 +1283,7 @@ function reindexarFilasProductos(){
         tr.querySelector('.prod-id').name = `productos[${idx}][producto_id]`;
         tr.querySelector('.desc-pct').name = `productos[${idx}][descuento_pct]`;
         tr.querySelector('.cant').name = `productos[${idx}][cantidad]`;
+        tr.querySelector('.precio-producto').name = `productos[${idx}][precio_unitario]`;
     });
 }
 
@@ -1307,12 +1352,34 @@ function agregarProductoPorCodigo(codigo){
     mostrarToastProductoAgregado(nombre + ' agregado');
 }
 
+function actualizarPreciosSugeridosProductos(){
+    document.querySelectorAll('#tablaProductos tbody tr').forEach(tr => {
+        const pid = Number(tr.querySelector('.prod-id')?.value || 0);
+        const precioInput = tr.querySelector('.precio-producto');
+
+        if(!pid || !precioInput){
+            return;
+        }
+
+        if(precioInput.dataset.manual === '1'){
+            return;
+        }
+
+        const sugerido = esClienteColab()
+            ? precioUnitarioCosto(pid)
+            : precioUnitarioEfectivoVenta(pid);
+
+        precioInput.value = sugerido.toFixed(2);
+    });
+}
+
 function toggleClienteBoxes(){
     const colab = esClienteColab();
 
     document.getElementById('box_cliente').classList.toggle('hidden', colab);
     document.getElementById('box_colab').classList.toggle('hidden', !colab);
 
+    actualizarPreciosSugeridosProductos();
     recalcular();
 }
 
