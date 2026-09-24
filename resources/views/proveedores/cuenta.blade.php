@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Cuenta corriente - FN Peluquería')
+@section('title', 'Cuenta corriente - Cele Dore Estilista')
 @section('h1', 'Cuenta corriente')
 @section('sub', 'Compras, entregas y saldo del proveedor.')
 

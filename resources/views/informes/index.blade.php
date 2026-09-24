@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Informes - FN Peluquería')
+@section('title', 'Informes - Cele Dore Estilista')
 @section('h1', 'Informes')
 @section('sub', 'Balance económico y actividad realizada en el período.')
 
@@ -278,7 +278,7 @@
                     ${{ number_format((float)$ingresoRecargoTarjeta, 2, ',', '.') }}
                 </strong>
             </div>
-            <div class="flex items-center justify-between rounded-xl bg-[#efe6f4] text-[#5c3272] p-3">
+            <div class="flex items-center justify-between rounded-xl bg-[#dff7ef] text-[#05634d] p-3">
                 <span>Total ingresos cobrados</span>
                 <strong>${{ number_format((float)$totalIngresos, 2, ',', '.') }}</strong>
             </div>
@@ -305,7 +305,7 @@
                 <span>Gastos</span>
                 <strong>${{ number_format((float)$egresoGastos, 2, ',', '.') }}</strong>
             </div>
-            <div class="flex items-center justify-between rounded-xl bg-[#efe6f4] text-[#5c3272] p-3">
+            <div class="flex items-center justify-between rounded-xl bg-[#dff7ef] text-[#05634d] p-3">
                 <span>Total egresos</span>
                 <strong>${{ number_format((float)$totalEgresos, 2, ',', '.') }}</strong>
             </div>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Turnos - FN Peluquería')
+@section('title', 'Turnos - Cele Dore Estilista')
 @section('h1', 'Turnos')
 @section('sub', 'Calendario, estados y gestión rápida de turnos.')
 
@@ -176,10 +176,10 @@
                     <legend class="text-sm font-semibold text-slate-700">Servicios</legend>
                     <div class="mt-2 grid max-h-48 grid-cols-1 gap-2 overflow-y-auto rounded-xl border border-slate-200 p-3 sm:grid-cols-2">
                         @forelse($servicios as $servicio)
-                            <label class="flex items-center gap-2 rounded-lg bg-purple-50 p-2 text-sm text-[#6f3e86]">
+                            <label class="flex items-center gap-2 rounded-lg bg-purple-50 p-2 text-sm text-[#078263]">
                                 <input type="checkbox" name="servicios[]" value="{{ $servicio->id }}"
                                        @checked(in_array((string) $servicio->id, array_map('strval', array_filter((array) old('servicios', []), 'is_scalar')), true))
-                                       class="turno-servicio rounded border-slate-300 text-[#8f57a6] focus:ring-purple-500">
+                                       class="turno-servicio rounded border-slate-300 text-[#13c79a] focus:ring-purple-500">
                                 {{ $servicio->nombre }}
                             </label>
                         @empty
@@ -277,9 +277,9 @@
             </div>
 
             <div id="accionVentaTurno" class="hidden mt-5 rounded-xl border border-purple-200 bg-purple-50 p-4">
-                <div class="mb-2 text-sm font-semibold text-[#6f3e86]">Venta del turno</div>
-                <a id="btnVentaTurno" class="inline-flex rounded-xl bg-[#8f57a6] px-4 py-2 font-semibold text-white hover:bg-[#6f3e86]"></a>
-                <p class="mt-2 text-xs text-[#6f3e86]">Se usan los datos guardados del turno. Guardá primero cualquier cambio.</p>
+                <div class="mb-2 text-sm font-semibold text-[#078263]">Venta del turno</div>
+                <a id="btnVentaTurno" class="inline-flex rounded-xl bg-[#13c79a] px-4 py-2 font-semibold text-white hover:bg-[#078263]"></a>
+                <p class="mt-2 text-xs text-[#078263]">Se usan los datos guardados del turno. Guardá primero cualquier cambio.</p>
             </div>
 
             <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -349,18 +349,18 @@
 
     #calendar .fc-button {
         border-radius: .75rem !important;
-        border: 1px solid #e7e1ec !important;
+        border: 1px solid #bdeedf !important;
         background: #ffffff !important;
-        color: #6f3e86 !important;
+        color: #078263 !important;
         box-shadow: none !important;
         text-transform: capitalize !important;
     }
 
     #calendar .fc-button:hover,
     #calendar .fc-button-active {
-        background: #8f57a6 !important;
+        background: #13c79a !important;
         color: #ffffff !important;
-        border-color: #8f57a6 !important;
+        border-color: #13c79a !important;
     }
 
     #calendar .fc-event {
@@ -373,7 +373,7 @@
 
     #calendar .fc-daygrid-day-number,
     #calendar .fc-col-header-cell-cushion {
-        color: #5c3272;
+        color: #05634d;
         font-weight: 700;
     }
 

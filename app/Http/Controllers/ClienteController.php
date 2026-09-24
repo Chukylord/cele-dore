@@ -30,6 +30,56 @@ class ClienteController extends Controller
         return $dni !== '' ? $dni : null;
     }
 
+    /**
+     * Normaliza el teléfono solamente para compararlo.
+     * El valor original se guarda tal como lo escribió la usuaria.
+     */
+    private function normalizarTelefono(?string $telefono): string
+    {
+        $telefono = preg_replace('/\D+/', '', (string) $telefono);
+
+        if ($telefono === '') {
+            return '';
+        }
+
+        if (str_starts_with($telefono, '549') && strlen($telefono) > 10) {
+            $telefono = substr($telefono, 3);
+        } elseif (str_starts_with($telefono, '54') && strlen($telefono) > 10) {
+            $telefono = substr($telefono, 2);
+        }
+
+        if (str_starts_with($telefono, '0') && strlen($telefono) > 10) {
+            $telefono = substr($telefono, 1);
+        }
+
+        if (strlen($telefono) > 10) {
+            $telefono = substr($telefono, -10);
+        }
+
+        return $telefono;
+    }
+
+    private function buscarClienteConTelefono(
+        string $telefono,
+        ?int $ignorarClienteId = null
+    ): ?Cliente {
+        $telefonoNormalizado = $this->normalizarTelefono($telefono);
+
+        if ($telefonoNormalizado === '') {
+            return null;
+        }
+
+        return Cliente::query()
+            ->select('id', 'nombre', 'apellido', 'telefono')
+            ->when($ignorarClienteId !== null, function ($query) use ($ignorarClienteId) {
+                $query->where('id', '!=', $ignorarClienteId);
+            })
+            ->get()
+            ->first(function ($cliente) use ($telefonoNormalizado) {
+                return $this->normalizarTelefono($cliente->telefono) === $telefonoNormalizado;
+            });
+    }
+
     public function index(Request $request)
     {
         $nombre = trim((string) $request->get('nombre', ''));
@@ -176,6 +226,7 @@ class ClienteController extends Controller
             ],
             'telefono' => ['required', 'string', 'min:8', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'observacion' => ['nullable', 'string'],
+            'confirmar_telefono_duplicado' => ['nullable', 'boolean'],
         ], [
             'nombre.required' => 'El nombre es obligatorio.',
             'apellido.required' => 'El apellido es obligatorio.',
@@ -193,6 +244,25 @@ class ClienteController extends Controller
         $data['apellido'] = trim($data['apellido']);
         $data['dni'] = $this->normalizarDni($data['dni'] ?? null);
         $data['telefono'] = trim($data['telefono']);
+
+        if (!$request->boolean('confirmar_telefono_duplicado')) {
+            $duplicado = $this->buscarClienteConTelefono($data['telefono']);
+
+            if ($duplicado) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('cliente_duplicado', [
+                        'id' => $duplicado->id,
+                        'nombre' => $duplicado->nombre,
+                        'apellido' => $duplicado->apellido,
+                        'telefono' => $duplicado->telefono,
+                    ]);
+            }
+        }
+
+        unset($data['confirmar_telefono_duplicado']);
+
         $data['observacion'] = $this->normalizarObservacion($data['observacion'] ?? null);
 
         Cliente::create($data);
@@ -220,6 +290,7 @@ class ClienteController extends Controller
             ],
             'telefono' => ['required', 'string', 'min:8', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'observacion' => ['nullable', 'string'],
+            'confirmar_telefono_duplicado' => ['nullable', 'boolean'],
         ], [
             'nombre.required' => 'El nombre es obligatorio.',
             'apellido.required' => 'El apellido es obligatorio.',
@@ -237,6 +308,28 @@ class ClienteController extends Controller
         $data['apellido'] = trim($data['apellido']);
         $data['dni'] = $this->normalizarDni($data['dni'] ?? null);
         $data['telefono'] = trim($data['telefono']);
+
+        if (!$request->boolean('confirmar_telefono_duplicado')) {
+            $duplicado = $this->buscarClienteConTelefono(
+                $data['telefono'],
+                $cliente->id
+            );
+
+            if ($duplicado) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('cliente_duplicado', [
+                        'id' => $duplicado->id,
+                        'nombre' => $duplicado->nombre,
+                        'apellido' => $duplicado->apellido,
+                        'telefono' => $duplicado->telefono,
+                    ]);
+            }
+        }
+
+        unset($data['confirmar_telefono_duplicado']);
+
         $data['observacion'] = $this->normalizarObservacion($data['observacion'] ?? null);
 
         $cliente->update($data);

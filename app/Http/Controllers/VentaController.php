@@ -243,7 +243,7 @@ class VentaController extends Controller
         }
 
         if ($ultimoCosto !== null) {
-            return $this->round2($ultimoCosto * 1.40);
+            return $this->round2($ultimoCosto * 1.45);
         }
 
         if ($producto->precio_efectivo_manual !== null) {
@@ -256,7 +256,7 @@ class VentaController extends Controller
     private function precioUnitarioCostoColab(Producto $producto, ?float $ultimoCosto): float
     {
         if ($this->manualEsMasNuevoQueCompra($producto)) {
-            return $this->round2((float) $producto->precio_efectivo_manual / 1.40);
+            return $this->round2((float) $producto->precio_efectivo_manual / 1.45);
         }
 
         if ($ultimoCosto !== null) {
@@ -264,10 +264,10 @@ class VentaController extends Controller
         }
 
         if ($producto->precio_efectivo_manual !== null) {
-            return $this->round2((float) $producto->precio_efectivo_manual / 1.40);
+            return $this->round2((float) $producto->precio_efectivo_manual / 1.45);
         }
 
-        return $this->round2((float) $producto->precio_venta / 1.40);
+        return $this->round2((float) $producto->precio_venta / 1.45);
     }
 
     /**

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar fichada - FN Peluquería')
+@section('title', 'Editar fichada - Cele Dore Estilista')
 @section('h1', 'Editar Fichada')
 @section('sub', 'Modificar registro de horas trabajadas.')
 

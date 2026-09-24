@@ -66,7 +66,7 @@ class ListaPrecioController extends Controller
         $ultimoCosto = (float) ($producto->ultimo_costo ?? 0);
 
         if ($ultimoCosto > 0) {
-            return $this->round2($ultimoCosto * 1.40);
+            return $this->round2($ultimoCosto * 1.45);
         }
 
         if ($producto->precio_efectivo_manual !== null) {
@@ -86,10 +86,10 @@ class ListaPrecioController extends Controller
         /*
          * Si el precio manual es más nuevo que la última compra, se considera
          * que la clienta actualizó el valor vigente del producto. En ese caso,
-         * el costo estimado se obtiene quitando el 40% de margen.
+         * el costo estimado se obtiene quitando el 45% de margen.
          */
         if ($this->manualEsMasNuevoQueCompra($producto)) {
-            return $this->round2((float) $producto->precio_efectivo_manual / 1.40);
+            return $this->round2((float) $producto->precio_efectivo_manual / 1.45);
         }
 
         $ultimoCosto = (float) ($producto->ultimo_costo ?? 0);
@@ -99,13 +99,13 @@ class ListaPrecioController extends Controller
         }
 
         if ($producto->precio_efectivo_manual !== null) {
-            return $this->round2((float) $producto->precio_efectivo_manual / 1.40);
+            return $this->round2((float) $producto->precio_efectivo_manual / 1.45);
         }
 
         $precioInicial = (float) $producto->precio_venta;
 
         return $precioInicial > 0
-            ? $this->round2($precioInicial / 1.40)
+            ? $this->round2($precioInicial / 1.45)
             : 0.0;
     }
 

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Productos - FN Peluquería')
+@section('title', 'Productos - Cele Dore Estilista')
 @section('h1', 'Productos')
 @section('sub', 'Gestión de stock y consumo interno de peluquería.')
 

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Lista de precios - FN Peluquería')
+@section('title', 'Lista de precios - Cele Dore Estilista')
 @section('h1', 'Lista de precios')
 @section('sub', 'Consultar, escanear y actualizar únicamente los precios que cambien.')
 
@@ -120,7 +120,7 @@
 <div class="fn-feature-panel rounded-2xl p-5 mb-6">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         <div class="lg:col-span-4">
-            <label class="text-sm font-semibold text-slate-200">
+            <label class="text-sm font-bold text-[#078263]">
                 Consultar precio con scanner
             </label>
 
@@ -128,9 +128,9 @@
                    type="text"
                    autocomplete="off"
                    placeholder="Hacé click acá y escaneá..."
-                   class="mt-2 w-full rounded-2xl border-slate-700 bg-slate-900 text-white text-lg px-4 py-4 focus:border-white focus:ring-white">
+                   class="mt-2 w-full rounded-2xl border border-[#9fe4d1] bg-white text-slate-900 text-lg px-4 py-4 shadow-sm placeholder:text-slate-500 focus:border-[#13c79a] focus:ring-[#13c79a]">
 
-            <div class="text-xs text-slate-400 mt-2">
+            <div class="text-xs font-medium text-slate-600 mt-2">
                 El scanner busca entre todos los productos, aunque la tabla esté filtrada.
             </div>
 
@@ -143,11 +143,11 @@
 
         <div class="lg:col-span-8">
             <div id="resultadoScanner"
-                 class="min-h-[230px] h-full rounded-2xl border border-slate-700 bg-slate-900 p-6 flex items-center justify-center">
+                 class="min-h-[230px] h-full rounded-2xl border border-[#bdeedf] bg-white p-6 flex items-center justify-center shadow-sm">
                 <div class="text-center">
                     <div class="text-5xl mb-3">🔎</div>
-                    <div class="text-2xl font-bold text-white">Esperando producto</div>
-                    <div class="text-slate-400 mt-2">Escaneá un código para consultar sus valores.</div>
+                    <div class="text-2xl font-extrabold text-slate-900">Esperando producto</div>
+                    <div class="text-slate-600 mt-2">Escaneá un código para consultar sus valores.</div>
                 </div>
             </div>
         </div>
@@ -210,7 +210,7 @@
     <div class="mb-4 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-blue-900">
         <div class="font-bold">Cómo funciona</div>
         <div class="text-sm mt-1">
-            El sistema guarda únicamente las filas que realmente modificaste. La tarjeta se calcula automáticamente con 20% y el valor para colaboradora se estima quitando el 40% al precio efectivo vigente cuando corresponde.
+            El sistema guarda únicamente las filas que realmente modificaste. La tarjeta se calcula automáticamente con 20% y el valor de costo se estima a partir del precio efectivo vigente cuando corresponde.
         </div>
     </div>
 
@@ -227,7 +227,7 @@
                     <th class="px-4 py-3 text-left text-sm font-semibold">Último costo</th>
                     <th class="px-4 py-3 text-left text-sm font-semibold">Efectivo / Transferencia</th>
                     <th class="px-4 py-3 text-left text-sm font-semibold">Tarjeta (+20%)</th>
-                    <th class="px-4 py-3 text-left text-sm font-semibold">Colaboradora</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold">Costo</th>
                     <th class="px-4 py-3 text-left text-sm font-semibold">Origen</th>
                     <th class="px-4 py-3 text-right text-sm font-semibold">Acción</th>
                 </tr>
@@ -403,9 +403,9 @@ document.addEventListener('DOMContentLoaded', function(){
             resultado.innerHTML = `
                 <div class="w-full text-center">
                     <div class="text-6xl mb-4">⚠️</div>
-                    <div class="text-3xl font-extrabold text-red-300">Producto no encontrado</div>
-                    <div class="mt-3 text-lg text-slate-300">Código escaneado:</div>
-                    <div class="mt-1 text-2xl font-bold text-white">${escapeHtml(codigoLimpio)}</div>
+                    <div class="text-3xl font-extrabold text-red-700">Producto no encontrado</div>
+                    <div class="mt-3 text-lg font-medium text-slate-600">Código escaneado:</div>
+                    <div class="mt-1 text-2xl font-bold text-slate-900">${escapeHtml(codigoLimpio)}</div>
                 </div>
             `;
 
@@ -419,23 +419,23 @@ document.addEventListener('DOMContentLoaded', function(){
         resultado.innerHTML = `
             <div class="w-full">
                 <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 mb-6">
-                    <div>
-                        <div class="text-sm uppercase tracking-[0.28em] text-slate-400 font-semibold">
+                    <div class="min-w-0">
+                        <div class="text-sm uppercase tracking-[0.28em] text-[#078263] font-extrabold">
                             Producto consultado
                         </div>
 
-                        <div class="mt-2 text-3xl lg:text-4xl font-extrabold text-white leading-tight">
+                        <div class="mt-2 text-3xl lg:text-4xl font-black text-[#078263] leading-tight break-words">
                             ${escapeHtml(producto.nombre)}
                         </div>
 
                         <div class="mt-3 flex flex-wrap gap-2 text-sm">
-                            <span class="rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
+                            <span class="rounded-full border border-[#bdeedf] bg-[#f7fffc] px-3 py-1 font-medium text-slate-700">
                                 Proveedor: ${escapeHtml(producto.proveedor || '-')}
                             </span>
-                            <span class="rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
+                            <span class="rounded-full border border-[#bdeedf] bg-[#f7fffc] px-3 py-1 font-medium text-slate-700">
                                 Stock: ${escapeHtml(producto.stock)}
                             </span>
-                            <span class="rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-slate-300">
+                            <span class="rounded-full border border-[#bdeedf] bg-[#f7fffc] px-3 py-1 font-medium text-slate-700">
                                 Origen: ${escapeHtml(producto.origen)}
                             </span>
                         </div>
@@ -443,32 +443,34 @@ document.addEventListener('DOMContentLoaded', function(){
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="rounded-2xl border border-green-400/30 bg-green-400/10 p-5">
-                        <div class="text-sm uppercase tracking-[0.15em] text-green-200 font-semibold">
+                    <div class="min-w-0 overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+                        <div class="text-sm uppercase tracking-[0.12em] text-emerald-700 font-extrabold">
                             Efectivo / Transferencia
                         </div>
-                        <div class="mt-3 text-4xl font-black text-green-300">
+                        <div class="mt-3 whitespace-nowrap text-[clamp(1.65rem,2vw,2.35rem)] font-black leading-tight tracking-tight text-emerald-800 tabular-nums">
                             ${money(producto.efectivo)}
                         </div>
                     </div>
 
-                    <div class="rounded-2xl border border-purple-400/30 bg-purple-400/10 p-5">
-                        <div class="text-sm uppercase tracking-[0.15em] text-purple-200 font-semibold">
+                    <div class="min-w-0 overflow-hidden rounded-2xl border border-violet-200 bg-violet-50 p-5">
+                        <div class="text-sm uppercase tracking-[0.12em] text-violet-700 font-extrabold">
                             Tarjeta
                         </div>
-                        <div class="mt-3 text-4xl font-black text-purple-300">
+                        <div class="mt-3 whitespace-nowrap text-[clamp(1.65rem,2vw,2.35rem)] font-black leading-tight tracking-tight text-violet-800 tabular-nums">
                             ${money(producto.tarjeta)}
                         </div>
                     </div>
 
-                    <div class="rounded-2xl border border-blue-400/30 bg-blue-400/10 p-5">
-                        <div class="text-sm uppercase tracking-[0.15em] text-blue-200 font-semibold">
-                            Colaboradora
+                    <div class="min-w-0 overflow-hidden rounded-2xl border border-sky-200 bg-sky-50 p-5">
+                        <div class="text-sm uppercase tracking-[0.12em] text-sky-700 font-extrabold">
+                            Costo
                         </div>
-                        <div class="mt-3 text-4xl font-black text-blue-300">
+                        <div class="mt-3 whitespace-nowrap text-[clamp(1.65rem,2vw,2.35rem)] font-black leading-tight tracking-tight text-sky-800 tabular-nums">
                             ${money(producto.colaboradora)}
                         </div>
-                        <div class="text-xs text-blue-200 mt-2">Último costo: ${escapeHtml(costoCompra)}</div>
+                        <div class="mt-2 text-xs font-semibold text-sky-700">
+                            Último costo: ${escapeHtml(costoCompra)}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -548,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const productoId = this.dataset.productoId;
             const efectivo = Number(this.value || 0);
             const tarjeta = round2(efectivo * 1.20);
-            const colaboradora = round2(efectivo / 1.40);
+            const colaboradora = round2(efectivo / 1.45);
 
             const tarjetaView = document.querySelector(`.precio-tarjeta-view[data-producto-id="${productoId}"]`);
             const colaboradoraView = document.querySelector(`.precio-colaboradora-view[data-producto-id="${productoId}"]`);

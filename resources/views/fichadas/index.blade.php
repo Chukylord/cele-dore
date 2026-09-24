@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Fichadas - FN Peluquería')
+@section('title', 'Fichadas - Cele Dore Estilista')
 @section('h1', 'Fichadas')
 @section('sub', 'Registro de horas trabajadas de colaboradoras.')
 

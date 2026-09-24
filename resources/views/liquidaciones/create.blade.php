@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva liquidación - FN Peluquería')
+@section('title', 'Nueva liquidación - Cele Dore Estilista')
 @section('h1', 'Nueva Liquidación')
 @section('sub', 'Calcular y registrar pago de colaboradora.')
 

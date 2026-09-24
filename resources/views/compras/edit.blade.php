@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Editar compra - FN Peluquería')
+@section('title', 'Editar compra - Cele Dore Estilista')
 @section('h1', 'Editar Compra')
 @section('sub', 'Modificar compra y corregir stock automáticamente.')
 

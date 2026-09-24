@@ -209,7 +209,7 @@ class ProductoController extends Controller
             );
 
         if ($manualMasNuevo) {
-            return round((float) $producto->precio_efectivo_manual / 1.40, 2);
+            return round((float) $producto->precio_efectivo_manual / 1.45, 2);
         }
 
         if ($ultimaCompra) {
@@ -217,10 +217,10 @@ class ProductoController extends Controller
         }
 
         if ($producto->precio_efectivo_manual !== null) {
-            return round((float) $producto->precio_efectivo_manual / 1.40, 2);
+            return round((float) $producto->precio_efectivo_manual / 1.45, 2);
         }
 
-        return round((float) $producto->precio_venta / 1.40, 2);
+        return round((float) $producto->precio_venta / 1.45, 2);
     }
 
     public function consumo(Request $request, Producto $producto)

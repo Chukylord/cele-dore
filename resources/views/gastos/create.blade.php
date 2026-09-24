@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nuevo gasto - FN Peluquería')
+@section('title', 'Nuevo gasto - Cele Dore Estilista')
 @section('h1', 'Nuevo Gasto')
 @section('sub', 'Registrar egreso manual.')
 

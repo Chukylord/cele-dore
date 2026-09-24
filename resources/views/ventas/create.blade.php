@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nueva venta - FN Peluquería')
+@section('title', 'Nueva venta - Cele Dore Estilista')
 @section('h1', 'Nueva Venta')
 @section('sub', 'Ingresar venta de servicios y/o productos.')
 
@@ -31,7 +31,7 @@
 @endphp
 
 @if($turno)
-    <div class="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-[#6f3e86]">
+    <div class="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-[#078263]">
         <div class="font-semibold">Venta generada desde turno</div>
         <div class="text-sm">Clienta: {{ $turno->cliente->nombre }} {{ $turno->cliente->apellido }}</div>
         <div class="text-sm">Turno: {{ $turno->inicio->format('d/m/Y H:i') }}</div>
@@ -825,7 +825,7 @@ function precioUnitarioEfectivoVenta(pid){
     }
 
     if(p.ultimo_costo !== null){
-        return round2(p.ultimo_costo * 1.40);
+        return round2(p.ultimo_costo * 1.45);
     }
 
     if(p.precio_efectivo_manual !== null){
@@ -842,10 +842,10 @@ function precioUnitarioCosto(pid){
 
     /*
         Si el precio manual es más nuevo que la última compra,
-        usamos el precio efectivo vigente y quitamos el 40%.
+        usamos el precio efectivo vigente y quitamos el 45%.
     */
     if(manualEsMasNuevoQueCompra(p)){
-        return round2(Number(p.precio_efectivo_manual || 0) / 1.40);
+        return round2(Number(p.precio_efectivo_manual || 0) / 1.45);
     }
 
     /* Si la compra es más reciente, usamos el costo real. */
@@ -855,10 +855,10 @@ function precioUnitarioCosto(pid){
 
     /* Producto sin compras: costo estimado desde el precio vigente. */
     if(p.precio_efectivo_manual !== null){
-        return round2(Number(p.precio_efectivo_manual) / 1.40);
+        return round2(Number(p.precio_efectivo_manual) / 1.45);
     }
 
-    return round2(Number(p.precio_manual || 0) / 1.40);
+    return round2(Number(p.precio_manual || 0) / 1.45);
 }
 
 function getDescPct(tr){

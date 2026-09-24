@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard - FN Peluquería')
+@section('title', 'Dashboard - Cele Dore Estilista')
 @section('h1', 'Dashboard')
 @section('sub', 'Resumen del día y accesos rápidos.')
 
 @section('content')
 
-<div class="min-h-full bg-[#f8f6fb]">
+<div class="min-h-full bg-[#f7fffc]">
 
     {{-- HERO --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-[#6f3e86] via-[#8f57a6] to-[#5c3272] px-6 py-8 lg:px-10 lg:py-10">
+    <section class="relative overflow-hidden bg-gradient-to-br from-[#078263] via-[#13c79a] to-[#05634d] px-6 py-8 lg:px-10 lg:py-10">
 
         <div class="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10"></div>
         <div class="absolute -bottom-32 right-48 h-72 w-72 rounded-full bg-white/5"></div>
@@ -26,7 +26,7 @@
                     </div>
 
                     <h1 class="mt-5 text-4xl font-black tracking-tight text-white sm:text-5xl">
-                        Bienvenida a FN Peluquería
+                        Bienvenida a Cele Dore Estilista
                     </h1>
 
                     <p class="mt-3 text-base leading-7 text-white/75 sm:text-lg">
@@ -38,8 +38,8 @@
                 <div class="hidden lg:block">
                     <div class="rounded-[30px] border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur">
                         <img
-                            src="{{ asset('images/fn-peluqueria-logo.jpeg') }}"
-                            alt="FN Peluquería"
+                            src="{{ asset('images/cele-dore-logo.png') }}"
+                            alt="Cele Dore Estilista"
                             class="h-44 w-44 rounded-[24px] object-cover"
                         >
                     </div>
@@ -61,7 +61,7 @@
             <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
 
                 <div>
-                    <div class="text-sm font-bold uppercase tracking-[0.15em] text-[#8f57a6]">
+                    <div class="text-sm font-bold uppercase tracking-[0.15em] text-[#13c79a]">
                         Resumen
                     </div>
 
@@ -74,9 +74,9 @@
                     </p>
                 </div>
 
-                <div class="rounded-2xl border border-[#e7e1ec] bg-white px-4 py-3 text-sm shadow-sm">
+                <div class="rounded-2xl border border-[#bdeedf] bg-white px-4 py-3 text-sm shadow-sm">
                     <span class="text-slate-400">Fecha:</span>
-                    <span class="ml-1 font-bold text-[#6f3e86]">
+                    <span class="ml-1 font-bold text-[#078263]">
                         {{ now()->format('d/m/Y') }}
                     </span>
                 </div>
@@ -88,7 +88,7 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 
                 {{-- VENTAS --}}
-                <div class="group rounded-[26px] border border-[#e7e1ec] bg-white p-5 shadow-[0_12px_30px_rgba(111,62,134,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(111,62,134,0.12)]">
+                <div class="group rounded-[26px] border border-[#bdeedf] bg-white p-5 shadow-[0_12px_30px_rgba(111,62,134,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(111,62,134,0.12)]">
 
                     <div class="flex items-start justify-between">
 
@@ -102,7 +102,7 @@
                             </div>
                         </div>
 
-                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#efe6f4] text-2xl">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#dff7ef] text-2xl">
                             💵
                         </div>
 
@@ -113,7 +113,7 @@
                             Cobrado hoy
                         </div>
 
-                        <div class="mt-1 text-lg font-black text-[#6f3e86]">
+                        <div class="mt-1 text-lg font-black text-[#078263]">
                             ${{ number_format((float)$totalHoy, 2, ',', '.') }}
                         </div>
                     </div>
@@ -153,7 +153,7 @@
 
 
                 {{-- TURNOS --}}
-                <div class="group rounded-[26px] border border-[#e7e1ec] bg-white p-5 shadow-[0_12px_30px_rgba(111,62,134,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(111,62,134,0.12)]">
+                <div class="group rounded-[26px] border border-[#bdeedf] bg-white p-5 shadow-[0_12px_30px_rgba(111,62,134,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(111,62,134,0.12)]">
 
                     <div class="flex items-start justify-between">
 
@@ -167,7 +167,7 @@
                             </div>
                         </div>
 
-                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#efe6f4] text-2xl">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#dff7ef] text-2xl">
                             📅
                         </div>
 
@@ -175,7 +175,7 @@
 
                     <a
                         href="{{ route('turnos.index') }}"
-                        class="mt-5 inline-flex items-center rounded-xl bg-[#8f57a6] px-3 py-2 text-sm font-bold text-white transition hover:bg-[#6f3e86]"
+                        class="mt-5 inline-flex items-center rounded-xl bg-[#13c79a] px-3 py-2 text-sm font-bold text-white transition hover:bg-[#078263]"
                     >
                         Abrir calendario →
                     </a>
@@ -184,7 +184,7 @@
 
 
                 {{-- STOCK --}}
-                <div class="group rounded-[26px] border border-[#e7e1ec] bg-white p-5 shadow-[0_12px_30px_rgba(111,62,134,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(111,62,134,0.12)]">
+                <div class="group rounded-[26px] border border-[#bdeedf] bg-white p-5 shadow-[0_12px_30px_rgba(111,62,134,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(111,62,134,0.12)]">
 
                     <div class="flex items-start justify-between">
 
@@ -198,7 +198,7 @@
                             </div>
                         </div>
 
-                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#efe6f4] text-2xl">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#dff7ef] text-2xl">
                             🧴
                         </div>
 
@@ -206,7 +206,7 @@
 
                     <a
                         href="{{ route('productos.index') }}"
-                        class="mt-5 inline-flex items-center rounded-xl border border-[#e7e1ec] px-3 py-2 text-sm font-bold text-[#6f3e86] transition hover:bg-[#f8f4fa]"
+                        class="mt-5 inline-flex items-center rounded-xl border border-[#bdeedf] px-3 py-2 text-sm font-bold text-[#078263] transition hover:bg-[#f8f4fa]"
                     >
                         Ver productos →
                     </a>
@@ -220,7 +220,7 @@
             <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1.6fr]">
 
                 {{-- HORAS --}}
-                <div class="rounded-[28px] border border-[#e7e1ec] bg-white p-6 shadow-[0_12px_30px_rgba(111,62,134,0.06)]">
+                <div class="rounded-[28px] border border-[#bdeedf] bg-white p-6 shadow-[0_12px_30px_rgba(111,62,134,0.06)]">
 
                     <div class="flex items-center justify-between">
 
@@ -235,7 +235,7 @@
                             </div>
                         </div>
 
-                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#efe6f4] text-3xl">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#dff7ef] text-3xl">
                             ⏱
                         </div>
 
@@ -247,7 +247,7 @@
 
                     <a
                         href="{{ route('fichadas.index') }}"
-                        class="mt-5 inline-flex rounded-xl border border-[#e7e1ec] px-4 py-2.5 text-sm font-bold text-[#6f3e86] transition hover:bg-[#f8f4fa]"
+                        class="mt-5 inline-flex rounded-xl border border-[#bdeedf] px-4 py-2.5 text-sm font-bold text-[#078263] transition hover:bg-[#f8f4fa]"
                     >
                         Ver fichadas
                     </a>
@@ -256,11 +256,11 @@
 
 
                 {{-- ACCIONES RÁPIDAS --}}
-                <div class="rounded-[28px] border border-[#e7e1ec] bg-white p-6 shadow-[0_12px_30px_rgba(111,62,134,0.06)]">
+                <div class="rounded-[28px] border border-[#bdeedf] bg-white p-6 shadow-[0_12px_30px_rgba(111,62,134,0.06)]">
 
                     <div class="mb-5">
 
-                        <div class="text-sm font-bold uppercase tracking-[0.15em] text-[#8f57a6]">
+                        <div class="text-sm font-bold uppercase tracking-[0.15em] text-[#13c79a]">
                             Accesos rápidos
                         </div>
 
@@ -275,7 +275,7 @@
 
                         <a
                             href="{{ route('ventas.create') }}"
-                            class="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-[#8f57a6] to-[#6f3e86] p-4 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+                            class="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-[#13c79a] to-[#078263] p-4 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
                         >
                             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-xl">
                                 💵
@@ -295,9 +295,9 @@
 
                         <a
                             href="{{ route('turnos.index') }}"
-                            class="group flex items-center gap-4 rounded-2xl border border-[#e7e1ec] bg-[#fcfbfe] p-4 transition hover:border-[#8f57a6] hover:bg-[#f8f4fa]"
+                            class="group flex items-center gap-4 rounded-2xl border border-[#bdeedf] bg-[#fcfbfe] p-4 transition hover:border-[#13c79a] hover:bg-[#f8f4fa]"
                         >
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#efe6f4] text-xl">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#dff7ef] text-xl">
                                 📅
                             </div>
 
@@ -315,9 +315,9 @@
 
                         <a
                             href="{{ route('compras.create') }}"
-                            class="group flex items-center gap-4 rounded-2xl border border-[#e7e1ec] bg-[#fcfbfe] p-4 transition hover:border-[#8f57a6] hover:bg-[#f8f4fa]"
+                            class="group flex items-center gap-4 rounded-2xl border border-[#bdeedf] bg-[#fcfbfe] p-4 transition hover:border-[#13c79a] hover:bg-[#f8f4fa]"
                         >
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#efe6f4] text-xl">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#dff7ef] text-xl">
                                 🛍
                             </div>
 
@@ -335,9 +335,9 @@
 
                         <a
                             href="{{ route('fichadas.create') }}"
-                            class="group flex items-center gap-4 rounded-2xl border border-[#e7e1ec] bg-[#fcfbfe] p-4 transition hover:border-[#8f57a6] hover:bg-[#f8f4fa]"
+                            class="group flex items-center gap-4 rounded-2xl border border-[#bdeedf] bg-[#fcfbfe] p-4 transition hover:border-[#13c79a] hover:bg-[#f8f4fa]"
                         >
-                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#efe6f4] text-xl">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#dff7ef] text-xl">
                                 ⏱
                             </div>
 
@@ -360,7 +360,7 @@
 
 
             {{-- GESTIÓN --}}
-            <div class="mt-6 rounded-[28px] bg-gradient-to-r from-[#5c3272] to-[#7b468f] p-6 text-white shadow-[0_18px_45px_rgba(92,50,114,0.20)]">
+            <div class="mt-6 rounded-[28px] bg-gradient-to-r from-[#05634d] to-[#7b468f] p-6 text-white shadow-[0_18px_45px_rgba(92,50,114,0.20)]">
 
                 <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
@@ -405,7 +405,7 @@
                         @if(auth()->user()->esAdmin())
                             <a
                                 href="{{ route('informes.index') }}"
-                                class="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-black text-[#6f3e86] transition hover:bg-[#f5eef8]"
+                                class="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-black text-[#078263] transition hover:bg-[#f5eef8]"
                             >
                                 Informes
                             </a>

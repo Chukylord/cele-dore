@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Caja diaria - FN Peluquería')
+@section('title', 'Caja diaria - Cele Dore Estilista')
 @section('h1', 'Caja diaria')
 @section('sub', 'Cobros del día, gastos rápidos y cierre de efectivo.')
 

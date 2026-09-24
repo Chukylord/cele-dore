@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nuevo producto - FN Peluquería')
+@section('title', 'Nuevo producto - Cele Dore Estilista')
 @section('h1', 'Nuevo Producto')
 @section('sub', 'Registrar un producto para ventas y stock.')
 

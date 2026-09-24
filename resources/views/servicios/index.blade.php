@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Servicios - FN Peluquería')
+@section('title', 'Servicios - Cele Dore Estilista')
 @section('h1', 'Servicios')
 @section('sub', 'Listado de servicios y precios.')
 

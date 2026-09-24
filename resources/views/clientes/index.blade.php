@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Clientes - fn peluqueria')
+@section('title', 'Clientes - Cele Dore Estilista')
 @section('h1', 'Fichas clientes')
 @section('sub', 'Alta, búsqueda e historial de clientas.')
 
@@ -27,7 +27,7 @@
 
     <div class="mb-4 flex items-center justify-between gap-3">
         <div>
-            <div class="text-xs font-bold uppercase tracking-[0.18em] text-[#8f57a6]">
+            <div class="text-xs font-bold uppercase tracking-[0.18em] text-[#13c79a]">
                 Clientes
             </div>
 
@@ -223,7 +223,7 @@
                                     </button>
                                 </div>
 
-                                <div class="mt-4 overflow-hidden rounded-2xl border border-[#e7e1ec] bg-[#f8f4fa]">
+                                <div class="mt-4 overflow-hidden rounded-2xl border border-[#bdeedf] bg-[#f8f4fa]">
                                     @foreach($lineasObs as $linea)
                                         <div class="px-4 py-3 text-slate-800 leading-relaxed break-words border-b last:border-b-0">
                                             {{ $linea }}

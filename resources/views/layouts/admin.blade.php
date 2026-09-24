@@ -3,24 +3,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'FN Peluquería')</title>
+    <title>@yield('title', 'Cele Dore Estilista')</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="fn-admin bg-[#f8f6fb] text-slate-900">
+<body class="fn-admin bg-[#f7fffc] text-slate-900">
 
 <div class="min-h-screen flex">
 
     {{-- SIDEBAR --}}
-    <aside class="w-64 bg-gradient-to-b from-[#6f3e86] via-[#77458e] to-[#5c3272] text-white p-4 flex flex-col shadow-[8px_0_30px_rgba(92,50,114,0.12)]">
+    <aside class="w-64 bg-gradient-to-b from-[#078263] via-[#77458e] to-[#05634d] text-white p-4 flex flex-col shadow-[8px_0_30px_rgba(92,50,114,0.12)]">
 
         {{-- LOGO --}}
         <div class="mb-7">
             <div class="rounded-[26px] bg-white/10 p-3 border border-white/10 shadow-lg">
                 <img
-                    src="{{ asset('images/fn-peluqueria-logo.jpeg') }}"
-                    alt="FN Peluquería"
+                    src="{{ asset('images/cele-dore-logo.png') }}"
+                    alt="Cele Dore Estilista"
                     class="w-full rounded-[20px] object-contain"
                 >
             </div>
@@ -45,7 +45,7 @@
                     href="{{ route('dashboard') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('dashboard')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>⌂</span>
@@ -63,7 +63,7 @@
                     href="{{ route('turnos.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('turnos.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>📅</span>
@@ -75,7 +75,7 @@
                     href="{{ route('ventas.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('ventas.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>💵</span>
@@ -87,7 +87,7 @@
                     href="{{ route('compras.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('compras.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>🛍</span>
@@ -99,7 +99,7 @@
                     href="{{ route('fichadas.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('fichadas.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>⏱</span>
@@ -111,7 +111,7 @@
                     href="{{ route('caja-diaria.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('caja-diaria.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>💰</span>
@@ -129,7 +129,7 @@
                     href="{{ route('clientes.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('clientes.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>👤</span>
@@ -141,7 +141,7 @@
                     href="{{ route('colaboradoras.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('colaboradoras.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>👥</span>
@@ -153,7 +153,7 @@
                     href="{{ route('productos.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('productos.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>🧴</span>
@@ -165,7 +165,7 @@
                     href="{{ route('servicios.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('servicios.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>✂</span>
@@ -177,7 +177,7 @@
                     href="{{ route('lista-precios.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('lista-precios.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>🏷</span>
@@ -189,7 +189,7 @@
                     href="{{ route('proveedores.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     {{ request()->routeIs('proveedores.*')
-                        ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                        ? 'bg-white text-[#078263] shadow-md font-bold'
                         : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                 >
                     <span>🚚</span>
@@ -209,7 +209,7 @@
                         href="{{ route('gastos.index') }}"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                         {{ request()->routeIs('gastos.*')
-                            ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                            ? 'bg-white text-[#078263] shadow-md font-bold'
                             : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                     >
                         <span>↘</span>
@@ -221,7 +221,7 @@
                         href="{{ route('liquidaciones.index') }}"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                         {{ request()->routeIs('liquidaciones.*')
-                            ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                            ? 'bg-white text-[#078263] shadow-md font-bold'
                             : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                     >
                         <span>🧾</span>
@@ -233,7 +233,7 @@
                         href="{{ route('informes.index') }}"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                         {{ request()->routeIs('informes.*')
-                            ? 'bg-white text-[#6f3e86] shadow-md font-bold'
+                            ? 'bg-white text-[#078263] shadow-md font-bold'
                             : 'text-white/90 hover:bg-white/10 hover:text-white' }}"
                     >
                         <span>📊</span>
@@ -285,19 +285,19 @@
 
 
         {{-- BARRA SUPERIOR --}}
-        <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-[#e7e1ec] shadow-sm">
+        <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-[#bdeedf] shadow-sm">
 
             <div class="px-6 py-3.5 flex items-center justify-between gap-4">
 
                 <div class="flex items-center gap-3">
 
-                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#efe6f4] text-[#6f3e86] font-black">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#dff7ef] text-[#078263] font-black">
                         FN
                     </div>
 
                     <div>
                         <div class="text-sm font-bold text-[#241a2c]">
-                            FN Peluquería
+                            Cele Dore Estilista
                         </div>
 
                         <div class="text-xs text-slate-400">
@@ -313,7 +313,7 @@
 
                     <a
                         href="{{ route('clientes.index') }}"
-                        class="rounded-xl border border-[#e7e1ec] bg-white px-3 py-2 hover:border-[#8f57a6] hover:bg-[#f8f4fa] text-sm transition"
+                        class="rounded-xl border border-[#bdeedf] bg-white px-3 py-2 hover:border-[#13c79a] hover:bg-[#f8f4fa] text-sm transition"
                     >
                         👤 Clientes
                     </a>
@@ -321,7 +321,7 @@
 
                     <a
                         href="{{ route('compras.create') }}"
-                        class="rounded-xl border border-[#e7e1ec] bg-white px-3 py-2 hover:border-[#8f57a6] hover:bg-[#f8f4fa] text-sm transition"
+                        class="rounded-xl border border-[#bdeedf] bg-white px-3 py-2 hover:border-[#13c79a] hover:bg-[#f8f4fa] text-sm transition"
                     >
                         ➕ Compra
                     </a>
@@ -329,7 +329,7 @@
 
                     <a
                         href="{{ route('ventas.create') }}"
-                        class="rounded-xl bg-[#8f57a6] px-3 py-2 text-white hover:bg-[#6f3e86] text-sm font-semibold shadow-sm transition"
+                        class="rounded-xl bg-[#13c79a] px-3 py-2 text-white hover:bg-[#078263] text-sm font-semibold shadow-sm transition"
                     >
                         💵 Venta
                     </a>
@@ -337,7 +337,7 @@
 
                     <a
                         href="{{ route('turnos.index') }}"
-                        class="rounded-xl border border-[#e7e1ec] bg-white px-3 py-2 hover:border-[#8f57a6] hover:bg-[#f8f4fa] text-sm transition"
+                        class="rounded-xl border border-[#bdeedf] bg-white px-3 py-2 hover:border-[#13c79a] hover:bg-[#f8f4fa] text-sm transition"
                     >
                         📅 Turnos
                     </a>
@@ -345,7 +345,7 @@
 
                     <a
                         href="{{ route('fichadas.create') }}"
-                        class="rounded-xl border border-[#e7e1ec] bg-white px-3 py-2 hover:border-[#8f57a6] hover:bg-[#f8f4fa] text-sm transition"
+                        class="rounded-xl border border-[#bdeedf] bg-white px-3 py-2 hover:border-[#13c79a] hover:bg-[#f8f4fa] text-sm transition"
                     >
                         ⏱ Fichada
                     </a>
@@ -361,14 +361,14 @@
         {{-- DASHBOARD --}}
         @if(request()->routeIs('dashboard'))
 
-            <main class="flex-1 p-0 bg-[#f8f6fb]">
+            <main class="flex-1 p-0 bg-[#f7fffc]">
                 @yield('content')
             </main>
 
         @else
 
             {{-- RESTO DEL SISTEMA --}}
-            <main class="flex-1 p-6 bg-[#f8f6fb]">
+            <main class="flex-1 p-6 bg-[#f7fffc]">
 
                 <div class="max-w-6xl mx-auto">
 
@@ -387,7 +387,7 @@
                     </div>
 
 
-                    <div class="bg-white rounded-[26px] border border-[#e7e1ec] shadow-[0_12px_35px_rgba(111,62,134,0.07)] p-6">
+                    <div class="bg-white rounded-[26px] border border-[#bdeedf] shadow-[0_12px_35px_rgba(111,62,134,0.07)] p-6">
                         @yield('content')
                     </div>
 

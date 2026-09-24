@@ -4,18 +4,18 @@
 
 
 /* =========================================================
-   FN PELUQUERÍA — SISTEMA VISUAL
+   CELE DORE ESTILISTA — SISTEMA VISUAL
    ========================================================= */
 
 :root {
-    --fn-primary: #8f57a6;
-    --fn-primary-dark: #6f3e86;
-    --fn-primary-darker: #5c3272;
+    --fn-primary: #13c79a;
+    --fn-primary-dark: #078263;
+    --fn-primary-darker: #05634d;
 
-    --fn-soft: #efe6f4;
-    --fn-background: #f8f6fb;
+    --fn-soft: #dff7ef;
+    --fn-background: #f7fffc;
 
-    --fn-border: #e7e1ec;
+    --fn-border: #bdeedf;
     --fn-text: #241a2c;
 }
 
